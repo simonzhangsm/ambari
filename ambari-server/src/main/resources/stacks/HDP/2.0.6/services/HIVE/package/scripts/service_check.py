@@ -18,27 +18,28 @@ limitations under the License.
 
 """
 
-from resource_management import *
 import socket
 import sys
 
 from hcat_service_check import hcat_service_check
+from resource_management import *
+
 
 class HiveServiceCheck(Script):
   def service_check(self, env):
     import params
     env.set_params(params)
 
-    address=format("{hive_server_host}")
-    port=int(format("{hive_server_port}"))
+    address = format("{hive_server_host}")
+    port = int(format("{hive_server_port}"))
     s = socket.socket()
-    print "Test connectivity to hive server"
+    print("Test connectivity to hive server")
     try:
       s.connect((address, port))
-      print "Successfully connected to %s on port %s" % (address, port)
+      print("Successfully connected to %s on port %s" % (address, port))
       s.close()
-    except socket.error, e:
-      print "Connection to %s on port %s failed: %s" % (address, port, e)
+    except socket.error as e:
+      print("Connection to %s on port %s failed: %s" % (address, port, e))
       sys.exit(1)
 
     hcat_service_check()

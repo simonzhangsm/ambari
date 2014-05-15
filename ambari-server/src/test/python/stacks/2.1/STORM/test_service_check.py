@@ -18,11 +18,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from mock.mock import MagicMock, call, patch
-from stacks.utils.RMFTestCase import *
 import datetime
+
+from mock import MagicMock, call, patch
+
+from stacks.utils.RMFTestCase import *
 import  resource_management.libraries.functions
-@patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new = MagicMock(return_value=''))
+
+
+@patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new=MagicMock(return_value=''))
 
 class TestStormServiceCheck(RMFTestCase):
 
@@ -34,10 +38,10 @@ class TestStormServiceCheck(RMFTestCase):
     )
 
     self.assertResourceCalled('File', '/tmp/wordCount.jar',
-      content = StaticFile('wordCount.jar'),
+      content=StaticFile('wordCount.jar'),
     )
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 storm jar /tmp/wordCount.jar storm.starter.WordCountTopology WordCount -c nimbus.host=c6402.ambari.apache.org',
-      logoutput = True,
+      logoutput=True,
     )
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 storm kill WordCount')
 

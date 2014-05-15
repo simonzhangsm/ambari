@@ -19,11 +19,11 @@ limitations under the License.
 """
 
 import sys
+
 from resource_management import *
+import hbase
 
-from hbase import hbase
 
-         
 class HbaseClient(Script):
   def install(self, env):
     self.install_packages(env)

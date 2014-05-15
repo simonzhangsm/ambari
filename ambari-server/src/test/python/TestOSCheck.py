@@ -18,17 +18,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import platform
-import datetime
-import os
-import errno
-import tempfile
-import sys
 from unittest import TestCase
-from mock.mock import patch
+import sys
+import tempfile
 
+from mock import patch
+
+from ambari_server import os_check_type
 from common_functions import OSCheck
-import os_check_type
+
 
 with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):
   # We have to use this import HACK because the filename contains a dash
@@ -36,118 +34,116 @@ with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):
 
 
 class TestOSCheck(TestCase):
-  @patch("platform.linux_distribution")
+  
+  @patch("platform.system")
   @patch("os.path.exists")
-  def test_get_os_type(self, mock_exists, mock_linux_distribution):
+  def test_get_os_type(self, mock_exists, mock_system):
 
     # 1 - Any system
     mock_exists.return_value = False
-    mock_linux_distribution.return_value = ('my_os', '', '')
+    mock_system.return_value = 'my_os'
     result = OSCheck.get_os_type()
-    self.assertEquals(result, 'my_os')
+    self.assertEqual(result, 'my_os')
 
     # 2 - Negative case
-    mock_linux_distribution.return_value = ('', 'aaaa', 'bbbbb')
+    mock_system.return_value = ('')
     try:
       result = OSCheck.get_os_type()
-      self.fail("Should throw exception in OSCheck.get_os_type()")
     except Exception as e:
       # Expected
-      self.assertEquals("Cannot detect os type. Exiting...", str(e))
+      self.assertEqual("Cannot detect os type. Exiting...", str(e))
       pass
 
     # 3 - path exist: '/etc/oracle-release'
     mock_exists.return_value = True
-    mock_linux_distribution.return_value = ('some_os', '', '')
+    mock_system.return_value = 'some_os'
     result = OSCheck.get_os_type()
-    self.assertEquals(result, 'oraclelinux')
+    self.assertEqual(result, 'oraclelinux')
 
     # 4 - Common system
     mock_exists.return_value = False
-    mock_linux_distribution.return_value = ('CenToS', '', '')
+    mock_system.return_value = 'CenToS'
     result = OSCheck.get_os_type()
-    self.assertEquals(result, 'centos')
+    self.assertEqual(result, 'centos')
 
-
-  @patch("platform.linux_distribution")
+  @patch("platform.system")
   @patch("os.path.exists")
-  def test_get_os_family(self, mock_exists, mock_linux_distribution):
+  def test_get_os_family(self, mock_exists, mock_system):
 
     # 1 - Any system
     mock_exists.return_value = False
-    mock_linux_distribution.return_value = ('MY_os', '', '')
+    mock_system.return_value = 'MY_os'
     result = OSCheck.get_os_family()
-    self.assertEquals(result, 'my_os')
+    self.assertEqual(result, 'my_os')
 
     # 2 - Redhat
     mock_exists.return_value = False
-    mock_linux_distribution.return_value = ('Centos Linux', '', '')
+    mock_system.return_value = 'Centos Linux'
     result = OSCheck.get_os_family()
-    self.assertEquals(result, 'redhat')
+    self.assertEqual(result, 'redhat')
 
     # 3 - Debian
     mock_exists.return_value = False
-    mock_linux_distribution.return_value = ('Ubuntu', '', '')
+    mock_system.return_value = 'Ubuntu'
     result = OSCheck.get_os_family()
-    self.assertEquals(result, 'debian')
+    self.assertEqual(result, 'debian')
 
     # 4 - Suse
     mock_exists.return_value = False
-    mock_linux_distribution.return_value = (
-    'suse linux enterprise server', '', '')
+    mock_system.return_value = 'suse linux enterprise server'
     result = OSCheck.get_os_family()
-    self.assertEquals(result, 'suse')
+    self.assertEqual(result, 'suse')
 
     mock_exists.return_value = False
-    mock_linux_distribution.return_value = ('SLED', '', '')
+    mock_system.return_value = 'SLED'
     result = OSCheck.get_os_family()
-    self.assertEquals(result, 'suse')
+    self.assertEqual(result, 'suse')
 
     # 5 - Negative case
-    mock_linux_distribution.return_value = ('', '111', '2222')
+    mock_system.return_value = ''
     try:
       result = OSCheck.get_os_family()
       self.fail("Should throw exception in OSCheck.get_os_family()")
     except Exception as e:
       # Expected
-      self.assertEquals("Cannot detect os type. Exiting...", str(e))
+      self.assertEqual("Cannot detect os type. Exiting...", str(e))
       pass
 
 
-  @patch("platform.linux_distribution")
+  @patch("platform.release")
   def test_get_os_version(self, mock_linux_distribution):
 
     # 1 - Any system
-    mock_linux_distribution.return_value = ('', '123.45', '')
+    mock_linux_distribution.return_value = '123.45'
     result = OSCheck.get_os_version()
-    self.assertEquals(result, '123.45')
+    self.assertEqual(result, '123.45')
 
     # 2 - Negative case
-    mock_linux_distribution.return_value = ('ssss', '', 'ddddd')
+    mock_linux_distribution.return_value = ''
     try:
       result = OSCheck.get_os_version()
       self.fail("Should throw exception in OSCheck.get_os_version()")
     except Exception as e:
       # Expected
-      self.assertEquals("Cannot detect os version. Exiting...", str(e))
+      self.assertEqual("Cannot detect os version. Exiting...", str(e))
       pass
 
 
-  @patch("platform.linux_distribution")
-  def test_get_os_major_version(self, mock_linux_distribution):
+  @patch("platform.release")
+  def test_get_os_major_version(self, mock_release):
 
     # 1
-    mock_linux_distribution.return_value = ('', '123.45.67', '')
+    mock_release.return_value = '123.45.67'
     result = OSCheck.get_os_major_version()
-    self.assertEquals(result, '123')
+    self.assertEqual(result, '123')
 
     # 2
-    mock_linux_distribution.return_value = ('Suse', '11', '')
+    mock_release.return_value = '11'
     result = OSCheck.get_os_major_version()
-    self.assertEquals(result, '11')
+    self.assertEqual(result, '11')
 
 
-  @patch("platform.linux_distribution")
+  @patch.object(OSCheck, "linux_distribution")
   def test_get_os_release_name(self, mock_linux_distribution):
 
     # 1 - Any system
@@ -192,7 +188,7 @@ class TestOSCheck(TestCase):
       for line in properties:
         f.write(line)
 
-    #Call tested method
+    # Call tested method
     ambari_server.update_ambari_properties()
 
     with open(ambari_server.AMBARI_PROPERTIES_FILE, 'r') as f:
@@ -200,23 +196,25 @@ class TestOSCheck(TestCase):
 
     count = 0
     for line in ambari_properties_content:
-      if ( not line.startswith('#') ):
+      if (not line.startswith('#')):
         count += 1
         if (line == "server.os_type=old_sys_os6\n"):
           self.fail("line=" + line)
         else:
           pass
 
-    self.assertEquals(count, 8)
+    self.assertEqual(count, 8)
     # Command should not fail if *.rpmsave file is missing
     result = ambari_server.update_ambari_properties()
-    self.assertEquals(result, 0)
+    self.assertEqual(result, 0)
 
-  @patch("platform.linux_distribution")
-  def test_os_type_check(self, mock_linux_distribution):
+  @patch("platform.release")
+  @patch("platform.system")
+  def test_os_type_check(self, mock_system, mock_release):
 
     # 1 - server and agent os compatible
-    mock_linux_distribution.return_value = ('aaa', '11', 'bb')
+    mock_release.return_value = '11'
+    mock_system.return_value = 'aaa'
     base_args = ["os_check_type.py", "aaa11"]
     sys.argv = list(base_args)
 
@@ -224,10 +222,11 @@ class TestOSCheck(TestCase):
       os_check_type.main()
     except SystemExit as e:
       # exit_code=0
-      self.assertEquals("0", str(e))
+      self.assertEqual("0", str(e))
 
     # 2 - server and agent os is not compatible
-    mock_linux_distribution.return_value = ('ddd', '33', 'bb')
+    mock_system.return_value = 'ddd'
+    mock_release.return_value = '33'
     base_args = ["os_check_type.py", "zzz_x77"]
     sys.argv = list(base_args)
 
@@ -235,7 +234,7 @@ class TestOSCheck(TestCase):
       os_check_type.main()
       self.fail("Must fail because os's not compatible.")
     except Exception as e:
-      self.assertEquals(
+      self.assertEqual(
         "Local OS is not compatible with cluster primary OS. Please perform manual bootstrap on this host.",
         str(e))
       pass

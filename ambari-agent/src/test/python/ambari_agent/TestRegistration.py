@@ -21,10 +21,10 @@ limitations under the License.
 from unittest import TestCase
 import os
 import tempfile
-from mock.mock import patch
-from mock.mock import MagicMock
+from mock import patch
+from mock import MagicMock
 
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):
   from ambari_agent.Register import Register
   from ambari_agent.AmbariConfig import AmbariConfig
   from ambari_agent.HostInfo import HostInfo
@@ -49,17 +49,17 @@ class TestRegistration(TestCase):
 
     register = Register(config)
     data = register.build(1)
-    #print ("Register: " + pprint.pformat(data))
-    self.assertEquals(len(data['hardwareProfile']) > 0, True, "hardwareProfile should contain content")
-    self.assertEquals(data['hostname'] != "", True, "hostname should not be empty")
-    self.assertEquals(data['publicHostname'] != "", True, "publicHostname should not be empty")
-    self.assertEquals(data['responseId'], 1)
-    self.assertEquals(data['timestamp'] > 1353678475465L, True, "timestamp should not be empty")
-    self.assertEquals(len(data['agentEnv']) > 0, True, "agentEnv should not be empty")
-    self.assertEquals(data['agentVersion'], '1.3.0', "agentVersion should not be empty")
-    print data['agentEnv']['umask']
-    self.assertEquals(not data['agentEnv']['umask']== "", True, "agents umask should not be empty")
-    self.assertEquals(data['currentPingPort'] == 33777, True, "current ping port should be 33777")
-    self.assertEquals(len(data), 8)
+    # print ("Register: " + pprint.pformat(data))
+    self.assertEqual(len(data['hardwareProfile']) > 0, True, "hardwareProfile should contain content")
+    self.assertEqual(data['hostname'] != "", True, "hostname should not be empty")
+    self.assertEqual(data['publicHostname'] != "", True, "publicHostname should not be empty")
+    self.assertEqual(data['responseId'], 1)
+    self.assertEqual(data['timestamp'] > 1353678475465, True, "timestamp should not be empty")
+    self.assertEqual(len(data['agentEnv']) > 0, True, "agentEnv should not be empty")
+    self.assertEqual(data['agentVersion'], '1.3.0', "agentVersion should not be empty")
+    print(data['agentEnv']['umask'])
+    self.assertEqual(not data['agentEnv']['umask'] == "", True, "agents umask should not be empty")
+    self.assertEqual(data['currentPingPort'] == 33777, True, "current ping port should be 33777")
+    self.assertEqual(len(data), 8)
 
     os.remove(ver_file)

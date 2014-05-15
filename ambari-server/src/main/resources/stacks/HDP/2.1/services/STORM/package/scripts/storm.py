@@ -18,9 +18,10 @@ limitations under the License.
 
 """
 
+import sys
+
 from resource_management import *
 from yaml_config import yaml_config
-import sys
 
 
 def storm():

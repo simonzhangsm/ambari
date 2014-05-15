@@ -20,74 +20,75 @@ limitations under the License.
 
 from stacks.utils.RMFTestCase import *
 
+
 class TestPigServiceCheck(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("1.3.2/services/PIG/package/scripts/service_check.py",
-                       classname = "PigServiceCheck",
-                       command = "service_check",
+                       classname="PigServiceCheck",
+                       command="service_check",
                        config_file="default.json"
     )
     
     self.assertResourceCalled('ExecuteHadoop', 'dfs -rmr pigsmoke.out passwd; hadoop dfs -put /etc/passwd passwd ',
-      try_sleep = 5,
-      tries = 3,
-      user = 'ambari-qa',
-      conf_dir = '/etc/hadoop/conf',
-      security_enabled = False,
-      keytab = UnknownConfigurationMock(),
-      kinit_path_local = '/usr/bin/kinit',
+      try_sleep=5,
+      tries=3,
+      user='ambari-qa',
+      conf_dir='/etc/hadoop/conf',
+      security_enabled=False,
+      keytab=UnknownConfigurationMock(),
+      kinit_path_local='/usr/bin/kinit',
     )
        
     self.assertResourceCalled('File', '/tmp/pigSmoke.sh',
-      content = StaticFile('pigSmoke.sh'),
-      mode = 0755,
+      content=StaticFile('pigSmoke.sh'),
+      mode=0o755,
     )
        
     self.assertResourceCalled('Execute', 'pig /tmp/pigSmoke.sh',
-      path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-      tries = 3,
-      user = 'ambari-qa',
-      try_sleep = 5,
+      path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+      tries=3,
+      user='ambari-qa',
+      try_sleep=5,
     )
        
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e pigsmoke.out',
-      user = 'ambari-qa',
-      conf_dir = '/etc/hadoop/conf',
+      user='ambari-qa',
+      conf_dir='/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
     self.executeScript("1.3.2/services/PIG/package/scripts/service_check.py",
-                       classname = "PigServiceCheck",
-                       command = "service_check",
+                       classname="PigServiceCheck",
+                       command="service_check",
                        config_file="secured.json"
     )
     
     self.assertResourceCalled('ExecuteHadoop', 'dfs -rmr pigsmoke.out passwd; hadoop dfs -put /etc/passwd passwd ',
-      try_sleep = 5,
-      tries = 3,
-      user = 'ambari-qa',
-      conf_dir = '/etc/hadoop/conf',
-      security_enabled = True, 
-      keytab = '/etc/security/keytabs/smokeuser.headless.keytab',
-      kinit_path_local = '/usr/bin/kinit',
+      try_sleep=5,
+      tries=3,
+      user='ambari-qa',
+      conf_dir='/etc/hadoop/conf',
+      security_enabled=True,
+      keytab='/etc/security/keytabs/smokeuser.headless.keytab',
+      kinit_path_local='/usr/bin/kinit',
     )
        
     self.assertResourceCalled('File', '/tmp/pigSmoke.sh',
-      content = StaticFile('pigSmoke.sh'),
-      mode = 0755,
+      content=StaticFile('pigSmoke.sh'),
+      mode=0o755,
     )
        
     self.assertResourceCalled('Execute', 'pig /tmp/pigSmoke.sh',
-      path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-      tries = 3,
-      user = 'ambari-qa',
-      try_sleep = 5,
+      path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+      tries=3,
+      user='ambari-qa',
+      try_sleep=5,
     )
        
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e pigsmoke.out',
-      user = 'ambari-qa',
-      conf_dir = '/etc/hadoop/conf',
+      user='ambari-qa',
+      conf_dir='/etc/hadoop/conf',
     )
     self.assertNoMoreResources()

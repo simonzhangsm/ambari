@@ -19,17 +19,17 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-#from Register import Register
+# from Register import Register
 from ambari_agent.Controller import Controller
 from ambari_agent.Heartbeat import Heartbeat
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent import AmbariConfig
 from ambari_agent.NetUtil import NetUtil
-import socket, ConfigParser, logging
+import socket, configparser, logging
 import os, pprint, json, sys, unittest
 from threading import Thread
 import time
-import Queue
+import queue
 
 logger = logging.getLogger()
 
@@ -40,7 +40,7 @@ class TestController(TestCase):
 # it may be run in IntelliJ IDEA debugger
 
   def setUp(self):
-    #logger.disabled = True
+    # logger.disabled = True
     self.defaulttimeout = -1.0
     if hasattr(socket, 'getdefaulttimeout'):
       # Set the default timeout on sockets
@@ -50,7 +50,7 @@ class TestController(TestCase):
     if self.defaulttimeout is not None and self.defaulttimeout > 0 and hasattr(socket, 'setdefaulttimeout'):
       # Set the default timeout on sockets
       socket.setdefaulttimeout(self.defaulttimeout)
-      #logger.disabled = False
+      # logger.disabled = False
 
   def test_custom(self):
     '''

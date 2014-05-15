@@ -40,7 +40,7 @@ def namenode(action=None, do_format=True):
     namenode_safe_mode_off = format("su - {hdfs_user} -c 'hadoop dfsadmin -safemode get' | grep 'Safe mode is OFF'")
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_user}"),
-              user = params.hdfs_user)
+              user=params.hdfs_user)
     Execute(namenode_safe_mode_off,
             tries=40,
             try_sleep=10
@@ -49,7 +49,7 @@ def namenode(action=None, do_format=True):
 
   if action == "stop":
     service(
-      action="stop", name="namenode", 
+      action="stop", name="namenode",
       user=params.hdfs_user,
     )
 
@@ -61,7 +61,7 @@ def create_name_dirs(directories):
 
   dirs = directories.split(",")
   Directory(dirs,
-            mode=0755,
+            mode=0o755,
             owner=params.hdfs_user,
             group=params.user_group,
             recursive=True
@@ -73,7 +73,7 @@ def create_hdfs_directories():
   params.HdfsDirectory("/tmp",
                        action="create_delayed",
                        owner=params.hdfs_user,
-                       mode=0777
+                       mode=0o777
   )
   params.HdfsDirectory(params.smoke_hdfs_user_dir,
                        action="create_delayed",
@@ -97,7 +97,7 @@ def format_namenode(force=None):
     else:
       File('/tmp/checkForFormat.sh',
            content=StaticFile("checkForFormat.sh"),
-           mode=0755)
+           mode=0o755)
       Execute(format(
         "sh /tmp/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} {mark_dir} "
         "{dfs_name_dir}"),

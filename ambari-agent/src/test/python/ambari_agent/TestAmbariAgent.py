@@ -22,8 +22,8 @@ import unittest
 import subprocess
 import os
 import sys
-from mock.mock import MagicMock, patch, ANY
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+from mock import MagicMock, patch, ANY
+with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):
   from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
   from ambari_agent import AmbariAgent
 
@@ -40,7 +40,7 @@ class TestAmbariAgent(unittest.TestCase):
     facter1.returncode = 77
     facter2.returncode = 55
     os_path_isfile_mock.return_value = True
-    if not (os.environ.has_key("PYTHON")):
+    if not ("PYTHON" in os.environ):
       os.environ['PYTHON'] = "test/python/path"
     sys.argv[0] = "test data"
     AmbariAgent.main()

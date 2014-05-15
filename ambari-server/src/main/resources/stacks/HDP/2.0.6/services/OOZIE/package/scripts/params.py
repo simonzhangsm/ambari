@@ -18,8 +18,11 @@ limitations under the License.
 
 """
 
+import functools
+
 from resource_management import *
 import status_params
+
 
 # server configurations
 config = Script.get_config()
@@ -43,9 +46,9 @@ ext_js_path = "/usr/share/HDP-oozie/ext-2.2.zip"
 oozie_libext_dir = "/usr/lib/oozie/libext"
 lzo_enabled = config['configurations']['global']['lzo_enabled']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = (not is_empty(_authentication) and _authentication == 'kerberos')
 
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']
 oozie_principal = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']
 smokeuser_keytab = config['configurations']['global']['smokeuser_keytab']
@@ -56,7 +59,7 @@ java_share_dir = "/usr/share/java"
 
 java_home = config['hostLevelParams']['java_home']
 oozie_metastore_user_name = config['configurations']['oozie-site']['oozie.service.JPAService.jdbc.username']
-oozie_metastore_user_passwd = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.password","")
+oozie_metastore_user_passwd = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.password", "")
 oozie_jdbc_connection_url = default("/configurations/oozie-site/oozie.service.JPAService.jdbc.url", "")
 oozie_log_dir = config['configurations']['global']['oozie_log_dir']
 oozie_data_dir = config['configurations']['global']['oozie_data_dir']
@@ -79,31 +82,30 @@ else:
 hostname = config["hostname"]
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 falcon_host = default("/clusterHostInfo/falcon_server_hosts", [])
-has_falcon_host = not len(falcon_host)  == 0
+has_falcon_host = not len(falcon_host) == 0
 falcon_home = '/usr/lib/falcon'
 
-#oozie-log4j.properties
+# oozie-log4j.properties
 if (('oozie-log4j' in config['configurations']) and ('content' in config['configurations']['oozie-log4j'])):
   log4j_props = config['configurations']['oozie-log4j']['content']
 else:
   log4j_props = None
 
 oozie_hdfs_user_dir = format("/user/{oozie_user}")
-oozie_hdfs_user_mode = 0775
-#for create_hdfs_directory
+oozie_hdfs_user_mode = 0o775
+# for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
 hdfs_user = config['configurations']['global']['hdfs_user']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-import functools
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+# create partial functions with common arguments for every HdfsDirectory call
+# to create hdfs directory we need to call params.HdfsDirectory in code
 HdfsDirectory = functools.partial(
   HdfsDirectory,
   conf_dir=hadoop_conf_dir,
   hdfs_user=hdfs_user,
-  security_enabled = security_enabled,
-  keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  security_enabled=security_enabled,
+  keytab=hdfs_user_keytab,
+  kinit_path_local=kinit_path_local
 )

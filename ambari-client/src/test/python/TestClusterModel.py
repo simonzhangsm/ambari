@@ -19,7 +19,7 @@ limitations under the License.
 '''
 import logging
 
-from mock.mock import MagicMock, patch
+from mock import MagicMock, patch
 from HttpClientInvoker import HttpClientInvoker
 
 from ambari_client.ambari_api import  AmbariClient
@@ -34,7 +34,7 @@ class TestClusterModel(unittest.TestCase):
     http_client_logger = logging.getLogger()
     http_client_logger.info('Running test:' + self.id())
 
-  def create_cluster(self, http_client_mock = MagicMock()):    
+  def create_cluster(self, http_client_mock=MagicMock()):    
     http_client_mock.invoke.side_effect = HttpClientInvoker.http_client_invoke_side_effects
     client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)
     return client.get_cluster('test1')
@@ -251,7 +251,7 @@ class TestClusterModel(unittest.TestCase):
     expected_request = [{'ServiceInfo': {'service_name': 'HDFS'}}, {'ServiceInfo': {'service_name': 'YARN'}}, {'ServiceInfo': {'service_name': 'MAPREDUCEv2'}}, {'ServiceInfo': {'service_name': 'TEZ'}}]
     
     cluster = self.create_cluster(http_client_mock)
-    resp = cluster.create_services(['HDFS','YARN','MAPREDUCEv2','TEZ'])
+    resp = cluster.create_services(['HDFS', 'YARN', 'MAPREDUCEv2', 'TEZ'])
     
     self.assertEqual(cluster.cluster_name, "test1")
     http_client_mock.invoke.assert_called_with('POST', expected_path, headers=None, payload=expected_request)
@@ -263,7 +263,7 @@ class TestClusterModel(unittest.TestCase):
     http_client_mock = MagicMock()
     
     expected_path = '//clusters/test1/services/?ServiceInfo/service_name=HDFS'
-    expected_request = {'components': [{'ServiceComponentInfo': {'component_name': u'NODEMANAGER'}}, {'ServiceComponentInfo': {'component_name': u'RESOURCEMANAGER'}}, {'ServiceComponentInfo': {'component_name': u'YARN_CLIENT'}}]}
+    expected_request = {'components': [{'ServiceComponentInfo': {'component_name': 'NODEMANAGER'}}, {'ServiceComponentInfo': {'component_name': 'RESOURCEMANAGER'}}, {'ServiceComponentInfo': {'component_name': 'YARN_CLIENT'}}]}
     
     cluster = self.create_cluster(http_client_mock)
     resp = cluster.create_service_components("2.0.5", "HDFS")
@@ -280,7 +280,7 @@ class TestClusterModel(unittest.TestCase):
     expected_path = '//clusters/test1/services/HDFS/components/NAMENODE'
     
     cluster = self.create_cluster(http_client_mock)
-    resp = cluster.create_service_component("2.0.5", "HDFS","NAMENODE")
+    resp = cluster.create_service_component("2.0.5", "HDFS", "NAMENODE")
     
     self.assertEqual(cluster.cluster_name, "test1")
     http_client_mock.invoke.assert_called_with('POST', expected_path, headers=None, payload=None)
@@ -295,7 +295,7 @@ class TestClusterModel(unittest.TestCase):
     expected_request = [{'Hosts': {'ip': '1.2.3.4', 'host_name': 'hostname01', 'rack_info': '/default-rack'}}, {'Hosts': {'ip': '2.3.1.22', 'host_name': 'hostname02', 'rack_info': 'rack'}}]
         
     cluster = self.create_cluster(http_client_mock)
-    host_list = [HostModel(None, 'hostname01','1.2.3.4'), HostModel(None, 'hostname02','2.3.1.22','rack')]
+    host_list = [HostModel(None, 'hostname01', '1.2.3.4'), HostModel(None, 'hostname02', '2.3.1.22', 'rack')]
     resp = cluster.create_hosts(host_list)
     
     self.assertEqual(cluster.cluster_name, "test1")
@@ -311,7 +311,7 @@ class TestClusterModel(unittest.TestCase):
     expected_request = [{'Hosts': {'ip': '1.2.3.4', 'host_name': 'hostname01', 'rack_info': '/default-rack'}}]
             
     cluster = self.create_cluster(http_client_mock)
-    resp = cluster.create_host('hostname01','1.2.3.4')
+    resp = cluster.create_host('hostname01', '1.2.3.4')
     
     self.assertEqual(cluster.cluster_name, "test1")
     http_client_mock.invoke.assert_called_with('POST', expected_path, headers=None, payload=expected_request)
@@ -340,11 +340,11 @@ class TestClusterModel(unittest.TestCase):
     
     try:
       cluster.delete_host('deleted_nonexistant_cluster')
-      print http_client_mock.invoke.call_args_list
+      print(http_client_mock.invoke.call_args_list)
       self.fail('Exception should have been thrown!')
-    except BadRequest, ex:
-      self.assertEquals(str(ex), 'exception: 400. Attempted to add unknown hosts to a cluster.  These hosts have not been registered with the server: dev05')
-    except Exception, ex:
+    except BadRequest as ex:
+      self.assertEqual(str(ex), 'exception: 400. Attempted to add unknown hosts to a cluster.  These hosts have not been registered with the server: dev05')
+    except Exception as ex:
       self.fail('Wrong exception thrown!')
     
   def test_start_all_services(self):
@@ -404,7 +404,7 @@ class TestClusterModel(unittest.TestCase):
     expected_request = {'Clusters': {'desired_configs': {'tag':'version1', 'type':'global', 'properties':propr_dict}}}
                 
     cluster = self.create_cluster(http_client_mock)
-    resp = cluster.add_config("global","version1",propr_dict)
+    resp = cluster.add_config("global", "version1", propr_dict)
     
     self.assertEqual(cluster.cluster_name, "test1")
     http_client_mock.invoke.assert_called_with('PUT', expected_path, headers=None, payload=expected_request)
@@ -420,7 +420,7 @@ class TestClusterModel(unittest.TestCase):
     expected_request = {'tag':'version1', 'type':'global', 'properties':propr_dict}
                 
     cluster = self.create_cluster(http_client_mock)
-    resp = cluster.create_config("global","version1",propr_dict)
+    resp = cluster.create_config("global", "version1", propr_dict)
     
     self.assertEqual(cluster.cluster_name, "test1")
     http_client_mock.invoke.assert_called_with('PUT', expected_path, headers=None, payload=expected_request)

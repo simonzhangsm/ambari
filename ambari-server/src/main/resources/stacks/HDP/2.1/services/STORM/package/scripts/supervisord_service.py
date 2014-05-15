@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 
+
 def supervisord_service(component_name, action):
   Execute(format("supervisorctl {action} storm-{component_name}"),
     wait_for_finish=False

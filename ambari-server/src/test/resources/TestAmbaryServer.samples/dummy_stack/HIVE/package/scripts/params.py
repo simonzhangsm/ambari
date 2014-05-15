@@ -21,6 +21,7 @@ limitations under the License.
 from resource_management import *
 import status_params
 
+
 # server configurations
 config = Script.get_config()
 
@@ -30,10 +31,10 @@ hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.opti
 
 hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
 
-#users
+# users
 hive_user = config['configurations']['global']['hive_user']
 hive_lib = '/usr/lib/hive/lib/'
-#JDBC driver jar name
+# JDBC driver jar name
 hive_jdbc_driver = default('hive_jdbc_driver', 'com.mysql.jdbc.Driver')
 if hive_jdbc_driver == "com.mysql.jdbc.Driver":
   jdbc_jar_name = "mysql-connector-java.jar"
@@ -43,7 +44,7 @@ elif hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 
-#common
+# common
 hive_metastore_port = config['configurations']['global']['hive_metastore_port']
 hive_var_lib = '/var/lib/hive'
 hive_server_host = config['clusterHostInfo']['hive_server_host']
@@ -56,31 +57,31 @@ smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 
 security_enabled = config['configurations']['global']['security_enabled']
 
-kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-hive_metastore_keytab_path =  config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file']
+kinit_path_local = get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+hive_metastore_keytab_path = config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file']
 
-#hive_env
+# hive_env
 hive_conf_dir = "/etc/hive/conf"
 hive_dbroot = config['configurations']['global']['hive_dbroot']
 hive_log_dir = config['configurations']['global']['hive_log_dir']
 hive_pid_dir = status_params.hive_pid_dir
 hive_pid = status_params.hive_pid
 
-#hive-site
+# hive-site
 hive_database_name = config['configurations']['global']['hive_database_name']
 
-#Starting hiveserver2
+# Starting hiveserver2
 start_hiveserver2_script = 'startHiveserver2.sh'
 
 hadoop_home = '/usr'
 
-##Starting metastore
+# #Starting metastore
 start_metastore_script = 'startMetastore.sh'
 hive_metastore_pid = status_params.hive_metastore_pid
 java_share_dir = '/usr/share/java'
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
-hdfs_user =  config['configurations']['global']['hdfs_user']
+hdfs_user = config['configurations']['global']['hdfs_user']
 user_group = config['configurations']['global']['user_group']
 artifact_dir = "/tmp/HDP-artifacts/"
 
@@ -118,6 +119,6 @@ hcat_user = config['configurations']['global']['hcat_user']
 webhcat_user = config['configurations']['global']['webhcat_user']
 
 hcat_pid_dir = status_params.hcat_pid_dir
-hcat_log_dir = config['configurations']['global']['hcat_log_dir']   #hcat_log_dir
+hcat_log_dir = config['configurations']['global']['hcat_log_dir']  # hcat_log_dir
 
 hadoop_conf_dir = '/etc/hadoop/conf'

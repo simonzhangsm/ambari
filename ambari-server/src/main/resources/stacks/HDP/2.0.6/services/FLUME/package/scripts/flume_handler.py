@@ -17,9 +17,10 @@ limitations under the License.
 
 """
 
-from resource_management import *
 from flume import flume
 from flume import flume_status
+from resource_management import *
+
 
 class FlumeHandler(Script):
   def install(self, env):
@@ -52,22 +53,17 @@ class FlumeHandler(Script):
 
   def status(self, env):
     import params
-
     env.set_params(params)
-
     processes = flume_status()
-
     json = {}
     json['processes'] = processes
-
     self.put_structured_out(json)
 
     if 0 == len(processes):
       raise ComponentIsNotRunning()
     else:
       for proc in processes:
-        if not proc.has_key('status') or proc['status'] == 'NOT_RUNNING':
+        if 'status' not in proc or proc['status'] == 'NOT_RUNNING':
           raise ComponentIsNotRunning()
-
 if __name__ == "__main__":
   FlumeHandler().execute()

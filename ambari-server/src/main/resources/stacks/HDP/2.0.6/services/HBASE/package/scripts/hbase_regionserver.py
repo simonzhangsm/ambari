@@ -19,12 +19,12 @@ limitations under the License.
 """
 
 import sys
-from resource_management import *
 
 from hbase import hbase
 from hbase_service import hbase_service
+from resource_management import *
 
-         
+
 class HbaseRegionServer(Script):
   def install(self, env):
     self.install_packages(env)
@@ -38,18 +38,18 @@ class HbaseRegionServer(Script):
   def start(self, env):
     import params
     env.set_params(params)
-    self.configure(env) # for security
+    self.configure(env)  # for security
 
-    hbase_service( 'regionserver',
-      action = 'start'
+    hbase_service('regionserver',
+      action='start'
     )
     
   def stop(self, env):
     import params
     env.set_params(params)
 
-    hbase_service( 'regionserver',
-      action = 'stop'
+    hbase_service('regionserver',
+      action='stop'
     )
 
   def status(self, env):
@@ -59,7 +59,7 @@ class HbaseRegionServer(Script):
     check_process_status(pid_file)
     
   def decommission(self, env):
-    print "Decommission not yet implemented!"
+    print("Decommission not yet implemented!")
     
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,21 +20,22 @@ Ambari Agent
 
 """
 
-from resource_management import *
 import sys
 
+from resource_management import *
 
-def yarn(name = None):
+
+def yarn(name=None):
   import params
 
 
-  if name in ["nodemanager","historyserver"]:
+  if name in ["nodemanager", "historyserver"]:
     if params.yarn_log_aggregation_enabled:
       params.HdfsDirectory(params.yarn_nm_app_log_dir,
                            action="create_delayed",
                            owner=params.yarn_user,
                            group=params.user_group,
-                           mode=0777,
+                           mode=0o777,
                            recursive_chmod=True
       )
     params.HdfsDirectory("/mapred",
@@ -48,14 +50,14 @@ def yarn(name = None):
                          action="create_delayed",
                          owner=params.mapred_user,
                          group=params.user_group,
-                         mode=0777
+                         mode=0o777
     )
 
     params.HdfsDirectory(params.mapreduce_jobhistory_done_dir,
                          action="create_delayed",
                          owner=params.mapred_user,
                          group=params.user_group,
-                         mode=01777
+                         mode=0o1777
     )
     params.HdfsDirectory(None, action="create")
 
@@ -88,7 +90,7 @@ def yarn(name = None):
             configurations=params.config['configurations']['core-site'],
             owner=params.hdfs_user,
             group=params.user_group,
-            mode=0644
+            mode=0o644
   )
 
   XmlConfig("mapred-site.xml",
@@ -96,7 +98,7 @@ def yarn(name = None):
             configurations=params.config['configurations']['mapred-site'],
             owner=params.yarn_user,
             group=params.user_group,
-            mode=0644
+            mode=0o644
   )
 
   XmlConfig("yarn-site.xml",
@@ -104,7 +106,7 @@ def yarn(name = None):
             configurations=params.config['configurations']['yarn-site'],
             owner=params.yarn_user,
             group=params.user_group,
-            mode=0644
+            mode=0o644
   )
 
   XmlConfig("capacity-scheduler.xml",
@@ -112,7 +114,7 @@ def yarn(name = None):
             configurations=params.config['configurations']['capacity-scheduler'],
             owner=params.yarn_user,
             group=params.user_group,
-            mode=0644
+            mode=0o644
   )
 
   if name == 'resourcemanager':
@@ -127,19 +129,19 @@ def yarn(name = None):
   )
 
   File(format("{limits_conf_dir}/yarn.conf"),
-       mode=0644,
+       mode=0o644,
        content=Template('yarn.conf.j2')
   )
 
   File(format("{limits_conf_dir}/mapreduce.conf"),
-       mode=0644,
+       mode=0o644,
        content=Template('mapreduce.conf.j2')
   )
 
   File(format("{config_dir}/yarn-env.sh"),
        owner=params.yarn_user,
        group=params.user_group,
-       mode=0755,
+       mode=0o755,
        content=Template('yarn-env.sh.j2')
   )
 
@@ -147,12 +149,12 @@ def yarn(name = None):
     container_executor = format("{yarn_container_bin}/container-executor")
     File(container_executor,
          group=params.yarn_executor_container_group,
-         mode=06050
+         mode=0o6050
     )
-
+    
     File(format("{config_dir}/container-executor.cfg"),
          group=params.user_group,
-         mode=0644,
+         mode=0o644,
          content=Template('container-executor.cfg.j2')
     )
 

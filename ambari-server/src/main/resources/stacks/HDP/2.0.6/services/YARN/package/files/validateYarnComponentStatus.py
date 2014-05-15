@@ -18,9 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import json
 import optparse
 import subprocess
-import json
+
 
 RESOURCEMANAGER = 'rm'
 NODEMANAGER = 'nm'
@@ -29,32 +30,32 @@ HISTORYSERVER = 'hs'
 STARTED_STATE = 'STARTED'
 RUNNING_STATE = 'RUNNING'
 
-#Return reponse for given path and address
+# Return reponse for given path and address
 def getResponse(path, address, ssl_enabled):
 
   command = "curl"
   httpGssnegotiate = "--negotiate"
   userpswd = "-u:"
-  insecure = "-k"# This is smoke test, no need to check CA of server
+  insecure = "-k"  # This is smoke test, no need to check CA of server
   if ssl_enabled:
     url = 'https://' + address + path
   else:
     url = 'http://' + address + path
       
-  command_with_flags = [command,httpGssnegotiate,userpswd,insecure,url]
+  command_with_flags = [command, httpGssnegotiate, userpswd, insecure, url]
   try:
     proc = subprocess.Popen(command_with_flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (stdout, stderr) = proc.communicate()
     response = json.loads(stdout)
     if response == None:
-      print 'There is no response for url: ' + str(url)
+      print('There is no response for url: ' + str(url))
       exit(1)
     return response
   except Exception as e:
-    print 'Error getting response for url:' + str(url), e
+    print('Error getting response for url:' + str(url), e)
     exit(1)
 
-#Verify that REST api is available for given component
+# Verify that REST api is available for given component
 def validateAvailability(component, path, address, ssl_enabled):
 
   try:
@@ -63,10 +64,10 @@ def validateAvailability(component, path, address, ssl_enabled):
     if not is_valid:
       exit(1)
   except Exception as e:
-    print 'Error checking availability status of component', e
+    print('Error checking availability status of component', e)
     exit(1)
 
-#Validate component-specific response
+# Validate component-specific response
 def validateAvailabilityResponse(component, response):
   try:
     if component == RESOURCEMANAGER:
@@ -74,7 +75,7 @@ def validateAvailabilityResponse(component, response):
       if rm_state == STARTED_STATE:
         return True
       else:
-        print 'Resourcemanager is not started'
+        print('Resourcemanager is not started')
         return False
 
     elif component == NODEMANAGER:
@@ -92,10 +93,10 @@ def validateAvailabilityResponse(component, response):
     else:
       return False
   except Exception as e:
-    print 'Error validation of availability response for ' + str(component), e
+    print('Error validation of availability response for ' + str(component), e)
     return False
 
-#Verify that component has required resources to work
+# Verify that component has required resources to work
 def validateAbility(component, path, address, ssl_enabled):
 
   try:
@@ -104,32 +105,32 @@ def validateAbility(component, path, address, ssl_enabled):
     if not is_valid:
       exit(1)
   except Exception as e:
-    print 'Error checking ability of component', e
+    print('Error checking ability of component', e)
     exit(1)
 
-#Validate component-specific response that it has required resources to work
+# Validate component-specific response that it has required resources to work
 def validateAbilityResponse(component, response):
   try:
     if component == RESOURCEMANAGER:
       nodes = []
-      if response.has_key('nodes') and not response['nodes'] == None and response['nodes'].has_key('node'):
+      if 'nodes' in response and not response['nodes'] == None and 'node' in response['nodes']:
         nodes = response['nodes']['node']
       connected_nodes_count = len(nodes)
       if connected_nodes_count == 0:
-        print 'There is no connected nodemanagers to resourcemanager'
+        print('There is no connected nodemanagers to resourcemanager')
         return False
-      active_nodes = filter(lambda x: x['state'] == RUNNING_STATE, nodes)
+      active_nodes = [x for x in nodes if x['state'] == RUNNING_STATE]
       active_nodes_count = len(active_nodes)
 
       if connected_nodes_count == 0:
-        print 'There is no connected active nodemanagers to resourcemanager'
+        print('There is no connected active nodemanagers to resourcemanager')
         return False
       else:
         return True
     else:
       return False
   except Exception as e:
-    print 'Error validation of ability response', e
+    print('Error validation of ability response', e)
     return False
 
 #

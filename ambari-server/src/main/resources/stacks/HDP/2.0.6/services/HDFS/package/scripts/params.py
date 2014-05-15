@@ -17,9 +17,12 @@ limitations under the License.
 
 """
 
+import functools
+import os
+
 from resource_management import *
 import status_params
-import os
+
 
 config = Script.get_config()
 
@@ -28,27 +31,27 @@ if System.get_instance().os_type == "oraclelinux":
 else:
   ulimit_cmd = "ulimit -c unlimited; "
 
-#security params
+# security params
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = (not is_empty(_authentication) and _authentication == 'kerberos')
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
 falcon_user = config['configurations']['global']['falcon_user']
 
-#exclude file
+# exclude file
 hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])
 exclude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
 update_exclude_file_only = config['commandParams']['update_exclude_file_only']
 
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-#hosts
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+# hosts
 hostname = config["hostname"]
 rm_host = default("/clusterHostInfo/rm_host", [])
 slave_hosts = default("/clusterHostInfo/slave_hosts", [])
 hagios_server_hosts = default("/clusterHostInfo/nagios_server_host", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 hcat_server_hosts = default("/clusterHostInfo/webhcat_server_host", [])
-hive_server_host =  default("/clusterHostInfo/hive_server_host", [])
+hive_server_host = default("/clusterHostInfo/hive_server_host", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 hs_host = default("/clusterHostInfo/hs_host", [])
 jtnode_host = default("/clusterHostInfo/jtnode_host", [])
@@ -67,12 +70,12 @@ has_histroryserver = not len(hs_host) == 0
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_slaves = not len(slave_hosts) == 0
 has_nagios = not len(hagios_server_hosts) == 0
-has_oozie_server = not len(oozie_servers)  == 0
-has_hcat_server_host = not len(hcat_server_hosts)  == 0
-has_hive_server_host = not len(hive_server_host)  == 0
-has_journalnode_hosts = not len(journalnode_hosts)  == 0
-has_zkfc_hosts = not len(zkfc_hosts)  == 0
-has_falcon_host = not len(falcon_host)  == 0
+has_oozie_server = not len(oozie_servers) == 0
+has_hcat_server_host = not len(hcat_server_hosts) == 0
+has_hive_server_host = not len(hive_server_host) == 0
+has_journalnode_hosts = not len(journalnode_hosts) == 0
+has_zkfc_hosts = not len(zkfc_hosts) == 0
+has_falcon_host = not len(falcon_host) == 0
 
 
 is_namenode_master = hostname in namenode_host
@@ -85,7 +88,7 @@ is_slave = hostname in slave_hosts
 if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 
-#users and groups
+# users and groups
 yarn_user = config['configurations']['global']['yarn_user']
 hbase_user = config['configurations']['global']['hbase_user']
 nagios_user = config['configurations']['global']['nagios_user']
@@ -93,16 +96,16 @@ oozie_user = config['configurations']['global']['oozie_user']
 webhcat_user = config['configurations']['global']['hcat_user']
 hcat_user = config['configurations']['global']['hcat_user']
 hive_user = config['configurations']['global']['hive_user']
-smoke_user =  config['configurations']['global']['smokeuser']
+smoke_user = config['configurations']['global']['smokeuser']
 mapred_user = config['configurations']['global']['mapred_user']
 hdfs_user = status_params.hdfs_user
 
 user_group = config['configurations']['global']['user_group']
-proxyuser_group =  config['configurations']['global']['proxyuser_group']
+proxyuser_group = config['configurations']['global']['proxyuser_group']
 nagios_group = config['configurations']['global']['nagios_group']
 smoke_user_group = "users"
 
-#hadoop params
+# hadoop params
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_pid_dir_prefix = status_params.hadoop_pid_dir_prefix
 hadoop_bin = "/usr/lib/hadoop/sbin"
@@ -122,7 +125,7 @@ namenode_dirs_created_stub_dir = format("{hdfs_log_dir_prefix}/{hdfs_user}")
 namenode_dirs_stub_filename = "namenode_dirs_created"
 
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
-smoke_hdfs_user_mode = 0770
+smoke_hdfs_user_mode = 0o770
 
 namenode_formatted_old_mark_dir = format("{hadoop_pid_dir_prefix}/hdfs/namenode/formatted/")
 namenode_formatted_mark_dir = format("/var/lib/hdfs/namenode/formatted/")
@@ -149,27 +152,16 @@ if dfs_ha_enabled:
 journalnode_address = default('/configurations/hdfs-site/dfs.journalnode.http-address', None)
 if journalnode_address:
   journalnode_port = journalnode_address.split(":")[1]
-  
-  
-if security_enabled:
-  _dn_principal_name = config['configurations']['hdfs-site']['dfs.datanode.kerberos.principal']
-  _dn_keytab = config['configurations']['hdfs-site']['dfs.datanode.keytab.file']
-  _dn_principal_name = _dn_principal_name.replace('_HOST',hostname.lower())
-  
-  dn_kinit_cmd = format("{kinit_path_local} -kt {_dn_keytab} {_dn_principal_name};")
-else:
-  dn_kinit_cmd = ""
 
-import functools
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
+# create partial functions with common arguments for every HdfsDirectory call
+# to create hdfs directory we need to call params.HdfsDirectory in code
 HdfsDirectory = functools.partial(
   HdfsDirectory,
   conf_dir=hadoop_conf_dir,
   hdfs_user=hdfs_user,
-  security_enabled = security_enabled,
-  keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  security_enabled=security_enabled,
+  keytab=hdfs_user_keytab,
+  kinit_path_local=kinit_path_local
 )
 
 limits_conf_dir = "/etc/security/limits.d"

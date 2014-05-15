@@ -17,12 +17,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from mock.mock import MagicMock, call, patch
-from stacks.utils.RMFTestCase import *
 import datetime, socket
+
+from mock import MagicMock, call, patch
+
+from stacks.utils.RMFTestCase import *
 import  resource_management.libraries.functions
-@patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new = MagicMock(return_value=''))
-@patch("socket.socket", new = MagicMock())
+
+
+@patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new=MagicMock(return_value=''))
+@patch("socket.socket", new=MagicMock())
 class TestServiceCheck(RMFTestCase):
 
   @patch("sys.exit")
@@ -34,30 +38,30 @@ class TestServiceCheck(RMFTestCase):
                         config_file="default.json"
     )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
-                        content = StaticFile('hcatSmoke.sh'),
-                        mode = 0755,
+                        content=StaticFile('hcatSmoke.sh'),
+                        mode=0o755,
     )
     self.assertResourceCalled('Execute', 'sh /tmp/hcatSmoke.sh hcatsmoke prepare',
-                        logoutput = True,
-                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
-                        tries = 3,
-                        user = 'ambari-qa',
-                        try_sleep = 5,
+                        logoutput=True,
+                        path=['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+                        tries=3,
+                        user='ambari-qa',
+                        try_sleep=5,
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /apps/hive/warehouse/hcatsmoke',
-                        logoutput = True,
-                        user = 'hdfs',
-                        conf_dir = '/etc/hadoop/conf',
+                        logoutput=True,
+                        user='hdfs',
+                        conf_dir='/etc/hadoop/conf',
                         keytab=UnknownConfigurationMock(),
                         kinit_path_local='/usr/bin/kinit',
                         security_enabled=False
     )
     self.assertResourceCalled('Execute', 'sh /tmp/hcatSmoke.sh hcatsmoke cleanup',
-                        logoutput = True,
-                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
-                        tries = 3,
-                        user = 'ambari-qa',
-                        try_sleep = 5,
+                        logoutput=True,
+                        path=['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+                        tries=3,
+                        user='ambari-qa',
+                        try_sleep=5,
     )
     self.assertNoMoreResources()
 
@@ -70,29 +74,29 @@ class TestServiceCheck(RMFTestCase):
                         config_file="secured.json"
     )
     self.assertResourceCalled('File', '/tmp/hcatSmoke.sh',
-                        content = StaticFile('hcatSmoke.sh'),
-                        mode = 0755,
+                        content=StaticFile('hcatSmoke.sh'),
+                        mode=0o755,
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; sh /tmp/hcatSmoke.sh hcatsmoke prepare',
-                        logoutput = True,
-                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
-                        tries = 3,
-                        user = 'ambari-qa',
-                        try_sleep = 5,
+                        logoutput=True,
+                        path=['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+                        tries=3,
+                        user='ambari-qa',
+                        try_sleep=5,
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /apps/hive/warehouse/hcatsmoke',
-                              logoutput = True,
-                              user = 'hdfs',
-                              conf_dir = '/etc/hadoop/conf',
+                              logoutput=True,
+                              user='hdfs',
+                              conf_dir='/etc/hadoop/conf',
                               keytab='/etc/security/keytabs/hdfs.headless.keytab',
                               kinit_path_local='/usr/bin/kinit',
                               security_enabled=True
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; sh /tmp/hcatSmoke.sh hcatsmoke cleanup',
-                        logoutput = True,
-                        path = ['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
-                        tries = 3,
-                        user = 'ambari-qa',
-                        try_sleep = 5,
+                        logoutput=True,
+                        path=['/usr/sbin', '/usr/local/nin', '/bin', '/usr/bin'],
+                        tries=3,
+                        user='ambari-qa',
+                        try_sleep=5,
     )
     self.assertNoMoreResources()

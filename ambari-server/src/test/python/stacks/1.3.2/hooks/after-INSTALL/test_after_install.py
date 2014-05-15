@@ -18,11 +18,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from mock.mock import MagicMock, call, patch
+from mock import MagicMock, call, patch
+
 from stacks.utils.RMFTestCase import *
 
 
-@patch("os.path.exists", new = MagicMock(return_value=True))
+@patch("os.path.exists", new=MagicMock(return_value=True))
 class TestHookAfterInstall(RMFTestCase):
   def test_hook_default(self):
     self.executeScript("1.3.2/hooks/after-INSTALL/scripts/hook.py",
@@ -31,18 +32,18 @@ class TestHookAfterInstall(RMFTestCase):
                        config_file="default.json"
     )
     self.assertResourceCalled('Directory', '/etc/hadoop/conf',
-                              owner = 'root',
-                              group = 'root',
-                              recursive = True,
+                              owner='root',
+                              group='root',
+                              recursive=True,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-env.sh',
-                              content = Template('hadoop-env.sh.j2'),
-                              owner = 'hdfs',
+                              content=Template('hadoop-env.sh.j2'),
+                              owner='hdfs',
                               )
     self.assertResourceCalled('XmlConfig', 'core-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hadoop/conf',
-                              configurations = self.getConfig()['configurations']['core-site'],
+                              owner='hdfs',
+                              group='hadoop',
+                              conf_dir='/etc/hadoop/conf',
+                              configurations=self.getConfig()['configurations']['core-site'],
                               )
     self.assertNoMoreResources()

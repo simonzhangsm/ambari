@@ -18,10 +18,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import ConfigParser
-import StringIO
+import configparser
+import io
 
-config = ConfigParser.RawConfigParser()
+config = configparser.RawConfigParser()
 content = """
 
 [server]
@@ -37,6 +37,7 @@ ping_port=8670
 cache_dir=/var/lib/ambari-agent/cache
 
 [services]
+
 
 [python]
 custom_actions_dir = /var/lib/ambari-agent/resources/custom_actions
@@ -57,7 +58,7 @@ rpms=glusterfs,openssl,wget,net-snmp,ntpd,ganglia,nagios,glusterfs
 log_lines_count=300
 
 """
-s = StringIO.StringIO(content)
+s = io.StringIO(content)
 config.readfp(s)
 
 imports = [
@@ -144,7 +145,7 @@ serviceStates = {
 }
 
 servicesToPidNames = {
-  'GLUSTERFS' : 'glusterd.pid$',    
+  'GLUSTERFS' : 'glusterd.pid$',
   'NAMENODE': 'hadoop-{USER}-namenode.pid$',
   'SECONDARY_NAMENODE': 'hadoop-{USER}-secondarynamenode.pid$',
   'DATANODE': 'hadoop-{USER}-datanode.pid$',
@@ -173,7 +174,7 @@ servicesToPidNames = {
   'WEBHCAT_SERVER': 'webhcat.pid',
 }
 
-#Each service, which's pid depends on user should provide user mapping
+# Each service, which's pid depends on user should provide user mapping
 servicesToLinuxUser = {
   'NAMENODE': 'hdfs_user',
   'SECONDARY_NAMENODE': 'hdfs_user',
@@ -191,29 +192,29 @@ servicesToLinuxUser = {
 
 pidPathesVars = [
   {'var' : 'glusterfs_pid_dir_prefix',
-   'defaultValue' : '/var/run'},      
+   'defaultValue' : '/var/run'},
   {'var' : 'hadoop_pid_dir_prefix',
    'defaultValue' : '/var/run/hadoop'},
   {'var' : 'hadoop_pid_dir_prefix',
-   'defaultValue' : '/var/run/hadoop'},                 
+   'defaultValue' : '/var/run/hadoop'},
   {'var' : 'ganglia_runtime_dir',
-   'defaultValue' : '/var/run/ganglia/hdp'},                 
+   'defaultValue' : '/var/run/ganglia/hdp'},
   {'var' : 'hbase_pid_dir',
-   'defaultValue' : '/var/run/hbase'},                
+   'defaultValue' : '/var/run/hbase'},
   {'var' : '',
-   'defaultValue' : '/var/run/nagios'},                    
+   'defaultValue' : '/var/run/nagios'},
   {'var' : 'zk_pid_dir',
-   'defaultValue' : '/var/run/zookeeper'},             
+   'defaultValue' : '/var/run/zookeeper'},
   {'var' : 'oozie_pid_dir',
-   'defaultValue' : '/var/run/oozie'},             
+   'defaultValue' : '/var/run/oozie'},
   {'var' : 'hcat_pid_dir',
-   'defaultValue' : '/var/run/webhcat'},                       
+   'defaultValue' : '/var/run/webhcat'},
   {'var' : 'hive_pid_dir',
-   'defaultValue' : '/var/run/hive'},                      
+   'defaultValue' : '/var/run/hive'},
   {'var' : 'mysqld_pid_dir',
    'defaultValue' : '/var/run/mysqld'},
   {'var' : 'hcat_pid_dir',
-   'defaultValue' : '/var/run/webhcat'},                      
+   'defaultValue' : '/var/run/webhcat'},
   {'var' : 'yarn_pid_dir_prefix',
    'defaultValue' : '/var/run/hadoop-yarn'},
   {'var' : 'mapred_pid_dir_prefix',
@@ -252,7 +253,7 @@ def setConfig(customConfig):
 
 
 def main():
-  print config
+  print(config)
 
 if __name__ == "__main__":
   main()

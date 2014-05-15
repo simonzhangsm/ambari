@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 
+
 def hcat_service_check():
     import params
 
@@ -35,7 +36,7 @@ def hcat_service_check():
 
     File('/tmp/hcatSmoke.sh',
          content=StaticFile("hcatSmoke.sh"),
-         mode=0755
+         mode=0o755
     )
 
     prepare_cmd = format("{kinit_cmd}sh /tmp/hcatSmoke.sh hcatsmoke{unique} prepare")

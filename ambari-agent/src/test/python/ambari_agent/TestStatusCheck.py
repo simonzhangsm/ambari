@@ -17,20 +17,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import string
+# import string
 import random
 import os
 from unittest import TestCase
 from ambari_agent.StatusCheck import StatusCheck
 import AmbariConfig
 import logging
-from mock.mock import patch, Mock
+from mock import patch, Mock
 
 
-USERNAME_LENGTH=10
-USERNAME_CHARS=string.ascii_uppercase +string.ascii_lowercase + string.digits + '-_'
+USERNAME_LENGTH = 10
+USERNAME_CHARS = string.ascii_uppercase + string.ascii_lowercase + string.digits + '-_'
 
-PID_DIR='/pids_dir'
+PID_DIR = '/pids_dir'
 
 COMPONENT_LIVE = 'LIVE_COMPONENT'
 COMPONENT_LIVE_PID = 'live_' + StatusCheck.USER_PATTERN + '_comp.pid'
@@ -102,7 +102,7 @@ class TestStatusCheck(TestCase):
     TestStatusCheck.timesLogged = 0
 
     def my_side_effect(*args, **kwargs):
-      TestStatusCheck.timesLogged += args[0].find('Service to pid dictionary: ')+1
+      TestStatusCheck.timesLogged += args[0].find('Service to pid dictionary: ') + 1
       
 
     logger_info_mock.side_effect = my_side_effect

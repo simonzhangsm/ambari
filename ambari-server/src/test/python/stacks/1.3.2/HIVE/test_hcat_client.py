@@ -17,29 +17,31 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from mock.mock import MagicMock, call, patch
+from mock import MagicMock, call, patch
+
 from stacks.utils.RMFTestCase import *
+
 
 class TestHcatClient(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("1.3.2/services/HIVE/package/scripts/hcat_client.py",
-                       classname = "HCatClient",
-                       command = "configure",
+                       classname="HCatClient",
+                       command="configure",
                        config_file="default.json"
     )
 
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
-      owner = 'hcat',
-      group = 'hadoop',
+      owner='hcat',
+      group='hadoop',
     )
-    self.assertResourceCalled('Directory', '/var/run/webhcat',
-      owner = 'hcat',
-      recursive = True,
+    self.assertResourceCalled('Directory', '/etc/run/webhcat',
+      owner='hcat',
+      recursive=True,
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hcatalog/conf/hcat-env.sh',
-      owner = 'hcat',
-      group = 'hadoop',
+      owner='hcat',
+      group='hadoop',
     )
     self.assertNoMoreResources()
 
@@ -47,21 +49,21 @@ class TestHcatClient(RMFTestCase):
 
   def test_configure_secured(self):
     self.executeScript("1.3.2/services/HIVE/package/scripts/hcat_client.py",
-                         classname = "HCatClient",
-                         command = "configure",
+                         classname="HCatClient",
+                         command="configure",
                          config_file="secured.json"
     )
 
     self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
-      owner = 'hcat',
-      group = 'hadoop',
+      owner='hcat',
+      group='hadoop',
     )
-    self.assertResourceCalled('Directory', '/var/run/webhcat',
-      owner = 'hcat',
-      recursive = True,
+    self.assertResourceCalled('Directory', '/etc/run/webhcat',
+      owner='hcat',
+      recursive=True,
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hcatalog/conf/hcat-env.sh',
-      owner = 'hcat',
-      group = 'hadoop',
+      owner='hcat',
+      group='hadoop',
     )
     self.assertNoMoreResources()

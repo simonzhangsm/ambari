@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 from ambari_agent import NetUtil
-from mock.mock import MagicMock, patch
+from mock import MagicMock, patch
 import unittest
 
 class TestNetUtil(unittest.TestCase):

@@ -50,8 +50,9 @@ App.PigScriptEditView = Em.View.extend({
     }
   }),
   showEditor:function () {
-    return this.get('controller.category')!='results';
-  }.property('controller.category','codeMirror'),
+    var wrapper = $('.editor-container');
+    return (this.get('controller.category')=='results')?$(wrapper).hide():$(wrapper).show();;
+  }.observes('controller.category','codeMirror'),
   codeMirror:null,
   codeMirrorView: Ember.TextArea.extend({
     valueBinding:"content.fileContent",

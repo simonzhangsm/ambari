@@ -44,7 +44,7 @@ the details later in that document::
 This covers the default settings.  The application developer might have
 changed the syntax from ``{% foo %}`` to ``<% foo %>`` or something similar.
 
-There are two kinds of delimiers. ``{% ... %}`` and ``{{ ... }}``.  The first
+There are two kinds of delimiters. ``{% ... %}`` and ``{{ ... }}``.  The first
 one is used to execute statements such as for-loops or assign values, the
 latter prints the result of the expression to the template.
 
@@ -101,7 +101,7 @@ if printed and that you can iterate over it, but every other operation fails.
 Filters
 -------
 
-Variables can by modified by **filters**.  Filters are separated from the
+Variables can be modified by **filters**.  Filters are separated from the
 variable by a pipe symbol (``|``) and may have optional arguments in
 parentheses.  Multiple filters can be chained.  The output of one filter is
 applied to the next.
@@ -152,12 +152,49 @@ yourself::
 Whitespace Control
 ------------------
 
-In the default configuration whitespace is not further modified by the
-template engine, so each whitespace (spaces, tabs, newlines etc.) is returned
-unchanged.  If the application configures Jinja to `trim_blocks` the first
-newline after a a template tag is removed automatically (like in PHP).
+In the default configuration, a single trailing newline is stripped if
+present, and whitespace is not further modified by the template engine. Each
+whitespace (spaces, tabs, newlines etc.) is returned unchanged.  If the
+application configures Jinja to `trim_blocks` the first newline after a
+template tag is removed automatically (like in PHP). The `lstrip_blocks`
+option can also be set to strip tabs and spaces from the beginning of
+line to the start of a block. (Nothing will be stripped if there are
+other characters before the start of the block.)
 
-But you can also strip whitespace in templates by hand.  If you put an minus
+With both `trim_blocks` and `lstrip_blocks` enabled you can put block tags
+on their own lines, and the entire block line will be removed when
+rendered, preserving the whitespace of the contents.  For example,
+without the `trim_blocks` and `lstrip_blocks` options, this template::
+
+    <div>
+        {% if True %}
+            yay
+        {% endif %}
+    </div>
+
+gets rendered with blank lines inside the div::
+
+    <div>
+    
+            yay
+    
+    </div>
+
+But with both `trim_blocks` and `lstrip_blocks` enabled, the lines with the 
+template blocks are removed while preserving the whitespace of the contents::
+    
+    <div>
+            yay
+    </div>
+
+You can manually disable the `lstrip_blocks` behavior by putting a
+plus sign (``+``) at the start of a block::
+
+    <div>
+            {%+ if something %}yay{% endif %}
+    </div>
+
+You can also strip whitespace in templates by hand.  If you put an minus
 sign (``-``) to the start or end of an block (for example a for tag), a
 comment or variable expression you can remove the whitespaces after or before
 that block::
@@ -165,12 +202,16 @@ that block::
     {% for item in seq -%}
         {{ item }}
     {%- endfor %}
-    
+
 This will yield all elements without whitespace between them.  If `seq` was
 a list of numbers from ``1`` to ``9`` the output would be ``123456789``.
 
 If :ref:`line-statements` are enabled they strip leading whitespace
 automatically up to the beginning of the line.
+
+Jinja2 by default also removes trailing newlines.  To keep the single
+trailing newline when it is present, configure Jinja to
+`keep_trailing_newline`.
 
 .. admonition:: Note
 
@@ -332,7 +373,7 @@ advantage of it, see :ref:`null-master-fallback`.
 
 The filename of the template depends on the template loader.  For example the
 :class:`FileSystemLoader` allows you to access other templates by giving the
-filename.  You can access templates in subdirectories with an slash::
+filename.  You can access templates in subdirectories with a slash::
 
     {% extends "layout/default.html" %}
 
@@ -497,7 +538,21 @@ provided in a variable called `users`::
     {% endfor %}
     </ul>
 
-Inside of a for loop block you can access some special variables:
+As variables in templates retain their object properties, it is possible to
+iterate over containers like `dict`::
+
+    <dl>
+    {% for key, value in my_dict.iteritems() %}
+        <dt>{{ key|e }}</dt>
+        <dd>{{ value|e }}</dd>
+    {% endfor %}
+    </dl>
+
+Note however that dictionaries usually are unordered so you might want to
+either pass it as a sorted list to the template or use the `dictsort`
+filter.
+
+Inside of a for-loop block you can access some special variables:
 
 +-----------------------+---------------------------------------------------+
 | Variable              | Description                                       |
@@ -521,6 +576,12 @@ Inside of a for loop block you can access some special variables:
 | `loop.cycle`          | A helper function to cycle between a list of      |
 |                       | sequences.  See the explanation below.            |
 +-----------------------+---------------------------------------------------+
+| `loop.depth`          | Indicates how deep in deep in a recursive loop    |
+|                       | the rendering currently is.  Starts at level 1    |
++-----------------------+---------------------------------------------------+
+| `loop.depth0`         | Indicates how deep in deep in a recursive loop    |
+|                       | the rendering currently is.  Starts at level 0    |
++-----------------------+---------------------------------------------------+
 
 Within a for-loop, it's possible to cycle among a list of strings/variables
 each time through the loop by using the special `loop.cycle` helper::
@@ -529,7 +590,7 @@ each time through the loop by using the special `loop.cycle` helper::
         <li class="{{ loop.cycle('odd', 'even') }}">{{ row }}</li>
     {% endfor %}
 
-With Jinja 2.1 an extra `cycle` helper exists that allows loop-unbound
+Since Jinja 2.1 an extra `cycle` helper exists that allows loop-unbound
 cycling.  For more information have a look at the :ref:`builtin-globals`.
 
 .. _loop-filtering:
@@ -557,6 +618,10 @@ by using `else`::
     {% endfor %}
     </ul>
 
+Note that in Python `else` blocks are executed whenever the corresponding
+loop did not `break`.  Since in Jinja loops cannot `break` anyway,
+a slightly different behavior of the `else` keyword was chosen.
+
 It is also possible to use loops recursively.  This is useful if you are
 dealing with recursive data such as sitemaps.  To use loops recursively you
 basically have to add the `recursive` modifier to the loop definition and
@@ -573,6 +638,10 @@ The following example implements a sitemap with recursive loops::
     {%- endfor %}
     </ul>
 
+The `loop` variable always refers to the closest (innermost) loop. If we
+have more than one levels of loops, we can rebind the variable `loop` by
+writing `{% set outer_loop = loop %}` after the loop that we want to
+use recursively. Then, we can call it using `{{ outer_loop(...) }}`
 
 If
 ~~
@@ -771,7 +840,7 @@ default.  For more details about context behavior of imports and includes
 see :ref:`import-visibility`.
 
 From Jinja 2.2 onwards you can mark an include with ``ignore missing`` in
-which case Jinja will ignore the statement if the template to be ignored
+which case Jinja will ignore the statement if the template to be included
 does not exist.  When combined with ``with`` or ``without context`` it has
 to be placed *before* the context visibility statement.  Here some valid
 examples::
@@ -805,7 +874,7 @@ Jinja2 supports putting often used code into macros.  These macros can go into
 different templates and get imported from there.  This works similar to the
 import statements in Python.  It's important to know that imports are cached
 and imported templates don't have access to the current template variables,
-just the globals by defualt.  For more details about context behavior of
+just the globals by default.  For more details about context behavior of
 imports and includes see :ref:`import-visibility`.
 
 There are two ways to import templates.  You can import the complete template
@@ -847,7 +916,7 @@ namespace::
     </dl>
     <p>{{ textarea('comment') }}</p>
 
-Macros and variables starting with one ore more underscores are private and
+Macros and variables starting with one or more underscores are private and
 cannot be imported.
 
 .. versionchanged:: 2.4
@@ -883,8 +952,9 @@ Here two examples::
             {% include "render_box.html" %}
         {% endfor %}
 
-    The included template ``render_box.html`` is not able to access
-    `box` in Jinja 2.0, but in Jinja 2.1.
+    The included template ``render_box.html`` is *not* able to access
+    `box` in Jinja 2.0. As of Jinja 2.1 ``render_box.html`` *is* able
+    to do so.
 
 
 .. _expressions:
@@ -971,7 +1041,7 @@ but exists for completeness' sake.  The following operators are supported:
 
 //
     Divide two numbers and return the truncated integer result.
-    ``{{ 20 / 7 }}`` is ``2``.
+    ``{{ 20 // 7 }}`` is ``2``.
 
 %
     Calculate the remainder of an integer division.  ``{{ 11 % 7 }}`` is ``4``.
@@ -1173,13 +1243,13 @@ The following functions are available in the global scope by default:
     .. attribute:: current
 
         Returns the current item.
-    
+
     **new in Jinja 2.1**
 
 .. class:: joiner(sep=', ')
 
     A tiny helper that can be use to "join" multiple sections.  A joiner is
-    passed a string and will return that string every time it's calld, except
+    passed a string and will return that string every time it's called, except
     the first time in which situation it returns an empty string.  You can
     use this to join things::
 
@@ -1275,7 +1345,7 @@ placeholders is a lot easier:
     {{ gettext('Hello %(name)s!', name='World') }}
     {{ ngettext('%(num)d apple', '%(num)d apples', apples|count) }}
 
-Note that the `ngettext` function's format string automatically recieves
+Note that the `ngettext` function's format string automatically receives
 the count as `num` parameter additionally to the regular parameters.
 
 
@@ -1294,7 +1364,7 @@ Loop Controls
 
 If the application enables the :ref:`loopcontrols-extension` it's possible to
 use `break` and `continue` in loops.  When `break` is reached, the loop is
-terminated, if `continue` is eached the processing is stopped and continues
+terminated;  if `continue` is reached, the processing is stopped and continues
 with the next iteration.
 
 Here a loop that skips every second item::

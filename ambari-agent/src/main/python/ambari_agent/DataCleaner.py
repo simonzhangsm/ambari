@@ -35,18 +35,18 @@ class DataCleaner(threading.Thread):
     self.daemon = True
     logger.info('Data cleanup thread started')
     self.config = config
-    self.file_max_age = int(config.get('agent','data_cleanup_max_age'))
+    self.file_max_age = int(config.get('agent', 'data_cleanup_max_age'))
     if self.file_max_age < 86400:
       logger.warn('The minimum value allowed for data_cleanup_max_age is 1 '
                   'day. Setting data_cleanup_max_age to 86400.')
       self.file_max_age = 86400
-    self.cleanup_interval = int(config.get('agent','data_cleanup_interval'))
+    self.cleanup_interval = int(config.get('agent', 'data_cleanup_interval'))
     if self.cleanup_interval < 3600:
       logger.warn('The minimum value allowed for data_cleanup_interval is 1 '
                   'hour. Setting data_cleanup_interval to 3600.')
       self.file_max_age = 3600
 
-    self.data_dir = config.get('agent','prefix')
+    self.data_dir = config.get('agent', 'prefix')
     self.compiled_pattern = re.compile(self.FILE_NAME_PATTERN)
     self.stopped = False
 

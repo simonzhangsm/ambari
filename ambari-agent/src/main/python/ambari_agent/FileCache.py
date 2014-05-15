@@ -17,13 +17,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import StringIO
+import io
 
 import logging
 import os
 import shutil
 import zipfile
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 logger = logging.getLogger()
 
@@ -37,13 +37,13 @@ class FileCache():
   downloads relevant files from the server.
   """
 
-  STACKS_CACHE_DIRECTORY="stacks"
-  CUSTOM_ACTIONS_CACHE_DIRECTORY="custom_actions"
-  HASH_SUM_FILE=".hash"
-  ARCHIVE_NAME="archive.zip"
+  STACKS_CACHE_DIRECTORY = "stacks"
+  CUSTOM_ACTIONS_CACHE_DIRECTORY = "custom_actions"
+  HASH_SUM_FILE = ".hash"
+  ARCHIVE_NAME = "archive.zip"
 
-  BLOCK_SIZE=1024*16
-  SOCKET_TIMEOUT=10
+  BLOCK_SIZE = 1024 * 16
+  SOCKET_TIMEOUT = 10
 
   def __init__(self, config):
     self.service_component_pool = {}
@@ -52,12 +52,12 @@ class FileCache():
     # Defines whether command should fail when downloading scripts
     # from the server is not possible or agent should rollback to local copy
     self.tolerate_download_failures = \
-          config.get('agent','tolerate_download_failures').lower() == 'true'
+          config.get('agent', 'tolerate_download_failures').lower() == 'true'
     self.reset()
 
 
   def reset(self):
-    self.uptodate_paths = [] # Paths that already have been recently checked
+    self.uptodate_paths = []  # Paths that already have been recently checked
 
 
   def get_service_base_dir(self, command, server_url_prefix):
@@ -123,7 +123,7 @@ class FileCache():
           self.write_hash_sum(full_path, remote_hash)
         # Finally consider cache directory up-to-date
         self.uptodate_paths.append(full_path)
-    except CachingException, e:
+    except CachingException as e:
       if self.tolerate_download_failures:
         # ignore
         logger.warn("Error occured during cache update. "
@@ -131,7 +131,7 @@ class FileCache():
                     " ignoring this error and continuing with current cache. "
                     "Error details: {0}".format(str(e)))
       else:
-        raise # we are not tolerant to exceptions, command execution will fail
+        raise  # we are not tolerant to exceptions, command execution will fail
     return full_path
 
 
@@ -154,10 +154,8 @@ class FileCache():
     """
     logger.debug("Trying to download {0}".format(url))
     try:
-      memory_buffer = StringIO.StringIO()
-      proxy_handler = urllib2.ProxyHandler({})
-      opener = urllib2.build_opener(proxy_handler)
-      u = opener.open(url, timeout=self.SOCKET_TIMEOUT)
+      memory_buffer = io.StringIO()
+      u = urllib.request.urlopen(url, timeout=self.SOCKET_TIMEOUT)
       logger.debug("Connected with {0} with code {1}".format(u.geturl(),
                                                              u.getcode()))
       buff = u.read(self.BLOCK_SIZE)
@@ -167,7 +165,7 @@ class FileCache():
         if not buff:
           break
       return memory_buffer
-    except Exception, err:
+    except Exception as err:
       raise CachingException("Can not download file from"
                              " url {0} : {1}".format(url, str(err)))
 
@@ -182,7 +180,7 @@ class FileCache():
       with open(hash_file) as fh:
         return fh.readline().strip()
     except:
-      return None # We don't care
+      return None  # We don't care
 
 
   def write_hash_sum(self, directory, new_hash):
@@ -194,7 +192,7 @@ class FileCache():
     try:
       with open(hash_file, "w") as fh:
         fh.write(new_hash)
-    except Exception, err:
+    except Exception as err:
       raise CachingException("Can not write to file {0} : {1}".format(hash_file,
                                                                  str(err)))
 
@@ -207,13 +205,13 @@ class FileCache():
     """
     logger.debug("Invalidating directory {0}".format(directory))
     try:
-      if os.path.isfile(directory): # It would be a strange situation
+      if os.path.isfile(directory):  # It would be a strange situation
         os.unlink(directory)
       elif os.path.isdir(directory):
         shutil.rmtree(directory)
       # create directory itself and any parent directories
       os.makedirs(directory)
-    except Exception, err:
+    except Exception as err:
       raise CachingException("Can not invalidate cache directory {0}: {1}",
                              directory, str(err))
 
@@ -227,13 +225,13 @@ class FileCache():
       zfile = zipfile.ZipFile(mem_buffer)
       for name in zfile.namelist():
         (dirname, filename) = os.path.split(name)
-        concrete_dir=os.path.abspath(os.path.join(target_directory, dirname))
+        concrete_dir = os.path.abspath(os.path.join(target_directory, dirname))
         if not os.path.isdir(concrete_dir):
           os.makedirs(concrete_dir)
         logger.debug("Unpacking file {0} to {1}".format(name, concrete_dir))
-        if filename!='':
+        if filename != '':
           zfile.extract(name, target_directory)
-    except Exception, err:
+    except Exception as err:
       raise CachingException("Can not unpack zip file to "
                              "directory {0} : {1}".format(
                             target_directory, str(err)))

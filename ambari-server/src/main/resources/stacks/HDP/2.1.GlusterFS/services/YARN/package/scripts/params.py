@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,8 +20,11 @@ Ambari Agent
 
 """
 
+import functools
+
 from resource_management import *
 import status_params
+
 
 # server configurations
 config = Script.get_config()
@@ -33,10 +37,10 @@ hdfs_user = config['configurations']['global']['hdfs_user']
 
 smokeuser = config['configurations']['global']['smokeuser']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = (not is_empty(_authentication) and _authentication == 'kerberos')
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 yarn_executor_container_group = config['configurations']['yarn-site']['yarn.nodemanager.linux-container-executor.group']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 rm_host = config['clusterHostInfo']['rm_host'][0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]
 rm_https_port = "8090"
@@ -85,7 +89,7 @@ limits_conf_dir = "/etc/security/limits.d"
 hadoop_conf_dir = "/etc/hadoop/conf"
 yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
 
-#exclude file
+# exclude file
 exclude_hosts = default("/clusterHostInfo/decom_nm_hosts", [])
 exclude_file_path = config['configurations']['yarn-site']['yarn.resourcemanager.nodes.exclude-path']
 
@@ -94,31 +98,30 @@ hostname = config['hostname']
 if security_enabled:
   nm_principal_name = config['configurations']['global']['nodemanager_principal_name']
   nodemanager_keytab = config['configurations']['global']['nodemanager_keytab']
-  nodemanager_principal_name = nm_principal_name.replace('_HOST',hostname.lower())
+  nodemanager_principal_name = nm_principal_name.replace('_HOST', hostname.lower())
   nm_kinit_cmd = format("{kinit_path_local} -kt {nodemanager_keytab} {nodemanager_principal_name};")
 else:
   nm_kinit_cmd = ""
 
 yarn_log_aggregation_enabled = config['configurations']['yarn-site']['yarn.log-aggregation-enable']
-yarn_nm_app_log_dir =  config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']
+yarn_nm_app_log_dir = config['configurations']['yarn-site']['yarn.nodemanager.remote-app-log-dir']
 mapreduce_jobhistory_intermediate_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.intermediate-done-dir']
 mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.done-dir']
 
-#for create_hdfs_directory
+# for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
 hdfs_user = config['configurations']['global']['hdfs_user']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-import functools
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+# create partial functions with common arguments for every HdfsDirectory call
+# to create hdfs directory we need to call params.HdfsDirectory in code
 HdfsDirectory = functools.partial(
   HdfsDirectory,
   conf_dir=hadoop_conf_dir,
   hdfs_user=hdfs_user,
-  security_enabled = security_enabled,
-  keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  security_enabled=security_enabled,
+  keytab=hdfs_user_keytab,
+  kinit_path_local=kinit_path_local
 )
 update_exclude_file_only = config['commandParams']['update_exclude_file_only']

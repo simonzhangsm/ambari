@@ -120,6 +120,7 @@
   </property>
 
   <property>
+
     <name>mapreduce.output.fileoutputformat.compress.type</name>
     <value>BLOCK</value>
     <description>
@@ -277,6 +278,7 @@
   </property>
 
   <property>
+
     <name>mapreduce.admin.map.child.java.opts</name>
     <value>-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
     <description>This property stores Java options for map tasks.</description>

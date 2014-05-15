@@ -20,7 +20,7 @@ limitations under the License.
 '''
 
 import unittest
-from mock.mock import patch, MagicMock, call, Mock
+from mock import patch, MagicMock, call, Mock
 from ambari_agent import DataCleaner
 
 
@@ -28,9 +28,9 @@ class TestDataCleaner(unittest.TestCase):
 
   def setUp(self):
     self.test_dir = [('/test_path', [],
-                      ['errors-12.txt','output-12.txt','site-12.pp','site-13.pp','site-15.pp','version'])]
+                      ['errors-12.txt', 'output-12.txt', 'site-12.pp', 'site-13.pp', 'site-15.pp', 'version'])]
     self.config = MagicMock()
-    self.config.get.side_effect = [2592000,3600 + 1,"/test_path"]
+    self.config.get.side_effect = [2592000, 3600 + 1, "/test_path"]
     DataCleaner.logger = MagicMock()
 
   def test_init_success(self):
@@ -53,13 +53,13 @@ class TestDataCleaner(unittest.TestCase):
   @patch('time.time')
   @patch('os.path.getmtime')
   @patch('os.remove')
-  def test_cleanup_success(self,remMock,mtimeMock,timeMock,walkMock):
+  def test_cleanup_success(self, remMock, mtimeMock, timeMock, walkMock):
     self.config.reset_mock()
     DataCleaner.logger.reset_mock()
 
     walkMock.return_value = iter(self.test_dir)
     timeMock.return_value = 2592000 + 2
-    mtimeMock.side_effect = [1,1,1,2,1,1]
+    mtimeMock.side_effect = [1, 1, 1, 2, 1, 1]
 
     cleaner = DataCleaner.DataCleaner(self.config)
     cleaner.cleanup()
@@ -75,13 +75,13 @@ class TestDataCleaner(unittest.TestCase):
   @patch('time.time')
   @patch('os.path.getmtime')
   @patch('os.remove')
-  def test_cleanup_remove_error(self,remMock,mtimeMock,timeMock,walkMock):
+  def test_cleanup_remove_error(self, remMock, mtimeMock, timeMock, walkMock):
     self.config.reset_mock()
     DataCleaner.logger.reset_mock()
 
     walkMock.return_value = iter(self.test_dir)
     timeMock.return_value = 2592000 + 2
-    mtimeMock.side_effect = [1,1,1,2,1,1]
+    mtimeMock.side_effect = [1, 1, 1, 2, 1, 1]
 
     def side_effect(arg):
       if arg == '/test_path/site-15.pp':

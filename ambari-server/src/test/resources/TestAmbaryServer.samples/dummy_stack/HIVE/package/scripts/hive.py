@@ -18,8 +18,9 @@ limitations under the License.
 
 """
 
-from resource_management import *
 import sys
+
+from resource_management import *
 
 
 def hive(name=None):
@@ -27,11 +28,11 @@ def hive(name=None):
 
   if name == 'metastore' or name == 'hiveserver2':
     hive_config_dir = params.hive_server_conf_dir
-    config_file_mode = 0600
+    config_file_mode = 0o600
     jdbc_connector()
   else:
     hive_config_dir = params.hive_conf_dir
-    config_file_mode = 0644
+    config_file_mode = 0o644
 
   Directory(hive_config_dir,
             owner=params.hive_user,
@@ -55,13 +56,13 @@ def hive(name=None):
 
   if name == 'metastore':
     File(params.start_metastore_path,
-         mode=0755,
+         mode=0o755,
          content=StaticFile('startMetastore.sh')
     )
 
   elif name == 'hiveserver2':
     File(params.start_hiveserver2_path,
-         mode=0755,
+         mode=0o755,
          content=StaticFile('startHiveserver2.sh')
     )
 
@@ -89,7 +90,7 @@ def crt_directory(name):
             recursive=True,
             owner=params.hive_user,
             group=params.user_group,
-            mode=0755)
+            mode=0o755)
 
 
 def crt_file(name):

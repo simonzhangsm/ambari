@@ -18,7 +18,7 @@ limitations under the License.
 
 
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from mock import patch, MagicMock
 
 from resource_management.core import Environment
 from resource_management.core.system import System
@@ -28,20 +28,20 @@ from resource_management.core.source import Template
 from resource_management.core.source import InlineTemplate
 
 from jinja2 import UndefinedError, TemplateNotFound
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import os
 
 
-@patch.object(System, "os_family", new = 'redhat')
+@patch.object(System, "os_family", new='redhat')
 class TestContentSources(TestCase):
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "join")
   def test_static_file_absolute_path(self, join_mock, open_mock):
     """
     Testing StaticFile source with absolute path
     """
-    file_mock = MagicMock(name = 'file_mock')
+    file_mock = MagicMock(name='file_mock')
     file_mock.__enter__.return_value = file_mock
     file_mock.read.return_value = 'content'
     open_mock.return_value = file_mock
@@ -55,13 +55,13 @@ class TestContentSources(TestCase):
     self.assertEqual(join_mock.call_count, 0)
 
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "join")
   def test_static_file_relative_path(self, join_mock, open_mock):
     """
     Testing StaticFile source with relative path
     """
-    file_mock = MagicMock(name = 'file_mock')
+    file_mock = MagicMock(name='file_mock')
     file_mock.__enter__.return_value = file_mock
     file_mock.read.return_value = 'content'
     open_mock.return_value = file_mock
@@ -150,7 +150,7 @@ class TestContentSources(TestCase):
     urlopen_mock.assert_called_with('http://download/source')
     self.assertEqual(web_file_mock.read.call_count, 1)
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os, "makedirs")
   @patch.object(os.path, "exists")
   def test_download_source_get_content_cache_existent(self, exists_mock, makedirs_mock, open_mock):
@@ -159,7 +159,7 @@ class TestContentSources(TestCase):
     """
     exists_mock.side_effect = [True, True, False]
 
-    file_mock = MagicMock(name = 'file_mock')
+    file_mock = MagicMock(name='file_mock')
     file_mock.__enter__.return_value = file_mock
     file_mock.read.return_value = 'cached_content'
     open_mock.return_value = file_mock
@@ -175,7 +175,7 @@ class TestContentSources(TestCase):
     self.assertEqual(file_mock.read.call_count, 1)
 
   @patch.object(urllib2, "urlopen")
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os, "makedirs")
   @patch.object(os.path, "exists")
   def test_download_source_get_content_cache_existent_md5_match(self, exists_mock, makedirs_mock, open_mock,
@@ -185,7 +185,7 @@ class TestContentSources(TestCase):
     """
     exists_mock.side_effect = [True, True, False]
 
-    file_mock = MagicMock(name = 'file_mock')
+    file_mock = MagicMock(name='file_mock')
     file_mock.__enter__.return_value = file_mock
     file_mock.read.return_value = 'cached_content'
     open_mock.return_value = file_mock
@@ -202,7 +202,7 @@ class TestContentSources(TestCase):
     self.assertEqual(urlopen_mock.call_count, 0)
 
   @patch.object(urllib2, "urlopen")
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os, "makedirs")
   @patch.object(os.path, "exists")
   def test_download_source_get_content_cache_existent_md5_unmatch(self, exists_mock, makedirs_mock, open_mock,
@@ -212,7 +212,7 @@ class TestContentSources(TestCase):
     """
     exists_mock.side_effect = [True, True, False]
     fake_md5 = "144c9defac04969c7bfad8efaa8ea194"
-    file_mock = MagicMock(name = 'file_mock')
+    file_mock = MagicMock(name='file_mock')
     file_mock.__enter__.return_value = file_mock
     file_mock.read.return_value = 'cached_content'
     open_mock.return_value = file_mock
@@ -232,7 +232,7 @@ class TestContentSources(TestCase):
     self.assertEqual(urlopen_mock.call_count, 1)
     urlopen_mock.assert_called_with('http://download/source')
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "getmtime")
   @patch.object(os.path, "exists")
   def test_template_loader(self, exists_mock, getmtime_mock, open_mock):
@@ -241,7 +241,7 @@ class TestContentSources(TestCase):
     """
     exists_mock.return_value = True
     getmtime_mock.return_value = 10
-    file_mock = MagicMock(name = 'file_mock')
+    file_mock = MagicMock(name='file_mock')
     file_mock.__enter__.return_value = file_mock
     file_mock.read.return_value = 'template content'
     open_mock.return_value = file_mock
@@ -270,7 +270,7 @@ class TestContentSources(TestCase):
 
 
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "getmtime")
   @patch.object(os.path, "exists")
   def test_template_loader_absolute_path(self, exists_mock, getmtime_mock, open_mock):
@@ -279,7 +279,7 @@ class TestContentSources(TestCase):
     """
     exists_mock.return_value = True
     getmtime_mock.return_value = 10
-    file_mock = MagicMock(name = 'file_mock')
+    file_mock = MagicMock(name='file_mock')
     file_mock.__enter__.return_value = file_mock
     file_mock.read.return_value = 'template content'
     open_mock.return_value = file_mock
@@ -292,7 +292,7 @@ class TestContentSources(TestCase):
     self.assertEqual(getmtime_mock.call_count, 1)
     getmtime_mock.assert_called_with('/absolute/path/test.j2')
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "getmtime")
   @patch.object(os.path, "exists")
   def test_template_loader_arguments(self, exists_mock, getmtime_mock, open_mock):
@@ -301,17 +301,17 @@ class TestContentSources(TestCase):
     """
     exists_mock.return_value = True
     getmtime_mock.return_value = 10
-    file_mock = MagicMock(name = 'file_mock')
+    file_mock = MagicMock(name='file_mock')
     file_mock.__enter__.return_value = file_mock
     file_mock.read.return_value = '{{test_arg1}} template content'
     open_mock.return_value = file_mock
 
     with Environment("/base") as env:
-      template = Template("/absolute/path/test.j2", [], test_arg1 = "test")
+      template = Template("/absolute/path/test.j2", [], test_arg1="test")
       content = template.get_content()
     self.assertEqual(open_mock.call_count, 1)
 
-    self.assertEqual(u'test template content\n', content)
+    self.assertEqual('test template content\n', content)
     open_mock.assert_called_with('/absolute/path/test.j2', 'rb')
     self.assertEqual(getmtime_mock.call_count, 1)
     getmtime_mock.assert_called_with('/absolute/path/test.j2')
@@ -321,10 +321,10 @@ class TestContentSources(TestCase):
     Testing InlineTemplate
     """
     with Environment("/base") as env:
-      template = InlineTemplate("{{test_arg1}} template content", [], test_arg1 = "test")
+      template = InlineTemplate("{{test_arg1}} template content", [], test_arg1="test")
       content = template.get_content()
 
-    self.assertEqual(u'test template content\n', content)
+    self.assertEqual('test template content\n', content)
 
   def test_template_imports(self):
     """
@@ -332,12 +332,12 @@ class TestContentSources(TestCase):
     """
     try:
       with Environment("/base") as env:
-        template = InlineTemplate("{{test_arg1}} template content {{os.path.join(path[0],path[1])}}", [], test_arg1 = "test", path = ["/one","two"])
+        template = InlineTemplate("{{test_arg1}} template content {{os.path.join(path[0],path[1])}}", [], test_arg1="test", path=["/one", "two"])
         content = template.get_content()
         self.fail("Template.get_content should fail when evaluating unknown import")
     except UndefinedError:
       pass
     with Environment("/base") as env:
-      template = InlineTemplate("{{test_arg1}} template content {{os.path.join(path[0],path[1])}}", [os], test_arg1 = "test", path = ["/one","two"])
+      template = InlineTemplate("{{test_arg1}} template content {{os.path.join(path[0],path[1])}}", [os], test_arg1="test", path=["/one", "two"])
       content = template.get_content()
-    self.assertEqual(u'test template content /one/two\n', content)
+    self.assertEqual('test template content /one/two\n', content)

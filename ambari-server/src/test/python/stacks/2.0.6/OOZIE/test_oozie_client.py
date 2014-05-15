@@ -17,110 +17,112 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from mock.mock import MagicMock, call, patch
+from mock import MagicMock, call, patch
+
 from stacks.utils.RMFTestCase import *
+
 
 class TestOozieClient(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_client.py",
-                       classname = "OozieClient",
-                       command = "configure",
+                       classname="OozieClient",
+                       command="configure",
                        config_file="default.json"
     )
     # Hack for oozie.py changing conf on fly
     oozie_site = self.getConfig()['configurations']['oozie-site'].copy()
     oozie_site["oozie.services.ext"] = 'org.apache.oozie.service.JMSAccessorService,' + oozie_site["oozie.services.ext"]
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
-                              owner = 'oozie',
-                              group = 'hadoop',
-                              mode = 0664,
-                              conf_dir = '/etc/oozie/conf',
-                              configurations = oozie_site,
+                              owner='oozie',
+                              group='hadoop',
+                              mode=0o664,
+                              conf_dir='/etc/oozie/conf',
+                              configurations=oozie_site,
                               )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
-        owner = 'oozie',
-        group = 'hadoop',
+        owner='oozie',
+        group='hadoop',
         )
     self.assertResourceCalled('TemplateConfig', '/etc/oozie/conf/oozie-env.sh',
-        owner = 'oozie',
+        owner='oozie',
         )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
-                              owner = 'oozie',
-                              group = 'hadoop',
-                              mode = 0644,
-                              content = 'log4jproperties\nline2'
+                              owner='oozie',
+                              group='hadoop',
+                              mode=0o644,
+                              content='log4jproperties\nline2'
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/adminusers.txt',
-        owner = 'oozie',
-        group = 'hadoop',
+        owner='oozie',
+        group='hadoop',
         )
     self.assertResourceCalled('File', '/etc/oozie/conf/hadoop-config.xml',
-        owner = 'oozie',
-        group = 'hadoop',
+        owner='oozie',
+        group='hadoop',
         )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-default.xml',
-        owner = 'oozie',
-        group = 'hadoop',
+        owner='oozie',
+        group='hadoop',
         )
     self.assertResourceCalled('Directory', '/etc/oozie/conf/action-conf',
-        owner = 'oozie',
-        group = 'hadoop',
+        owner='oozie',
+        group='hadoop',
         )
     self.assertResourceCalled('File', '/etc/oozie/conf/action-conf/hive.xml',
-        owner = 'oozie',
-        group = 'hadoop',
+        owner='oozie',
+        group='hadoop',
         )
     self.assertNoMoreResources()
 
 
   def test_configure_secured(self):
     self.executeScript("2.0.6/services/OOZIE/package/scripts/oozie_client.py",
-                       classname = "OozieClient",
-                       command = "configure",
+                       classname="OozieClient",
+                       command="configure",
                        config_file="secured.json"
     )
     # Hack for oozie.py changing conf on fly
     oozie_site = self.getConfig()['configurations']['oozie-site'].copy()
     oozie_site["oozie.services.ext"] = 'org.apache.oozie.service.JMSAccessorService,' + oozie_site["oozie.services.ext"]
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
-                              owner = 'oozie',
-                              group = 'hadoop',
-                              mode = 0664,
-                              conf_dir = '/etc/oozie/conf',
-                              configurations = oozie_site,
+                              owner='oozie',
+                              group='hadoop',
+                              mode=0o664,
+                              conf_dir='/etc/oozie/conf',
+                              configurations=oozie_site,
                               )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
-                              owner = 'oozie',
-                              group = 'hadoop',
+                              owner='oozie',
+                              group='hadoop',
                               )
     self.assertResourceCalled('TemplateConfig', '/etc/oozie/conf/oozie-env.sh',
-                              owner = 'oozie',
+                              owner='oozie',
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
-                              owner = 'oozie',
-                              group = 'hadoop',
-                              mode = 0644,
-                              content = 'log4jproperties\nline2'
+                              owner='oozie',
+                              group='hadoop',
+                              mode=0o644,
+                              content='log4jproperties\nline2'
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/adminusers.txt',
-                              owner = 'oozie',
-                              group = 'hadoop',
+                              owner='oozie',
+                              group='hadoop',
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/hadoop-config.xml',
-                              owner = 'oozie',
-                              group = 'hadoop',
+                              owner='oozie',
+                              group='hadoop',
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-default.xml',
-                              owner = 'oozie',
-                              group = 'hadoop',
+                              owner='oozie',
+                              group='hadoop',
                               )
     self.assertResourceCalled('Directory', '/etc/oozie/conf/action-conf',
-                              owner = 'oozie',
-                              group = 'hadoop',
+                              owner='oozie',
+                              group='hadoop',
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/action-conf/hive.xml',
-                              owner = 'oozie',
-                              group = 'hadoop',
+                              owner='oozie',
+                              group='hadoop',
                               )
     self.assertNoMoreResources()

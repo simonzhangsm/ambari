@@ -17,18 +17,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import StringIO
+import io
 import sys
-from mock.mock import MagicMock, patch, ANY
+from mock import MagicMock, patch, ANY
 import unittest
 import logging
 import signal
-import ConfigParser
+import configparser
 import os
 import tempfile
 from optparse import OptionParser
 
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):
   from ambari_agent import NetUtil, security
   from ambari_agent import ProcessHelper, main
   from ambari_agent import ProcessHelper, main
@@ -42,7 +42,7 @@ class TestMain(unittest.TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 
@@ -238,11 +238,11 @@ class TestMain(unittest.TestCase):
   @patch.object(Controller, "start")
   @patch.object(Controller, "join")
   @patch("optparse.OptionParser.parse_args")
-  @patch.object(DataCleaner,"start")
-  @patch.object(DataCleaner,"__init__")
-  @patch.object(PingPortListener,"start")
-  @patch.object(PingPortListener,"__init__")
-  def test_main(self, ping_port_init_mock, ping_port_start_mock, data_clean_init_mock,data_clean_start_mock,
+  @patch.object(DataCleaner, "start")
+  @patch.object(DataCleaner, "__init__")
+  @patch.object(PingPortListener, "start")
+  @patch.object(PingPortListener, "__init__")
+  def test_main(self, ping_port_init_mock, ping_port_start_mock, data_clean_init_mock, data_clean_start_mock,
                 parse_args_mock, join_mock, start_mock, Controller_init_mock, try_to_connect_mock,
                 update_log_level_mock, daemonize_mock, perform_prestart_checks_mock,
                 resolve_ambari_config_mock, stop_mock, bind_signal_handlers_mock, setup_logging_mock):
@@ -252,7 +252,7 @@ class TestMain(unittest.TestCase):
     options = MagicMock()
     parse_args_mock.return_value = (options, MagicMock)
 
-    #testing call without command-line arguments
+    # testing call without command-line arguments
     main.main()
 
     self.assertTrue(setup_logging_mock.called)

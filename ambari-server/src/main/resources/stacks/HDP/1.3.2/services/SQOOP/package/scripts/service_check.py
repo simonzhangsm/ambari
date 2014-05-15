@@ -28,8 +28,8 @@ class SqoopServiceCheck(Script):
     if params.security_enabled:
         Execute(format("{kinit_path_local}  -kt {smoke_user_keytab} {smokeuser}"))
     Execute("sqoop version",
-            user = params.smokeuser,
-            logoutput = True
+            user=params.smokeuser,
+            logoutput=True
     )
 
 if __name__ == "__main__":

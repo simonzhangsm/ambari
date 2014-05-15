@@ -35,7 +35,7 @@ class AmbariClient(RestResource):
   AmbariClient top-level root resources.
   """
 
-  def __init__(self, host_name, port=None, user_name="admin", password="admin", use_https = False,
+  def __init__(self, host_name, port=None, user_name="admin", password="admin", use_https=False,
                version=API_VERSION , client=None):
     """
     Creates a RestResource object.

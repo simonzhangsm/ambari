@@ -17,18 +17,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from Queue import Queue
+from queue import Queue
 
 from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.AmbariConfig import AmbariConfig
 import os, errno, time, pprint, tempfile, threading
-import StringIO
+import io
 import sys
 from threading import Thread
 
-from mock.mock import patch, MagicMock, call
+from mock import patch, MagicMock, call
 from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.PythonExecutor import PythonExecutor
@@ -39,7 +39,7 @@ from ambari_agent.ActualConfigHandler import ActualConfigHandler
 class TestActionQueue(TestCase):
 
   def setUp(self):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
     # save original open() method for later use
     self.original_open = open
@@ -50,12 +50,12 @@ class TestActionQueue(TestCase):
 
   datanode_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'DATANODE',
-    'roleCommand': u'INSTALL',
+    'role': 'DATANODE',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 3,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'hostLevelParams': {},
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v1' }}
@@ -82,45 +82,45 @@ class TestActionQueue(TestCase):
 
   namenode_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'NAMENODE',
-    'roleCommand': u'INSTALL',
+    'role': 'NAMENODE',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 4,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'hostLevelParams': {}
     }
 
   snamenode_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'SECONDARY_NAMENODE',
-    'roleCommand': u'INSTALL',
+    'role': 'SECONDARY_NAMENODE',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 5,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'hostLevelParams': {}
     }
 
   nagios_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'NAGIOS',
-    'roleCommand': u'INSTALL',
+    'role': 'NAGIOS',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 6,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'hostLevelParams': {}
     }
 
   hbase_install_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'HBASE',
-    'roleCommand': u'INSTALL',
+    'role': 'HBASE',
+    'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 7,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'hostLevelParams': {}
     }
 
@@ -135,12 +135,12 @@ class TestActionQueue(TestCase):
 
   datanode_restart_command = {
     'commandType': 'EXECUTION_COMMAND',
-    'role': u'DATANODE',
-    'roleCommand': u'CUSTOM_COMMAND',
+    'role': 'DATANODE',
+    'roleCommand': 'CUSTOM_COMMAND',
     'commandId': '1-1',
     'taskId': 9,
-    'clusterName': u'cc',
-    'serviceName': u'HDFS',
+    'clusterName': 'cc',
+    'serviceName': 'HDFS',
     'configurations':{'global' : {}},
     'configurationTags':{'global' : { 'tag': 'v123' }},
     'hostLevelParams':{'custom_command': 'RESTART'}
@@ -221,7 +221,7 @@ class TestActionQueue(TestCase):
     self.assertTrue(print_exc_mock.called)
 
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(ActionQueue, "status_update_callback")
   def test_execute_command(self, status_update_callback_mock, open_mock):
     # Make file read calls visible
@@ -256,12 +256,12 @@ class TestActionQueue(TestCase):
           runCommand_mock.side_effect = side_effect
           actionQueue.execute_command(command)
     ### Test install/start/stop command ###
-    ## Test successful execution with configuration tags
+    # # Test successful execution with configuration tags
     python_execution_result_dict['status'] = 'COMPLETE'
     python_execution_result_dict['exitcode'] = 0
     # We call method in a separate thread
-    execution_thread = Thread(target = patched_aq_execute_command ,
-                              args = (self.datanode_install_command, ))
+    execution_thread = Thread(target=patched_aq_execute_command ,
+                              args=(self.datanode_install_command,))
     execution_thread.start()
     #  check in progress report
     # wait until ready
@@ -274,10 +274,10 @@ class TestActionQueue(TestCase):
                 'stderr': 'Read from {0}/errors-3.txt'.format(tempdir),
                 'stdout': 'Read from {0}/output-3.txt'.format(tempdir),
                 'structuredOut' : 'Read from {0}/structured-out-3.json'.format(tempdir),
-                'clusterName': u'cc',
-                'roleCommand': u'INSTALL',
-                'serviceName': u'HDFS',
-                'role': u'DATANODE',
+                'clusterName': 'cc',
+                'roleCommand': 'INSTALL',
+                'serviceName': 'HDFS',
+                'role': 'DATANODE',
                 'actionId': '1-1',
                 'taskId': 3,
                 'exitCode': 777}
@@ -293,11 +293,11 @@ class TestActionQueue(TestCase):
     expected = {'status': 'COMPLETED',
                 'stderr': 'stderr',
                 'stdout': 'out',
-                'clusterName': u'cc',
+                'clusterName': 'cc',
                 'configurationTags': {'global': {'tag': 'v1'}},
-                'roleCommand': u'INSTALL',
-                'serviceName': u'HDFS',
-                'role': u'DATANODE',
+                'roleCommand': 'INSTALL',
+                'serviceName': 'HDFS',
+                'role': 'DATANODE',
                 'actionId': '1-1',
                 'taskId': 3,
                 'structuredOut' : '',
@@ -313,12 +313,12 @@ class TestActionQueue(TestCase):
     report = actionQueue.result()
     self.assertEqual(len(report['reports']), 0)
 
-    ## Test failed execution
+    # # Test failed execution
     python_execution_result_dict['status'] = 'FAILED'
     python_execution_result_dict['exitcode'] = 13
     # We call method in a separate thread
-    execution_thread = Thread(target = patched_aq_execute_command ,
-                              args = (self.datanode_install_command, ))
+    execution_thread = Thread(target=patched_aq_execute_command ,
+                              args=(self.datanode_install_command,))
     execution_thread.start()
     unfreeze_flag.set()
     #  check in progress report
@@ -332,10 +332,10 @@ class TestActionQueue(TestCase):
     expected = {'status': 'FAILED',
                 'stderr': 'stderr',
                 'stdout': 'out',
-                'clusterName': u'cc',
-                'roleCommand': u'INSTALL',
-                'serviceName': u'HDFS',
-                'role': u'DATANODE',
+                'clusterName': 'cc',
+                'roleCommand': 'INSTALL',
+                'serviceName': 'HDFS',
+                'role': 'DATANODE',
                 'actionId': '1-1',
                 'taskId': 3,
                 'structuredOut' : '',
@@ -350,8 +350,8 @@ class TestActionQueue(TestCase):
     ### Test upgrade command ###
     python_execution_result_dict['status'] = 'COMPLETE'
     python_execution_result_dict['exitcode'] = 0
-    execution_thread = Thread(target = patched_aq_execute_command ,
-                              args = (self.datanode_upgrade_command, ))
+    execution_thread = Thread(target=patched_aq_execute_command ,
+                              args=(self.datanode_upgrade_command,))
     execution_thread.start()
     unfreeze_flag.set()
     # wait until ready
@@ -404,12 +404,12 @@ class TestActionQueue(TestCase):
     actionQueue.execute_command(self.datanode_restart_command)
     report = actionQueue.result()
     expected = {'actionId': '1-1',
-                'clusterName': u'cc',
+                'clusterName': 'cc',
                 'configurationTags': {'global' : { 'tag': 'v123' }},
                 'exitCode': 0,
-                'role': u'DATANODE',
-                'roleCommand': u'CUSTOM_COMMAND',
-                'serviceName': u'HDFS',
+                'role': 'DATANODE',
+                'roleCommand': 'CUSTOM_COMMAND',
+                'serviceName': 'HDFS',
                 'status': 'COMPLETED',
                 'customCommand': 'RESTART',
                 'stderr': 'stderr',
@@ -445,3 +445,9 @@ class TestActionQueue(TestCase):
     self.assertEqual(len(report['componentStatus']), 1)
     self.assertEqual(report['componentStatus'][0], expected)
     self.assertTrue(requestComponentStatus_mock.called)
+
+
+
+
+
+

@@ -19,8 +19,9 @@ limitations under the License.
 """
 
 
-from resource_management import *
 import time
+
+from resource_management import *
 
 
 def service(

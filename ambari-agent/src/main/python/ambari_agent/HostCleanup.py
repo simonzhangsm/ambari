@@ -19,12 +19,12 @@ limitations under the License.
 '''
 
 import os
-import string
+# import string
 import subprocess
 import logging
 import shutil
 import platform
-import ConfigParser
+import configparser
 import optparse
 import shlex
 import sys
@@ -87,7 +87,7 @@ class HostCleanup:
       else:
         raise Exception("No config found, use default")
 
-    except Exception, err:
+    except Exception as err:
       logger.warn(err)
     return config
 
@@ -150,14 +150,14 @@ class HostCleanup:
     try:
       with open(config_file_path, 'r'):
         pass
-    except Exception, e:
+    except Exception as e:
       logger.error("Host check result not found at: " + str(config_file_path))
       return None
 
     try:
-      config = ConfigParser.RawConfigParser()
+      config = configparser.RawConfigParser()
       config.read(config_file_path)
-    except Exception, e:
+    except Exception as e:
       logger.error("Cannot read host check result: " + str(e))
       return None
 
@@ -216,7 +216,7 @@ class HostCleanup:
       p1 = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
       p2 = subprocess.Popen(["grep", "priority"], stdin=p1.stdout, stdout=subprocess.PIPE)
       p1.stdout.close()
-      out = p2.communicate()[0]
+      out = p2.communicate()[0].decode() 
       logger.debug('alternatives --display ' + alt_name + '\n, out = ' + out)
     except:
       logger.warn('Cannot process alternative named: ' + alt_name + ',' + \
@@ -251,7 +251,7 @@ class HostCleanup:
                     command = ALT_ERASE_CMD.format(alt_name, alt_path)
                     (returncode, stdoutdata, stderrdata) = self.run_os_command(command)
                     if returncode != 0:
-                      logger.warn('Failed to remove alternative: ' + alt_name +
+                      logger.warn('Failed to remove alternative: ' + alt_name + 
                                   ", path: " + alt_path + ", error: " + stderrdata)
 
       # Remove directories - configs
@@ -306,7 +306,7 @@ class HostCleanup:
         for filePath in fileList:
           with open(filePath, 'r') as file:
             content = file.readline()
-            while (content != "" ):
+            while (content != ""):
               for repoName in repoNameList:
                 if content.find(repoName) == 0 and filePath not in repoFiles:
                   repoFiles.append(filePath)
@@ -441,7 +441,7 @@ def backup_file(filePath):
     format = '%Y%m%d%H%M%S'
     try:
       shutil.copyfile(filePath, filePath + "." + timestamp.strftime(format))
-    except (Exception), e:
+    except (Exception) as e:
       logger.warn('Could not backup file "%s": %s' % (str(filePath, e)))
   return 0
 
@@ -453,15 +453,15 @@ def get_YN_input(prompt, default):
 
 
 def get_choice_string_input(prompt, default, firstChoice, secondChoice):
-  choice = raw_input(prompt).lower()
+  choice = input(prompt).lower()
   if choice in firstChoice:
     return True
   elif choice in secondChoice:
     return False
-  elif choice is "": # Just enter pressed
+  elif choice is "":  # Just enter pressed
     return default
   else:
-    print "input not recognized, please try again: "
+    print("input not recognized, please try again: ")
     return get_choice_string_input(prompt, default, firstChoice, secondChoice)
   pass
 
@@ -520,7 +520,7 @@ def main():
       delete_users = get_YN_input('You have elected to remove all users as well. If it is not intended then use '
                                'option --skip \"users\". Do you want to continue [y/n] (y)', True)
       if not delete_users:
-        print 'Exiting. Use option --skip="users" to skip deleting users'
+        print('Exiting. Use option --skip="users" to skip deleting users')
         sys.exit(1)
 
   hostcheckfile = options.inputfile

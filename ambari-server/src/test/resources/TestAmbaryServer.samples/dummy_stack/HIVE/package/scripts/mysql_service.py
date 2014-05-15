@@ -23,7 +23,7 @@ from resource_management import *
 
 def mysql_service(daemon_name=None, action='start'):
 
-  logoutput=True
+  logoutput = True
   if action == 'start':
     cmd = format('service {daemon_name} start')
   elif action == 'stop':

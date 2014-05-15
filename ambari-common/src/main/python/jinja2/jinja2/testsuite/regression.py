@@ -8,15 +8,13 @@
     :copyright: (c) 2010 by the Jinja Team.
     :license: BSD, see LICENSE for more details.
 """
-import os
-import time
-import tempfile
 import unittest
 
 from jinja2.testsuite import JinjaTestCase
 
 from jinja2 import Template, Environment, DictLoader, TemplateSyntaxError, \
      TemplateNotFound, PrefixLoader
+from jinja2._compat import text_type
 
 env = Environment()
 
@@ -121,7 +119,7 @@ class BugTestCase(JinjaTestCase):
 
         ''')
 
-        assert tmpl.render().split() == map(unicode, range(1, 11)) * 5
+        assert tmpl.render().split() == [text_type(x) for x in range(1, 11)] * 5
 
     def test_weird_inline_comment(self):
         env = Environment(line_statement_prefix='%')
@@ -173,7 +171,7 @@ class BugTestCase(JinjaTestCase):
             {{ x }}
         ''')
         rv = t.render(foo=[1]).strip()
-        assert rv == u'1'
+        assert rv == '1'
 
     def test_call_with_args(self):
         t = Template("""{% macro dump_users(users) -%}
@@ -198,13 +196,13 @@ class BugTestCase(JinjaTestCase):
             'realname':'something else',
             'description':'test'
         }]).splitlines()] == [
-            u'<ul><li><p>apo</p><dl>',
-            u'<dl>Realname</dl>',
-            u'<dd>something else</dd>',
-            u'<dl>Description</dl>',
-            u'<dd>test</dd>',
-            u'</dl>',
-            u'</li></ul>'
+            '<ul><li><p>apo</p><dl>',
+            '<dl>Realname</dl>',
+            '<dd>something else</dd>',
+            '<dl>Description</dl>',
+            '<dd>test</dd>',
+            '</dl>',
+            '</li></ul>'
         ]
 
     def test_empty_if_condition_fails(self):
@@ -239,16 +237,39 @@ class BugTestCase(JinjaTestCase):
         {% endfor %}
         """)
 
+    def test_else_loop_bug(self):
+        t = Template('''
+            {% for x in y %}
+                {{ loop.index0 }}
+            {% else %}
+                {% for i in range(3) %}{{ i }}{% endfor %}
+            {% endfor %}
+        ''')
+        self.assertEqual(t.render(y=[]).strip(), '012')
+
     def test_correct_prefix_loader_name(self):
         env = Environment(loader=PrefixLoader({
             'foo':  DictLoader({})
         }))
         try:
             env.get_template('foo/bar.html')
-        except TemplateNotFound, e:
+        except TemplateNotFound as e:
             assert e.name == 'foo/bar.html'
         else:
             assert False, 'expected error here'
+
+    def test_contextfunction_callable_classes(self):
+        from jinja2.utils import contextfunction
+        class CallableClass(object):
+            @contextfunction
+            def __call__(self, ctx):
+                return ctx.resolve('hello')
+
+        tpl = Template("""{{ callableclass() }}""")
+        output = tpl.render(callableclass = CallableClass(), hello = 'TEST')
+        expected = 'TEST'
+
+        self.assert_equal(output, expected)
 
 
 def suite():

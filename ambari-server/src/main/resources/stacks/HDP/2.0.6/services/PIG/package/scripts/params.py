@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -21,6 +22,7 @@ Ambari Agent
 
 from resource_management import *
 
+
 # server configurations
 config = Script.get_config()
 
@@ -30,22 +32,13 @@ hdfs_user = config['configurations']['global']['hdfs_user']
 smokeuser = config['configurations']['global']['smokeuser']
 user_group = config['configurations']['global']['user_group']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = (not is_empty(_authentication) and _authentication == 'kerberos')
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']
 hadoop_home = "/usr"
-
-# pig.properties - if not in the JSON command, then we need to esnure some 
-# basic properties are set; this is a safety mechanism
-if (('pig-properties' in config['configurations']) and ('pig-content' in config['configurations']['pig-properties'])):
-  pig_properties = config['configurations']['pig-properties']['pig-content']
-else:
-  pig_properties = {}
-  pig_properties['hcat.bin'] = '/usr/bin/hcat'
-  pig_properties['pig.location.check.strict'] = 'false'
 
 # log4j.properties
 if (('pig-log4j' in config['configurations']) and ('content' in config['configurations']['pig-log4j'])):

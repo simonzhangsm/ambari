@@ -17,19 +17,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import StringIO
+import io
 import sys, subprocess
-from mock.mock import MagicMock, patch, ANY
+from mock import MagicMock, patch, ANY
 import mock.mock
 import unittest
 import logging
 import signal
-import ConfigParser
+import configparser
 import ssl
 import os
 import tempfile
 
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):
   from ambari_agent import NetUtil
   from ambari_agent.security import CertificateManager
   from ambari_agent import ProcessHelper, main
@@ -42,7 +42,7 @@ class TestSecurity(unittest.TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
     # Create config
     self.config = AmbariConfig().getConfig()
@@ -73,7 +73,7 @@ class TestSecurity(unittest.TestCase):
     connection.connect()
     self.assertTrue(wrap_socket_mock.called)
 
-  ### VerifiedHTTPSConnection with no certificates creation
+  # ## VerifiedHTTPSConnection with no certificates creation
   @patch.object(security.CertificateManager, "initSecurity")
   @patch("socket.create_connection")
   @patch("ssl.wrap_socket")
@@ -87,14 +87,14 @@ class TestSecurity(unittest.TestCase):
     connection.connect()
     self.assertFalse(init_security_mock.called)
 
-  ### VerifiedHTTPSConnection with two-way SSL authentication enabled
+  # ## VerifiedHTTPSConnection with two-way SSL authentication enabled
   @patch.object(security.CertificateManager, "initSecurity")
   @patch("socket.create_connection")
   @patch("ssl.wrap_socket")
   def test_Verified_HTTPSConnection_two_way_ssl_connect(self, wrap_socket_mock,
                                                     create_connection_mock,
                                                     init_security_mock):
-    wrap_socket_mock.side_effect=ssl.SSLError()
+    wrap_socket_mock.side_effect = ssl.SSLError()
     connection = security.VerifiedHTTPSConnection("example.com",
       self.config.get('server', 'secured_url_port'), self.config)
     connection._tunnel_host = False
@@ -131,16 +131,16 @@ class TestSecurity(unittest.TestCase):
 
   @patch.object(security.CachedHTTPSConnection, "connect")
   def test_request(self, connect_mock):
-    httpsconn_mock = MagicMock(create = True)
+    httpsconn_mock = MagicMock(create=True)
     self.cachedHTTPSConnection.httpsconn = httpsconn_mock
 
-    dummy_request = MagicMock(create = True)
+    dummy_request = MagicMock(create=True)
     dummy_request.get_method.return_value = "dummy_get_method"
     dummy_request.get_full_url.return_value = "dummy_full_url"
     dummy_request.get_data.return_value = "dummy_get_data"
     dummy_request.headers = "dummy_headers"
 
-    responce_mock = MagicMock(create = True)
+    responce_mock = MagicMock(create=True)
     responce_mock.read.return_value = "dummy responce"
     httpsconn_mock.getresponse.return_value = responce_mock
 
@@ -161,7 +161,7 @@ class TestSecurity(unittest.TestCase):
       httpsconn_mock.read.side_effect = side_eff
       responce = self.cachedHTTPSConnection.request(dummy_request)
       self.fail("Should raise IOError")
-    except Exception, err:
+    except Exception as err:
       # Expected
       pass
 
@@ -175,7 +175,7 @@ class TestSecurity(unittest.TestCase):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config)
     res = man.getAgentKeyName()
-    self.assertEquals(res, "/dummy-keysdir/dummy.hostname.key")
+    self.assertEqual(res, "/dummy-keysdir/dummy.hostname.key")
 
 
   @patch("ambari_agent.hostname.hostname")
@@ -184,7 +184,7 @@ class TestSecurity(unittest.TestCase):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config)
     res = man.getAgentCrtName()
-    self.assertEquals(res, "/dummy-keysdir/dummy.hostname.crt")
+    self.assertEqual(res, "/dummy-keysdir/dummy.hostname.crt")
 
 
   @patch("ambari_agent.hostname.hostname")
@@ -193,14 +193,14 @@ class TestSecurity(unittest.TestCase):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config)
     res = man.getAgentCrtReqName()
-    self.assertEquals(res, "/dummy-keysdir/dummy.hostname.csr")
+    self.assertEqual(res, "/dummy-keysdir/dummy.hostname.csr")
 
 
   def test_getSrvrCrtName(self):
     self.config.set('security', 'keysdir', '/dummy-keysdir')
     man = CertificateManager(self.config)
     res = man.getSrvrCrtName()
-    self.assertEquals(res, "/dummy-keysdir/ca.crt")
+    self.assertEqual(res, "/dummy-keysdir/ca.crt")
 
 
   @patch("os.path.exists")
@@ -270,7 +270,7 @@ class TestSecurity(unittest.TestCase):
 
 
   @patch("ambari_agent.hostname.hostname")
-  @patch('__builtin__.open', create=True, autospec=True)
+  @patch('builtins.open', create=True, autospec=True)
   @patch.dict('os.environ', {'DUMMY_PASSPHRASE': 'dummy-passphrase'})
   @patch('json.dumps')
   @patch('urllib2.Request')
@@ -321,7 +321,7 @@ class TestSecurity(unittest.TestCase):
     try:
       man.reqSignCrt()
       self.fail("Expected exception here")
-    except Exception, err:
+    except Exception as err:
       # expected
       pass
 
@@ -347,8 +347,8 @@ class TestSecurity(unittest.TestCase):
     self.assertTrue(communicate_mock.called)
 
   @patch("ambari_agent.hostname.hostname")
-  @patch('__builtin__.open', create=True, autospec=True)
-  @patch("urllib2.OpenerDirector.open")
+  @patch('builtins.open', create=True, autospec=True)
+  @patch('urllib2.OpenerDirector.open')
   @patch.dict('os.environ', {'DUMMY_PASSPHRASE': 'dummy-passphrase'})
   def test_reqSignCrt_malformedJson(self, urlopen_mock, open_mock, hostname_mock):
     hostname_mock.return_value = "dummy-hostname"
@@ -363,7 +363,7 @@ class TestSecurity(unittest.TestCase):
       man.reqSignCrt()
     except ssl.SSLError:
       self.fail("Unexpected exception!")
-    open_mock.return_value.write.assert_called_with(u'dummy')
+    open_mock.return_value.write.assert_called_with('dummy')
 
     # test malformed JSON response
     open_mock.return_value.write.reset_mock()

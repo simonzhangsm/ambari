@@ -17,30 +17,32 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from mock.mock import MagicMock, call, patch
+from mock import MagicMock, call, patch
+
 from stacks.utils.RMFTestCase import *
+
 
 class TestHiveMetastore(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_metastore.py",
-                       classname = "HiveMetastore",
-                       command = "configure",
+                       classname="HiveMetastore",
+                       command="configure",
                        config_file="../../2.1/configs/default.json"
     )
     self.assert_configure_default()
 
   def test_start_default(self):
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_metastore.py",
-                       classname = "HiveMetastore",
-                       command = "start",
+                       classname="HiveMetastore",
+                       command="start",
                        config_file="../../2.1/configs/default.json"
     )
 
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
-                              not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
-                              user = 'hive'
+                              not_if='ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
+                              user='hive'
     )
 
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/share/java/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true hive asd com.mysql.jdbc.Driver',
@@ -51,20 +53,20 @@ class TestHiveMetastore(RMFTestCase):
 
   def test_stop_default(self):
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_metastore.py",
-                       classname = "HiveMetastore",
-                       command = "stop",
+                       classname="HiveMetastore",
+                       command="stop",
                        config_file="../../2.1/configs/default.json"
     )
 
     self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive.pid',
-                              not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1)'
+                              not_if='! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1)'
     )
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_metastore.py",
-                       classname = "HiveMetastore",
-                       command = "configure",
+                       classname="HiveMetastore",
+                       command="configure",
                        config_file="../../2.1/configs/secured.json"
     )
     self.assert_configure_default()
@@ -72,15 +74,15 @@ class TestHiveMetastore(RMFTestCase):
 
   def test_start_secured(self):
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_metastore.py",
-                       classname = "HiveMetastore",
-                       command = "start",
+                       classname="HiveMetastore",
+                       command="start",
                        config_file="../../2.1/configs/secured.json"
     )
 
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
-                              not_if = 'ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
-                              user = 'hive'
+                              not_if='ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1',
+                              user='hive'
     )
 
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/share/java/mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true hive asd com.mysql.jdbc.Driver',
@@ -91,150 +93,148 @@ class TestHiveMetastore(RMFTestCase):
 
   def test_stop_secured(self):
     self.executeScript("2.0.6/services/HIVE/package/scripts/hive_metastore.py",
-                       classname = "HiveMetastore",
-                       command = "stop",
+                       classname="HiveMetastore",
+                       command="stop",
                        config_file="../../2.1/configs/secured.json"
     )
 
     self.assertResourceCalled('Execute', 'kill `cat /var/run/hive/hive.pid` >/dev/null 2>&1 && rm -f /var/run/hive/hive.pid',
-                              not_if = '! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1)'
+                              not_if='! (ls /var/run/hive/hive.pid >/dev/null 2>&1 && ps `cat /var/run/hive/hive.pid` >/dev/null 2>&1)'
     )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
     self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/HDP-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
-      creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
-      path = ['/bin', '/usr/bin/'],
-      not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+      creates='/usr/lib/hive/lib//mysql-connector-java.jar',
+      path=['/bin', '/usr/bin/'],
+      not_if='test -f /usr/lib/hive/lib//mysql-connector-java.jar',
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf.server',
-      owner = 'hive',
-      group = 'hadoop',
-      recursive = True,
+      owner='hive',
+      group='hadoop',
+      recursive=True,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0600,
-      conf_dir = '/etc/hive/conf.server',
-      configurations = self.getConfig()['configurations']['mapred-site'],
+      owner='hive',
+      group='hadoop',
+      mode=0o600,
+      conf_dir='/etc/hive/conf.server',
+      configurations=self.getConfig()['configurations']['mapred-site'],
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0600,
-      conf_dir = '/etc/hive/conf.server',
-      configurations = self.getConfig()['configurations']['hive-site'],
+      owner='hive',
+      group='hadoop',
+      mode=0o600,
+      conf_dir='/etc/hive/conf.server',
+      configurations=self.getConfig()['configurations']['hive-site'],
     )
-    self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
-      not_if = '[ -f DBConnectionVerification.jar]',
-      environment = {'no_proxy': 'c6401.ambari.apache.org'},
+    self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl --noproxy c6401.ambari.apache.org -kf --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
+      not_if='[ -f DBConnectionVerification.jar]',
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-      content = Template('hive-env.sh.j2', conf_dir="/etc/hive/conf.server"),
-      owner = 'hive',
-      group = 'hadoop',
+      content=Template('hive-env.sh.j2', conf_dir="/etc/hive/conf.server"),
+      owner='hive',
+      group='hadoop',
     )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
-      content = StaticFile('startMetastore.sh'),
-      mode = 0755,
+      content=StaticFile('startMetastore.sh'),
+      mode=0o755,
     )
     self.assertResourceCalled('Execute', "export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord asd",
-      not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord asd',
+      not_if='export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord asd',
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0755,
-      recursive = True,
+      owner='hive',
+      group='hadoop',
+      mode=0o755,
+      recursive=True,
     )
     self.assertResourceCalled('Directory', '/var/log/hive',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0755,
-      recursive = True,
+      owner='hive',
+      group='hadoop',
+      mode=0o755,
+      recursive=True,
     )
     self.assertResourceCalled('Directory', '/var/lib/hive',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0755,
-      recursive = True,
+      owner='hive',
+      group='hadoop',
+      mode=0o755,
+      recursive=True,
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-default.xml.template',
-      owner = 'hive',
-      group = 'hadoop',
+      owner='hive',
+      group='hadoop',
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh.template',
-      owner = 'hive',
-      group = 'hadoop',
+      owner='hive',
+      group='hadoop',
     )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Execute', 'hive mkdir -p /tmp/HDP-artifacts/ ; cp /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib//mysql-connector-java.jar',
-      creates = '/usr/lib/hive/lib//mysql-connector-java.jar',
-      path = ['/bin', '/usr/bin/'],
-      not_if = 'test -f /usr/lib/hive/lib//mysql-connector-java.jar',
+      creates='/usr/lib/hive/lib//mysql-connector-java.jar',
+      path=['/bin', '/usr/bin/'],
+      not_if='test -f /usr/lib/hive/lib//mysql-connector-java.jar',
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf.server',
-      owner = 'hive',
-      group = 'hadoop',
-      recursive = True,
+      owner='hive',
+      group='hadoop',
+      recursive=True,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0600,
-      conf_dir = '/etc/hive/conf.server',
-      configurations = self.getConfig()['configurations']['mapred-site'],
+      owner='hive',
+      group='hadoop',
+      mode=0o600,
+      conf_dir='/etc/hive/conf.server',
+      configurations=self.getConfig()['configurations']['mapred-site'],
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0600,
-      conf_dir = '/etc/hive/conf.server',
-      configurations = self.getConfig()['configurations']['hive-site'],
+      owner='hive',
+      group='hadoop',
+      mode=0o600,
+      conf_dir='/etc/hive/conf.server',
+      configurations=self.getConfig()['configurations']['hive-site'],
     )
-    self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
-      not_if = '[ -f DBConnectionVerification.jar]',
-      environment = {'no_proxy': 'c6401.ambari.apache.org'},
+    self.assertResourceCalled('Execute', "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl --noproxy c6401.ambari.apache.org -kf --retry 5 http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar -o DBConnectionVerification.jar'",
+      not_if='[ -f DBConnectionVerification.jar]',
     )
     self.assertResourceCalled('File', '/etc/hive/conf.server/hive-env.sh',
-      content = Template('hive-env.sh.j2', conf_dir="/etc/hive/conf.server"),
-      owner = 'hive',
-      group = 'hadoop',
+      content=Template('hive-env.sh.j2', conf_dir="/etc/hive/conf.server"),
+      owner='hive',
+      group='hadoop',
     )
     self.assertResourceCalled('File', '/tmp/start_metastore_script',
-      content = StaticFile('startMetastore.sh'),
-      mode = 0755,
+      content=StaticFile('startMetastore.sh'),
+      mode=0o755,
     )
     self.assertResourceCalled('Execute', "export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -initSchema -dbType mysql -userName hive -passWord asd",
-      not_if = 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord asd',
+      not_if='export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/lib/hive/bin/schematool -info -dbType mysql -userName hive -passWord asd',
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0755,
-      recursive = True,
+      owner='hive',
+      group='hadoop',
+      mode=0o755,
+      recursive=True,
     )
     self.assertResourceCalled('Directory', '/var/log/hive',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0755,
-      recursive = True,
+      owner='hive',
+      group='hadoop',
+      mode=0o755,
+      recursive=True,
     )
     self.assertResourceCalled('Directory', '/var/lib/hive',
-      owner = 'hive',
-      group = 'hadoop',
-      mode = 0755,
-      recursive = True,
+      owner='hive',
+      group='hadoop',
+      mode=0o755,
+      recursive=True,
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-default.xml.template',
-      owner = 'hive',
-      group = 'hadoop',
+      owner='hive',
+      group='hadoop',
     )
     self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh.template',
-      owner = 'hive',
-      group = 'hadoop',
+      owner='hive',
+      group='hadoop',
     )
 
 

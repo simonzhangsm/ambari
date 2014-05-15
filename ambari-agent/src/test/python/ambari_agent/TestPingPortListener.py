@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import unittest
-from mock.mock import patch, MagicMock, call, Mock
+from mock import patch, MagicMock, call, Mock
 from ambari_agent import PingPortListener
 import socket
 import sys
@@ -32,24 +32,24 @@ class TestPingPortListener(unittest.TestCase):
     PingPortListener.logger = MagicMock()
 
   @patch("socket.socket")
-  def test_init_success(self,socketMock):
+  def test_init_success(self, socketMock):
     PingPortListener.logger.reset_mock()
     allive_daemon = PingPortListener.PingPortListener(self.config)
     self.assertFalse(PingPortListener.logger.warn.called)
     self.assertTrue(socketMock.call_args_list[0][0][0] == socket.AF_INET)
     self.assertTrue(socketMock.call_args_list[0][0][1] == socket.SOCK_STREAM)
-    self.assertTrue(allive_daemon.socket.bind.call_args_list[0][0][0] == ('0.0.0.0',55000))
+    self.assertTrue(allive_daemon.socket.bind.call_args_list[0][0][0] == ('0.0.0.0', 55000))
     self.assertTrue(allive_daemon.socket.listen.call_args_list[0][0][0] == 1)
     self.assertTrue(allive_daemon.config.set.call_args_list[0][0][0] == 'agent')
     self.assertTrue(allive_daemon.config.set.call_args_list[0][0][1] == 'current_ping_port')
 
 
 
-  @patch.object(socket.socket,"bind")
-  @patch.object(socket.socket,"listen")
-  @patch.object(socket.socket,"__init__")
+  @patch.object(socket.socket, "bind")
+  @patch.object(socket.socket, "listen")
+  @patch.object(socket.socket, "__init__")
   @patch.object(sys, "exit")
-  def test_init_warn(self, sys_exit_mock, socketInitMock,socketListenMock,socketBindMock):
+  def test_init_warn(self, sys_exit_mock, socketInitMock, socketListenMock, socketBindMock):
     PingPortListener.logger.reset_mock()
     allive_daemon = PingPortListener.PingPortListener(self.config)
     self.assertTrue(socketInitMock.called)

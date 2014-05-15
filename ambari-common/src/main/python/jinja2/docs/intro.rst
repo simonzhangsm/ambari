@@ -2,45 +2,22 @@ Introduction
 ============
 
 This is the documentation for the Jinja2 general purpose templating language.
-Jinja2 is a library for Python 2.4 and onwards that is designed to be flexible,
-fast and secure.
+Jinja2 is a library for Python that is designed to be flexible, fast and secure.
 
 If you have any exposure to other text-based template languages, such as Smarty or
 Django, you should feel right at home with Jinja2.  It's both designer and
 developer friendly by sticking to Python's principles and adding functionality
 useful for templating environments.
 
-The key-features are...
-
--   ... **configurable syntax**.  If you are generating LaTeX or other formats
-    with Jinja2 you can change the delimiters to something that integrates better
-    into the LaTeX markup.
-
--   ... **fast**.  While performance is not the primarily target of Jinja2 it's
-    surprisingly fast.  The overhead compared to regular Python code was reduced
-    to the very minimum.
-
--   ... **easy to debug**.  Jinja2 integrates directly into the python traceback
-    system which allows you to debug Jinja2 templates with regular python
-    debugging helpers.
-
--   ... **secure**.  It's possible to evaluate untrusted template code if the
-    optional sandbox is enabled.  This allows Jinja2 to be used as templating
-    language for applications where users may modify the template design.
-
-
 Prerequisites
 -------------
 
-Jinja2 needs at least **Python 2.4** to run.  Additionally a working C-compiler
-that can create python extensions should be installed for the debugger if you
-are using Python 2.4.
+Jinja2 works with Python 2.6.x, 2.7.x and >= 3.3.  If you are using Python
+3.2 you can use an older release of Jinja2 (2.6) as support for Python 3.2
+was dropped in Jinja2 version 2.7.
 
-If you don't have a working C-compiler and you are trying to install the source
-release with the debugsupport you will get a compiler error.
-
-.. _ctypes: http://python.net/crew/theller/ctypes/
-
+If you wish to use the :class:`~jinja2.PackageLoader` class, you will also
+need setuptools or distribute installed at runtime.
 
 Installation
 ------------
@@ -59,7 +36,7 @@ You can install the most recent Jinja2 version using `easy_install`_ or `pip`_::
 This will install a Jinja2 egg in your Python installation's site-packages
 directory.
 
-(If you are installing from the windows command line omit the `sudo` and make
+(If you are installing from the Windows command line omit the `sudo` and make
 sure to run the command as user with administrator rights)
 
 From the tarball release
@@ -69,7 +46,7 @@ From the tarball release
 2.  Unpack the tarball
 3.  ``sudo python setup.py install``
 
-Note that you either have to have setuptools or `distribute`_ installed,
+Note that you either have to have setuptools or `distribute`_ installed;
 the latter is preferred.
 
 This will install Jinja2 into your Python installation's site-packages directory.
@@ -95,35 +72,14 @@ has the advantage that the C extensions are compiled.
 .. _git: http://git-scm.org/
 
 
-More Speed with MarkupSafe
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+MarkupSafe Dependency
+~~~~~~~~~~~~~~~~~~~~~
 
-As of version 2.5.1 Jinja2 will check for an installed `MarkupSafe`_
-module.  If it can find it, it will use the Markup class of that module
-instead of the one that comes with Jinja2.  `MarkupSafe` replaces the
-older speedups module that came with Jinja2 and has the advantage that is
-has a better setup script and will automatically attempt to install the C
-version and nicely fall back to a pure Python implementation if that is
-not possible.
-
-The C implementation of MarkupSafe is much faster and recommended when
-using Jinja2 with autoescaping.
+As of version 2.7 Jinja2 depends on the `MarkupSafe`_ module.  If you
+install Jinja2 via `pip` or `easy_install` it will be installed
+automatically for you.
 
 .. _MarkupSafe: http://pypi.python.org/pypi/MarkupSafe
-
-
-Enable the debug support Module
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-By default Jinja2 will not compile the debug support module.  Enabling this
-will fail if you don't have the Python headers or a working compiler.  This
-is often the case if you are installing Jinja2 from a windows machine.
-
-Because the debug support is only necessary for Python 2.4 you will not
-have to do this unless you run 2.4::
-
-    sudo python setup.py --with-debugsupport install
-
 
 Basic API Usage
 ---------------
@@ -155,7 +111,7 @@ indeed using unicode internally.
 Experimental Python 3 Support
 -----------------------------
 
-Jinja 2.3 brings experimental support for Python 3.  It means that all
+Jinja 2.7 brings experimental support for Python >=3.3.  It means that all
 unittests pass on the new version, but there might still be small bugs in
 there and behavior might be inconsistent.  If you notice any bugs, please
 provide feedback in the `Jinja bug tracker`_.

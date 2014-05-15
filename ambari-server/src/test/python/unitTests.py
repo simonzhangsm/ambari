@@ -16,15 +16,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import unittest
+from random import shuffle
+import fnmatch
 import multiprocessing
 import os
 import sys
-from random import shuffle
-import fnmatch
+import unittest
 
-#excluded directories with non-test staff from stack and service scanning,
-#also we can add service or stack to skip here
+
+# excluded directories with non-test staff from stack and service scanning,
+# also we can add service or stack to skip here
 STACK_EXCLUDE = ["utils"]
 SERVICE_EXCLUDE = ["configs"]
 
@@ -43,7 +44,7 @@ def get_parent_path(base, directory_name):
     done = True if os.path.split(base)[-1] == directory_name else False
   return base
 
-def get_test_files(path, mask = None, recursive=True):
+def get_test_files(path, mask=None, recursive=True):
   """
   Returns test files for path recursively
   """
@@ -58,7 +59,7 @@ def get_test_files(path, mask = None, recursive=True):
         current.append(item)
     elif os.path.isdir(path + "/" + item):
       if recursive:
-        current.extend(get_test_files(path + "/" + item, mask = mask))
+        current.extend(get_test_files(path + "/" + item, mask=mask))
     if add_to_pythonpath:
       sys.path.append(path)
   return current
@@ -69,13 +70,13 @@ def stack_test_executor(base_folder, stack, service, custom_tests, executor_resu
   Stack tests executor. Must be executed in separate process to prevent module
   name conflicts in different stacks.
   """
-  #extract stack scripts folders
+  # extract stack scripts folders
   if custom_tests:
     test_mask = CUSTOM_TEST_MASK
   else:
     test_mask = TEST_MASK
 
-  server_src_dir = get_parent_path(base_folder,'src')
+  server_src_dir = get_parent_path(base_folder, 'src')
 
   base_stack_folder = os.path.join(server_src_dir,
                                    'main/resources/stacks/HDP/{0}'.format(stack))
@@ -87,23 +88,22 @@ def stack_test_executor(base_folder, stack, service, custom_tests, executor_resu
 
   sys.path.extend(script_folders)
 
-  tests = get_test_files(base_folder, mask = test_mask)
+  tests = get_test_files(base_folder, mask=test_mask)
 
   shuffle(tests)
   modules = [os.path.basename(s)[:-3] for s in tests]
-  suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in
-    modules]
+  suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in modules]
   testSuite = unittest.TestSuite(suites)
   textRunner = unittest.TextTestRunner(verbosity=2).run(testSuite)
 
-  #for pretty output
+  # for pretty output
   sys.stdout.flush()
   sys.stderr.flush()
   exit_code = 0 if textRunner.wasSuccessful() else 1
   executor_result.put({'exit_code':exit_code,
                   'tests_run':textRunner.testsRun,
-                  'errors':[(str(item[0]),str(item[1]),"ERROR") for item in textRunner.errors],
-                  'failures':[(str(item[0]),str(item[1]),"FAIL") for item in textRunner.failures]})
+                  'errors':[(str(item[0]), str(item[1]), "ERROR") for item in textRunner.errors],
+                  'failures':[(str(item[0]), str(item[1]), "FAIL") for item in textRunner.failures]})
   executor_result.put(0) if textRunner.wasSuccessful() else executor_result.put(1)
 
 def main():
@@ -113,9 +113,9 @@ def main():
       custom_tests = True
   pwd = os.path.abspath(os.path.dirname(__file__))
 
-  ambari_server_folder = get_parent_path(pwd,'ambari-server')
-  ambari_agent_folder = os.path.join(ambari_server_folder,"../ambari-agent")
-  ambari_common_folder = os.path.join(ambari_server_folder,"../ambari-common")
+  ambari_server_folder = get_parent_path(pwd, 'ambari-server')
+  ambari_agent_folder = os.path.join(ambari_server_folder, "../ambari-agent")
+  ambari_common_folder = os.path.join(ambari_server_folder, "../ambari-common")
   sys.path.append(ambari_common_folder + "/src/main/python")
   sys.path.append(ambari_common_folder + "/src/main/python/jinja2")
   sys.path.append(ambari_common_folder + "/src/main/python")
@@ -125,14 +125,14 @@ def main():
   sys.path.append(ambari_server_folder + "/src/main/python")
   sys.path.append(ambari_server_folder + "/src/main/resources/scripts")
 
-  stacks_folder = pwd+'/stacks'
-  #generate test variants(path, service, stack)
+  stacks_folder = pwd + '/stacks'
+  # generate test variants(path, service, stack)
   test_variants = []
   for stack in os.listdir(stacks_folder):
-    current_stack_dir = stacks_folder+"/"+stack
+    current_stack_dir = stacks_folder + "/" + stack
     if os.path.isdir(current_stack_dir) and stack not in STACK_EXCLUDE:
       for service in os.listdir(current_stack_dir):
-        current_service_dir = current_stack_dir+"/"+service
+        current_service_dir = current_stack_dir + "/" + service
         if os.path.isdir(current_service_dir) and service not in SERVICE_EXCLUDE:
           if service == 'hooks':
             for hook in os.listdir(current_service_dir):
@@ -144,15 +144,15 @@ def main():
                                   'service':service,
                                   'stack':stack})
 
-  #run tests for every service in every stack in separate process
+  # run tests for every service in every stack in separate process
   has_failures = False
   test_runs = 0
   test_failures = []
   test_errors = []
   for variant in test_variants:
     executor_result = multiprocessing.Queue()
-    sys.stderr.write( "Running tests for stack:{0} service:{1}\n"
-                      .format(variant['stack'],variant['service']))
+    sys.stderr.write("Running tests for stack:{0} service:{1}\n"
+                      .format(variant['stack'], variant['service']))
     process = multiprocessing.Process(target=stack_test_executor,
                                       args=(variant['directory'],
                                             variant['service'],
@@ -162,7 +162,7 @@ def main():
           )
     process.start()
     process.join()
-    #for pretty output
+    # for pretty output
     sys.stdout.flush()
     sys.stderr.flush()
     variant_result = executor_result.get()
@@ -173,7 +173,7 @@ def main():
     if variant_result['exit_code'] != 0:
       has_failures = True
 
-  #run base ambari-server tests
+  # run base ambari-server tests
   sys.stderr.write("Running tests for ambari-server\n")
   if custom_tests:
     test_mask = CUSTOM_TEST_MASK
@@ -188,16 +188,16 @@ def main():
   testSuite = unittest.TestSuite(suites)
   textRunner = unittest.TextTestRunner(verbosity=2).run(testSuite)
   test_runs += textRunner.testsRun
-  test_errors.extend([(str(item[0]),str(item[1]),"ERROR") for item in textRunner.errors])
-  test_failures.extend([(str(item[0]),str(item[1]),"FAIL") for item in textRunner.failures])
+  test_errors.extend([(str(item[0]), str(item[1]), "ERROR") for item in textRunner.errors])
+  test_failures.extend([(str(item[0]), str(item[1]), "FAIL") for item in textRunner.failures])
   tests_status = textRunner.wasSuccessful() and not has_failures
 
   if not tests_status:
     sys.stderr.write("----------------------------------------------------------------------\n")
     sys.stderr.write("Failed tests:\n")
-  for failed_tests in [test_errors,test_failures]:
+  for failed_tests in [test_errors, test_failures]:
     for err in failed_tests:
-      sys.stderr.write("{0}: {1}\n".format(err[2],err[0]))
+      sys.stderr.write("{0}: {1}\n".format(err[2], err[0]))
       sys.stderr.write("----------------------------------------------------------------------\n")
       sys.stderr.write("{0}\n".format(err[1]))
   sys.stderr.write("----------------------------------------------------------------------\n")

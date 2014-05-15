@@ -24,9 +24,9 @@
       <version>3.5.0</version>
       <components>
         <component>
-          <name>NAGIOS_SERVER</name>
-          <category>MASTER</category>
-          <cardinality>1</cardinality>
+            <name>NAGIOS_SERVER</name>
+            <category>MASTER</category>
+            <cardinality>1</cardinality>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -57,11 +57,11 @@
               </auto-deploy>
             </dependency>
           </dependencies>
-          <commandScript>
-            <script>scripts/nagios_server.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>600</timeout>
-          </commandScript>
+            <commandScript>
+              <script>scripts/nagios_server.py</script>
+              <scriptType>PYTHON</scriptType>
+              <timeout>600</timeout>
+            </commandScript>
         </component>
       </components>
       <osSpecifics>
@@ -71,6 +71,10 @@
             <package>
               <type>rpm</type>
               <name>perl</name>
+            </package>
+            <package>
+              <type>rpm</type>
+              <name>perl-Net-SNMP</name>
             </package>
             <package>
               <type>rpm</type>
@@ -107,7 +111,7 @@
             </package>
             <package>
               <type>rpm</type>
-              <name>apache2?mod_php*</name>
+              <name>apache2-mod_php5</name>
             </package>
           </packages>
         </osSpecific>

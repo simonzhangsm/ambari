@@ -17,8 +17,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from mock.mock import MagicMock, call, patch
+from mock import MagicMock, call, patch
+
 from stacks.utils.RMFTestCase import *
+
 
 class TestServiceCheck(RMFTestCase):
 
@@ -30,21 +32,21 @@ class TestServiceCheck(RMFTestCase):
                         config_file="default.json"
     )
     self.assertResourceCalled('ExecuteHadoop', 'dfs -rmr mapredsmokeoutput mapredsmokeinput ; hadoop dfs -put /etc/passwd mapredsmokeinput',
-                        try_sleep = 5,
-                        tries = 1,
-                        user = 'ambari-qa',
-                        conf_dir = '/etc/hadoop/conf',
+                        try_sleep=5,
+                        tries=1,
+                        user='ambari-qa',
+                        conf_dir='/etc/hadoop/conf',
     )
     self.assertResourceCalled('ExecuteHadoop', 'jar /usr/lib/hadoop//hadoop-examples.jar wordcount mapredsmokeinput mapredsmokeoutput',
-                        logoutput = True,
-                        try_sleep = 5,
-                        tries = 1,
-                        user = 'ambari-qa',
-                        conf_dir = '/etc/hadoop/conf',
+                        logoutput=True,
+                        try_sleep=5,
+                        tries=1,
+                        user='ambari-qa',
+                        conf_dir='/etc/hadoop/conf',
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e mapredsmokeoutput',
-                        user = 'ambari-qa',
-                        conf_dir = '/etc/hadoop/conf',
+                        user='ambari-qa',
+                        conf_dir='/etc/hadoop/conf',
     )
     self.assertNoMoreResources()
 
@@ -56,23 +58,23 @@ class TestServiceCheck(RMFTestCase):
                        config_file="secured.json"
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa;',
-                       user = 'ambari-qa',
+                       user='ambari-qa',
     )
     self.assertResourceCalled('ExecuteHadoop', 'dfs -rmr mapredsmokeoutput mapredsmokeinput ; hadoop dfs -put /etc/passwd mapredsmokeinput',
-                       try_sleep = 5,
-                       tries = 1,
-                       user = 'ambari-qa',
-                       conf_dir = '/etc/hadoop/conf',
+                       try_sleep=5,
+                       tries=1,
+                       user='ambari-qa',
+                       conf_dir='/etc/hadoop/conf',
     )
     self.assertResourceCalled('ExecuteHadoop', 'jar /usr/lib/hadoop//hadoop-examples.jar wordcount mapredsmokeinput mapredsmokeoutput',
-                       logoutput = True,
-                       try_sleep = 5,
-                       tries = 1,
-                       user = 'ambari-qa',
-                       conf_dir = '/etc/hadoop/conf',
+                       logoutput=True,
+                       try_sleep=5,
+                       tries=1,
+                       user='ambari-qa',
+                       conf_dir='/etc/hadoop/conf',
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e mapredsmokeoutput',
-                       user = 'ambari-qa',
-                       conf_dir = '/etc/hadoop/conf',
+                       user='ambari-qa',
+                       conf_dir='/etc/hadoop/conf',
     )
     self.assertNoMoreResources()

@@ -249,6 +249,11 @@
 
 
   <!-- copied from kryptonite configuration -->
+  <property>
+    <name>mapred.compress.map.output</name>
+    <value></value>
+  </property>
+
 
   <property>
     <name>mapred.task.timeout</name>
@@ -427,6 +432,13 @@
   </property>
 
   <property>
+    <name>mapred.task.maxvmem</name>
+    <value></value>
+    <final>true</final>
+    <description>No description</description>
+  </property>
+
+  <property>
     <name>mapred.jobtracker.maxtasks.per.job</name>
     <value>-1</value>
     <final>true</final>
@@ -497,6 +509,12 @@
     <name>mapreduce.tasktracker.keytab.file</name>
     <value>/etc/security/keytabs/tt.service.keytab</value>
     <description>The filename of the keytab for the task tracker</description>
+  </property>
+
+  <property>
+    <name>mapred.task.tracker.http.address</name>
+    <value></value>
+    <description>Http address for task tracker.</description>
   </property>
 
   <property>

@@ -27,7 +27,8 @@
     "commandParams": {
         "service_package_folder": "HDP/2.0.6/services/HDFS/package", 
         "script": "scripts/zkfc_slave.py", 
-        "hooks_folder": "HDP/2.0.6/hooks",
+        "hooks_folder": "HDP/2.0.6/hooks", 
+        "schema_version": "2.0", 
         "command_timeout": "600", 
         "script_type": "PYTHON"
     }, 

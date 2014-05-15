@@ -17,16 +17,18 @@ limitations under the License.
 
 """
 
+import os
+
 from resource_management import *
 from resource_management.core.system import System
-import os
+
 
 config = Script.get_config()
 
-#java params
+# java params
 artifact_dir = "/tmp/HDP-artifacts/"
-jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already installed by user
-jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
+jdk_name = default("/hostLevelParams/jdk_name", None)  # None when jdk is already installed by user
+jce_policy_zip = default("/hostLevelParams/jce_name", None)  # None when jdk is already installed by user
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_location = config['hostLevelParams']['jdk_location']
 java_home = config['hostLevelParams']['java_home']
@@ -34,13 +36,13 @@ if System.get_instance().os_family == "suse":
   jsvc_path = "/usr/lib/bigtop-utils"
 else:
   jsvc_path = "/usr/libexec/bigtop-utils"
-#security params
+# security params
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
-#hadoop params
+security_enabled = (not is_empty(_authentication) and _authentication == 'kerberos')
+# hadoop params
 hadoop_conf_dir = "/etc/hadoop/conf"
 
-#hadoop-env.sh
+# hadoop-env.sh
 
 java_home = config['hostLevelParams']['java_home']
 if System.get_instance().os_family == "suse":
@@ -49,24 +51,24 @@ else:
   jsvc_path = "/usr/libexec/bigtop-utils"
 hadoop_heapsize = config['configurations']['global']['hadoop_heapsize']
 namenode_heapsize = config['configurations']['global']['namenode_heapsize']
-namenode_opt_newsize =  config['configurations']['global']['namenode_opt_newsize']
-namenode_opt_maxnewsize =  config['configurations']['global']['namenode_opt_maxnewsize']
+namenode_opt_newsize = config['configurations']['global']['namenode_opt_newsize']
+namenode_opt_maxnewsize = config['configurations']['global']['namenode_opt_maxnewsize']
 
-jtnode_opt_newsize = default("jtnode_opt_newsize","200m")
-jtnode_opt_maxnewsize = default("jtnode_opt_maxnewsize","200m")
-jtnode_heapsize =  default("jtnode_heapsize","1024m")
+jtnode_opt_newsize = default("jtnode_opt_newsize", "200m")
+jtnode_opt_maxnewsize = default("jtnode_opt_maxnewsize", "200m")
+jtnode_heapsize = default("jtnode_heapsize", "1024m")
 ttnode_heapsize = "1024m"
 
 dtnode_heapsize = config['configurations']['global']['dtnode_heapsize']
-mapred_pid_dir_prefix = default("mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
+mapred_pid_dir_prefix = default("mapred_pid_dir_prefix", "/var/run/hadoop-mapreduce")
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
-mapred_log_dir_prefix = default("mapred_log_dir_prefix","/var/log/hadoop-mapreduce")
+mapred_log_dir_prefix = default("mapred_log_dir_prefix", "/var/log/hadoop-mapreduce")
 
 hdfs_log_dir_prefix = config['configurations']['global']['hdfs_log_dir_prefix']
 hadoop_pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']
 
-#users and groups
+# users and groups
 yarn_user = config['configurations']['global']['yarn_user']
 hbase_user = config['configurations']['global']['hbase_user']
 nagios_user = config['configurations']['global']['nagios_user']
@@ -74,7 +76,7 @@ oozie_user = config['configurations']['global']['oozie_user']
 webhcat_user = config['configurations']['global']['hcat_user']
 hcat_user = config['configurations']['global']['hcat_user']
 hive_user = config['configurations']['global']['hive_user']
-smoke_user =  config['configurations']['global']['smokeuser']
+smoke_user = config['configurations']['global']['smokeuser']
 mapred_user = config['configurations']['global']['mapred_user']
 hdfs_user = config['configurations']['global']['hdfs_user']
 zk_user = config['configurations']['global']['zk_user']
@@ -82,12 +84,12 @@ gmetad_user = config['configurations']['global']["gmetad_user"]
 gmond_user = config['configurations']['global']["gmond_user"]
 
 user_group = config['configurations']['global']['user_group']
-proxyuser_group =  config['configurations']['global']['proxyuser_group']
+proxyuser_group = config['configurations']['global']['proxyuser_group']
 nagios_group = config['configurations']['global']['nagios_group']
-smoke_user_group =  "users"
+smoke_user_group = "users"
 mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
 
-#hosts
+# hosts
 hostname = config["hostname"]
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 rm_host = default("/clusterHostInfo/rm_host", [])
@@ -95,7 +97,7 @@ slave_hosts = default("/clusterHostInfo/slave_hosts", [])
 hagios_server_hosts = default("/clusterHostInfo/nagios_server_host", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 hcat_server_hosts = default("/clusterHostInfo/webhcat_server_host", [])
-hive_server_host =  default("/clusterHostInfo/hive_server_host", [])
+hive_server_host = default("/clusterHostInfo/hive_server_host", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 hs_host = default("/clusterHostInfo/hs_host", [])
 jtnode_host = default("/clusterHostInfo/jtnode_host", [])
@@ -106,9 +108,9 @@ ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 has_resourcemanager = not len(rm_host) == 0
 has_slaves = not len(slave_hosts) == 0
 has_nagios = not len(hagios_server_hosts) == 0
-has_oozie_server = not len(oozie_servers)  == 0
-has_hcat_server_host = not len(hcat_server_hosts)  == 0
-has_hive_server_host = not len(hive_server_host)  == 0
+has_oozie_server = not len(oozie_servers) == 0
+has_hcat_server_host = not len(hcat_server_hosts) == 0
+has_hive_server_host = not len(hive_server_host) == 0
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_zk_host = not len(zk_hosts) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
@@ -123,4 +125,3 @@ if has_ganglia_server:
   ganglia_server_host = ganglia_server_hosts[0]
 
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
-ignore_groupsusers_create = default("ignore_groupsusers_create", False)

@@ -19,7 +19,7 @@ limitations under the License.
 '''
 import logging
 
-from mock.mock import MagicMock, patch
+from mock import MagicMock, patch
 from HttpClientInvoker import HttpClientInvoker
 
 from ambari_client.ambari_api import  AmbariClient
@@ -32,7 +32,7 @@ class TestServiceModel(unittest.TestCase):
     http_client_logger = logging.getLogger()
     http_client_logger.info('Running test:' + self.id())
 
-  def create_service(self, http_client_mock = MagicMock()):
+  def create_service(self, http_client_mock=MagicMock()):
     http_client_mock.invoke.side_effect = HttpClientInvoker.http_client_invoke_side_effects
     client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)
     cluster = client.get_cluster('test1')

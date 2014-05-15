@@ -20,9 +20,10 @@ limitations under the License.
 
 from resource_management import *
 
+
 def hbase_service(
   name,
-  action = 'start'): # 'start' or 'stop' or 'status'
+  action='start'):  # 'start' or 'stop' or 'status'
     
     import params
   
@@ -40,7 +41,7 @@ def hbase_service(
       daemon_cmd = format("{cmd} stop {role} && rm -f {pid_file}")
 
     if daemon_cmd is not None:
-      Execute ( daemon_cmd,
-        not_if = no_op_test,
-        user = params.hbase_user
+      Execute (daemon_cmd,
+        not_if=no_op_test,
+        user=params.hbase_user
       )

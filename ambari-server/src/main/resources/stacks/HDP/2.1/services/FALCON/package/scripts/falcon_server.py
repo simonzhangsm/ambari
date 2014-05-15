@@ -17,8 +17,9 @@ limitations under the License.
 
 """
 
-from resource_management import *
 from falcon import falcon
+from resource_management import *
+
 
 class FalconServer(Script):
   def install(self, env):
@@ -51,7 +52,7 @@ class FalconServer(Script):
     falcon('server', action='config')
 
   def status(self, env):
-    import status_params
+    from status_params import status_params
 
     env.set_params(status_params)
     check_process_status(status_params.server_pid_file)

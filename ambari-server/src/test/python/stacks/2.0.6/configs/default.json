@@ -22,7 +22,8 @@
     "commandParams": {
         "command_timeout": "300", 
         "service_package_folder": "OOZIE",
-        "script_type": "PYTHON",
+        "script_type": "PYTHON", 
+        "schema_version": "2.0", 
         "script": "scripts/service_check.py",
         "excluded_hosts": "host1,host2",
         "mark_draining_only" : "false"
@@ -292,8 +293,7 @@
             "falcon_local_dir": "/hadoop/falcon",
             "tez_user": "tez",
             "rca_enabled": "false",
-            "oozie_admin_port": "11001",
-            "ignore_groupsusers_create": "false"
+            "oozie_admin_port": "11001"
         }, 
         "capacity-scheduler": {
             "yarn.scheduler.capacity.node-locality-delay": "40", 
@@ -512,9 +512,6 @@
         "pig-log4j": {
             "content": "log4jproperties\nline2"
         },
-        "pig-properties": {
-            "pig-content": "pigproperties\nline2"
-        },        
         "oozie-log4j": {
             "content": "log4jproperties\nline2"
         },
@@ -582,10 +579,7 @@
         },
         "pig-log4j": {
             "tag": "version1"
-        },
-        "pig-properties": {
-            "tag": "version1"
-        }        
+        }
     }, 
     "commandId": "7-1", 
     "clusterHostInfo": {

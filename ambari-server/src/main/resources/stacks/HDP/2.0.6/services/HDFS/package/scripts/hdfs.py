@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,9 +20,10 @@ Ambari Agent
 
 """
 
-from resource_management import *
-import sys
 import os
+import sys
+
+from resource_management import *
 
 
 def hdfs(name=None):
@@ -30,12 +32,12 @@ def hdfs(name=None):
   File(os.path.join(params.limits_conf_dir, 'hdfs.conf'),
        owner='root',
        group='root',
-       mode=0644,
+       mode=0o644,
        content=Template("hdfs.conf.j2")
   )
 
   if params.security_enabled:
-    tc_mode = 0644
+    tc_mode = 0o644
     tc_owner = "root"
   else:
     tc_mode = None

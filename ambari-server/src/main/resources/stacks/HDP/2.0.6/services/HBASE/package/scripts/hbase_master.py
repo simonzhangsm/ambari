@@ -19,13 +19,13 @@ limitations under the License.
 """
 
 import sys
-from resource_management import *
 
 from hbase import hbase
-from hbase_service import hbase_service
 from hbase_decommission import hbase_decommission
+from hbase_service import hbase_service
+from resource_management import *
 
-         
+
 class HbaseMaster(Script):
   def install(self, env):
     self.install_packages(env)
@@ -39,18 +39,18 @@ class HbaseMaster(Script):
   def start(self, env):
     import params
     env.set_params(params)
-    self.configure(env) # for security
+    self.configure(env)  # for security
 
-    hbase_service( 'master',
-      action = 'start'
+    hbase_service('master',
+      action='start'
     )
     
   def stop(self, env):
     import params
     env.set_params(params)
 
-    hbase_service( 'master',
-      action = 'stop'
+    hbase_service('master',
+      action='stop'
     )
 
   def status(self, env):

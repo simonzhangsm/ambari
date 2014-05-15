@@ -32,46 +32,46 @@ class HbaseServiceCheck(Script):
     smokeuser_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smoke_test_user};") if params.security_enabled else ""
     hbase_servicecheck_file = '/tmp/hbase-smoke.sh'
   
-    File( '/tmp/hbaseSmokeVerify.sh',
-      content = StaticFile("hbaseSmokeVerify.sh"),
-      mode = 0755
+    File('/tmp/hbaseSmokeVerify.sh',
+      content=StaticFile("hbaseSmokeVerify.sh"),
+      mode=0o755
     )
   
-    File( hbase_servicecheck_file,
-      mode = 0755,
-      content = Template('hbase-smoke.sh.j2')
+    File(hbase_servicecheck_file,
+      mode=0o755,
+      content=Template('hbase-smoke.sh.j2')
     )
     
     if params.security_enabled:    
       hbase_grant_premissions_file = '/tmp/hbase_grant_permissions.sh'
       grantprivelegecmd = format("{kinit_cmd} hbase shell {hbase_grant_premissions_file}")
   
-      File( hbase_grant_premissions_file,
-        owner   = params.hbase_user,
-        group   = params.user_group,
-        mode    = 0644,
-        content = Template('hbase_grant_permissions.j2')
+      File(hbase_grant_premissions_file,
+        owner=params.hbase_user,
+        group=params.user_group,
+        mode=0o644,
+        content=Template('hbase_grant_permissions.j2')
       )
       
-      Execute( grantprivelegecmd,
-        user = params.hbase_user,
+      Execute(grantprivelegecmd,
+        user=params.hbase_user,
       )
 
     servicecheckcmd = format("{smokeuser_kinit_cmd} hbase --config {conf_dir} shell {hbase_servicecheck_file}")
     smokeverifycmd = format("{smokeuser_kinit_cmd} /tmp/hbaseSmokeVerify.sh {conf_dir} {service_check_data}")
   
-    Execute( servicecheckcmd,
-      tries     = 3,
-      try_sleep = 5,
-      user = params.smoke_test_user,
-      logoutput = True
+    Execute(servicecheckcmd,
+      tries=3,
+      try_sleep=5,
+      user=params.smoke_test_user,
+      logoutput=True
     )
   
-    Execute ( smokeverifycmd,
-      tries     = 3,
-      try_sleep = 5,
-      user = params.smoke_test_user,
-      logoutput = True
+    Execute (smokeverifycmd,
+      tries=3,
+      try_sleep=5,
+      user=params.smoke_test_user,
+      logoutput=True
     )
     
 if __name__ == "__main__":

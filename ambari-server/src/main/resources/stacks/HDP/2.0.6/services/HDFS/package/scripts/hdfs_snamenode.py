@@ -18,8 +18,8 @@ limitations under the License.
 """
 
 from resource_management import *
-from utils import service
 from utils import hdfs_directory
+from utils import service
 
 
 def snamenode(action=None, format=False):
@@ -28,7 +28,7 @@ def snamenode(action=None, format=False):
   if action == "configure":
     Directory(params.fs_checkpoint_dir,
               recursive=True,
-              mode=0755,
+              mode=0o755,
               owner=params.hdfs_user,
               group=params.user_group)
   elif action == "start" or action == "stop":

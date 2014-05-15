@@ -19,19 +19,23 @@ limitations under the License.
 '''
 import os
 
-#OS constants
-OS_UBUNTU = 'ubuntu'
+
+# OS constants
+OS_DARWIN = 'darwin'
+OS_UBUNTU = 'debian'
 OS_FEDORA = 'fedora'
 OS_OPENSUSE = 'opensuse'
 OS_SUSE = 'suse'
 OS_SUSE_ENTERPRISE = 'sles'
 
-#PostgreSQL settings
+# PostgreSQL settings
 UBUNTU_PG_HBA_ROOT = "/etc/postgresql"
 PG_HBA_ROOT_DEFAULT = "/var/lib/pgsql/data"
 PG_STATUS_RUNNING_DEFAULT = "running"
+DARWIN_PG_HOME = "/Library/PostgreSQL/9.3"
+DARWIN_PG_HBA = "/Library/PostgreSQL/9.3/data"
 
-#Environment
+# Environment
 ENV_PATH_DEFAULT = ['/bin', '/usr/bin', '/sbin', '/usr/sbin']  # default search path
 ENV_PATH = os.getenv('PATH', '').split(':') + ENV_PATH_DEFAULT
 
@@ -67,6 +71,8 @@ def get_postgre_hba_dir(OS):
   """Return postgre hba dir location depends on OS"""
   if OS == OS_UBUNTU:
     return "%s/%s/main" % (UBUNTU_PG_HBA_ROOT, get_ubuntu_pg_version())
+  elif OS == OS_DARWIN:
+    return DARWIN_PG_HBA
   else:
     return PG_HBA_ROOT_DEFAULT
 
@@ -75,5 +81,7 @@ def get_postgre_running_status(OS):
   """Return postgre running status indicator"""
   if OS == OS_UBUNTU:
     return "%s/main" % get_ubuntu_pg_version()
+  elif OS == OS_DARWIN:
+    return PG_STATUS_RUNNING_DEFAULT
   else:
     return PG_STATUS_RUNNING_DEFAULT

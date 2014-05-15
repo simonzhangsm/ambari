@@ -14,10 +14,10 @@
 # limitations under the License.
 
 
-from urlparse import urlparse
+from urllib.parse import urlparse
 import time
 import logging
-import httplib
+import http.client
 from ssl import SSLError
 
 logger = logging.getLogger()
@@ -42,7 +42,7 @@ class NetUtil:
     logger.info("Connecting to the following url " + url);
     try:
       parsedurl = urlparse(url)
-      ca_connection = httplib.HTTPSConnection(parsedurl[1])
+      ca_connection = http.client.HTTPSConnection(parsedurl[1])
       ca_connection.request("GET", parsedurl[2])
       response = ca_connection.getresponse()  
       status = response.status    
@@ -54,15 +54,15 @@ class NetUtil:
         return False
     except SSLError as slerror:
       logger.error(str(slerror))
-      logger.error("SSLError: Failed to connect. Please check openssl library versions. \n" +
+      logger.error("SSLError: Failed to connect. Please check openssl library versions. \n" + 
                    "Refer to: https://bugzilla.redhat.com/show_bug.cgi?id=1022468 for more details.")
       return False
     
-    except Exception, e:
+    except Exception as e:
       logger.warning("Failed to connect to " + str(url) + " due to " + str(e) + "  ")
       return False
 
-  def try_to_connect(self, server_url, max_retries, logger = None):
+  def try_to_connect(self, server_url, max_retries, logger=None):
     """Try to connect to a given url, sleeping for CONNECT_SERVER_RETRY_INTERVAL_SEC seconds
     between retries. No more than max_retries is performed. If max_retries is -1, connection
     attempts will be repeated forever until server is not reachable

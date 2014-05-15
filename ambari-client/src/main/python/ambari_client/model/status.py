@@ -31,7 +31,7 @@ class StatusModel(BaseModel):
   REF_ATTR = ('cluster_name',)
 
   def __init__(self, resource_root, status , requestId=None, message=None):
-    #BaseModel.__init__(self, **locals())
+    # BaseModel.__init__(self, **locals())
     utils.retain_self_helper(BaseModel, **locals())
 
   def __str__(self):

@@ -16,43 +16,44 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import time
-import subprocess
-import os
-import logging
-import tempfile
-import pprint
-from xml.dom import minidom
-
-from unittest import TestCase
 from subprocess import Popen
-from mock.mock import MagicMock, call
-from mock.mock import patch
-from mock.mock import create_autospec
+from unittest import TestCase
+from xml.dom import minidom
+import logging
+import os
+import pprint
+import subprocess
+import tempfile
+import time
+
+from mock import MagicMock, call
+from mock import create_autospec
+from mock import patch
+
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 
 
 class TestResourceFilesKeeper(TestCase):
 
-  TEST_STACKS_DIR="../resources/stacks"
+  TEST_STACKS_DIR = "../resources/stacks"
 
   # Stack that is not expected to change
-  DUMMY_UNCHANGEABLE_STACK="../resources/TestAmbaryServer.samples/" \
+  DUMMY_UNCHANGEABLE_STACK = "../resources/TestAmbaryServer.samples/" \
                            "dummy_stack/HIVE/"
 
-  DUMMY_ACTIVE_STACK="../resources/TestAmbaryServer.samples/" \
+  DUMMY_ACTIVE_STACK = "../resources/TestAmbaryServer.samples/" \
                            "active_stack/"
 
-  DUMMY_INACTIVE_STACK="../resources/TestAmbaryServer.samples/" \
+  DUMMY_INACTIVE_STACK = "../resources/TestAmbaryServer.samples/" \
                      "inactive_stack/"
 
-  DUMMY_UNCHANGEABLE_PACKAGE=os.path.join(DUMMY_UNCHANGEABLE_STACK,
+  DUMMY_UNCHANGEABLE_PACKAGE = os.path.join(DUMMY_UNCHANGEABLE_STACK,
                                     ResourceFilesKeeper.PACKAGE_DIR)
 
-  DUMMY_UNCHANGEABLE_PACKAGE_HASH="4cd211c4d16b49b3546ecc9b7996698105fe10e4"
-  DUMMY_HASH="dummy_hash"
-  YA_HASH="yet_another_hash"
-  SOME_PATH="some-path"
+  DUMMY_UNCHANGEABLE_PACKAGE_HASH = "fa4db593868667a71817d2368a3bdadc93720752"
+  DUMMY_HASH = "dummy_hash"
+  YA_HASH = "yet_another_hash"
+  SOME_PATH = "some-path"
 
   def setUp(self):
     logging.basicConfig(level=logging.ERROR)
@@ -77,7 +78,7 @@ class TestResourceFilesKeeper(TestCase):
     abspath_mock.side_effect = lambda s : s
     resource_files_keeper = ResourceFilesKeeper(self.TEST_STACKS_DIR)
     resource_files_keeper.update_directory_archieves()
-    self.assertEquals(pprint.pformat(
+    self.assertEqual(pprint.pformat(
       update_directory_archive_mock.call_args_list),
             "[call('../resources/TestAmbaryServer.samples/"
             "dummy_stack/HIVE/package'),\n "
@@ -97,7 +98,7 @@ class TestResourceFilesKeeper(TestCase):
     glob_mock.return_value = ["stack1", "stack2", "stack3"]
     exists_mock.side_effect = [True, False, True]
     res = resource_files_keeper.list_stacks(self.SOME_PATH)
-    self.assertEquals(pprint.pformat(res), "['stack1', 'stack3']")
+    self.assertEqual(pprint.pformat(res), "['stack1', 'stack3']")
 
     # Test exception handling
     glob_mock.side_effect = self.keeper_exc_side_effect
@@ -105,8 +106,8 @@ class TestResourceFilesKeeper(TestCase):
       resource_files_keeper.list_stacks(self.SOME_PATH)
       self.fail('KeeperException not thrown')
     except KeeperException:
-      pass # Expected
-    except Exception, e:
+      pass  # Expected
+    except Exception as e:
       self.fail('Unexpected exception thrown:' + str(e))
 
 
@@ -168,8 +169,8 @@ class TestResourceFilesKeeper(TestCase):
       resource_files_keeper.update_directory_archive(self.SOME_PATH)
       self.fail('KeeperException not thrown')
     except KeeperException:
-      pass # Expected
-    except Exception, e:
+      pass  # Expected
+    except Exception as e:
       self.fail('Unexpected exception thrown:' + str(e))
     self.assertTrue(read_hash_sum_mock.called)
     self.assertTrue(count_hash_sum_mock.called)
@@ -197,44 +198,44 @@ class TestResourceFilesKeeper(TestCase):
     resource_files_keeper = ResourceFilesKeeper(self.DUMMY_UNCHANGEABLE_PACKAGE)
     test_dir = os.path.join(self.DUMMY_UNCHANGEABLE_PACKAGE)
     hash_sum = resource_files_keeper.count_hash_sum(test_dir)
-    self.assertEquals(hash_sum, self.DUMMY_UNCHANGEABLE_PACKAGE_HASH)
+    self.assertEqual(hash_sum, self.DUMMY_UNCHANGEABLE_PACKAGE_HASH)
 
     # Test exception handling
-    with patch("__builtin__.open") as open_mock:
+    with patch("builtins.open") as open_mock:
       open_mock.side_effect = self.exc_side_effect
       try:
         resource_files_keeper.count_hash_sum(test_dir)
         self.fail('KeeperException not thrown')
       except KeeperException:
-        pass # Expected
-      except Exception, e:
+        pass  # Expected
+      except Exception as e:
         self.fail('Unexpected exception thrown:' + str(e))
 
 
   def test_read_hash_sum(self):
     resource_files_keeper = ResourceFilesKeeper(self.DUMMY_UNCHANGEABLE_PACKAGE)
     hash_sum = resource_files_keeper.read_hash_sum(self.DUMMY_UNCHANGEABLE_PACKAGE)
-    self.assertEquals(hash_sum, "dummy_hash")
+    self.assertEqual(hash_sum, "dummy_hash")
 
     # Test exception handling
     # If file exists, should rethrow exception
     with patch("os.path.isfile") as isfile_mock:
       isfile_mock.return_value = True
-      with patch("__builtin__.open") as open_mock:
+      with patch("builtins.open") as open_mock:
         open_mock.side_effect = self.exc_side_effect
         try:
           resource_files_keeper.read_hash_sum("path-to-directory")
           self.fail('KeeperException not thrown')
         except KeeperException:
-          pass # Expected
-        except Exception, e:
+          pass  # Expected
+        except Exception as e:
           self.fail('Unexpected exception thrown:' + str(e))
 
     # Test exception handling
     # If file does not exist, should ignore exception
     with patch("os.path.isfile") as isfile_mock:
       isfile_mock.return_value = False
-      with patch("__builtin__.open") as open_mock:
+      with patch("builtins.open") as open_mock:
         open_mock.side_effect = self.exc_side_effect
         res = resource_files_keeper.read_hash_sum("path-to-directory")
         self.assertEqual(res, None)
@@ -246,23 +247,23 @@ class TestResourceFilesKeeper(TestCase):
     resource_files_keeper.write_hash_sum(
       self.DUMMY_UNCHANGEABLE_PACKAGE, NEW_HASH)
     hash_sum = resource_files_keeper.read_hash_sum(self.DUMMY_UNCHANGEABLE_PACKAGE)
-    self.assertEquals(hash_sum, NEW_HASH)
+    self.assertEqual(hash_sum, NEW_HASH)
 
     # Revert to previous value
     resource_files_keeper.write_hash_sum(
       self.DUMMY_UNCHANGEABLE_PACKAGE, self.DUMMY_HASH)
     hash_sum = resource_files_keeper.read_hash_sum(self.DUMMY_UNCHANGEABLE_PACKAGE)
-    self.assertEquals(hash_sum, self.DUMMY_HASH)
+    self.assertEqual(hash_sum, self.DUMMY_HASH)
 
     # Test exception handling
-    with patch("__builtin__.open") as open_mock:
+    with patch("builtins.open") as open_mock:
       open_mock.side_effect = self.exc_side_effect
       try:
         resource_files_keeper.write_hash_sum("path-to-directory", self.DUMMY_HASH)
         self.fail('KeeperException not thrown')
       except KeeperException:
-        pass # Expected
-      except Exception, e:
+        pass  # Expected
+      except Exception as e:
         self.fail('Unexpected exception thrown:' + str(e))
 
 
@@ -273,11 +274,11 @@ class TestResourceFilesKeeper(TestCase):
     arc_file = os.path.join(self.DUMMY_UNCHANGEABLE_PACKAGE,
                             ResourceFilesKeeper.ARCHIVE_NAME)
     # Arc file should not be empty
-    arc_size=os.path.getsize(arc_file)
+    arc_size = os.path.getsize(arc_file)
     self.assertTrue(40000 < arc_size < 50000)
     # After creating zip, count hash sum of dir (should not change)
     hash_val = resource_files_keeper.count_hash_sum(self.DUMMY_UNCHANGEABLE_PACKAGE)
-    self.assertEquals(hash_val, self.DUMMY_UNCHANGEABLE_PACKAGE_HASH)
+    self.assertEqual(hash_val, self.DUMMY_UNCHANGEABLE_PACKAGE_HASH)
     # Remove arc file
     os.unlink(arc_file)
 
@@ -288,8 +289,8 @@ class TestResourceFilesKeeper(TestCase):
         resource_files_keeper.zip_directory("path-to-directory")
         self.fail('KeeperException not thrown')
       except KeeperException:
-        pass # Expected
-      except Exception, e:
+        pass  # Expected
+      except Exception as e:
         self.fail('Unexpected exception thrown:' + str(e))
 
 

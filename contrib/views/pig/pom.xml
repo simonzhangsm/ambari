@@ -24,7 +24,7 @@
 
   <parent>
     <groupId>org.apache.ambari.views</groupId>
-    <artifactId>ambari-contrib-views</artifactId>
+    <artifactId>ambari-views</artifactId>
     <version>0.1.0-SNAPSHOT</version>
   </parent>
 
@@ -175,31 +175,9 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
-        <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}/lib</outputDirectory>
-              <includeScope>runtime</includeScope>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+
     </plugins>
+
     <resources>
       <resource>
         <directory>src/main/resources</directory>
@@ -213,50 +191,8 @@
         <directory>src/main/resources/ui/pig-web/public</directory>
         <filtering>false</filtering>
       </resource>
-      <resource>
-        <targetPath>WEB-INF/lib</targetPath>
-        <filtering>false</filtering>
-        <directory>target/lib</directory>
-      </resource>
     </resources>
   </build>
-  <profiles>
-    <profile>
-      <id>default</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <!-- Copy only the contrib views that we want included for default deployment -->
-          <plugin>
-            <artifactId>maven-resources-plugin</artifactId>
-            <version>2.6</version>
-            <executions>
-              <execution>
-                <id>copy-ambari-views</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>copy-resources</goal>
-                </goals>
-                <configuration>
-                  <!-- View archives in ../target will be deployed with an Ambari server install -->
-                  <outputDirectory>${basedir}/../target</outputDirectory>
-                  <resources>
-                    <resource>
-                      <directory>${basedir}/target/</directory>
-                      <includes>
-                        <include>*.jar</include>
-                      </includes>
-                      <filtering>true</filtering>
-                    </resource>
-                  </resources>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
+
+
 </project>

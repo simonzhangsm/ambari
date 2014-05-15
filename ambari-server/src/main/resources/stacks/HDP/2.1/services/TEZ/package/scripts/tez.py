@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -21,24 +22,25 @@ Ambari Agent
 
 from resource_management import *
 
+
 def tez():
   import params
 
   Directory(params.config_dir,
-    owner = params.tez_user,
-    group = params.user_group,
-    recursive = True
+    owner=params.tez_user,
+    group=params.user_group,
+    recursive=True
   )
 
-  XmlConfig( "tez-site.xml",
-            conf_dir = params.config_dir,
-            configurations = params.config['configurations']['tez-site'],
-            owner = params.tez_user,
-            group = params.user_group,
-            mode = 0664
+  XmlConfig("tez-site.xml",
+            conf_dir=params.config_dir,
+            configurations=params.config['configurations']['tez-site'],
+            owner=params.tez_user,
+            group=params.user_group,
+            mode=0o664
   )
 
-  tez_TemplateConfig( ['tez-env.sh'])
+  tez_TemplateConfig(['tez-env.sh'])
 
 
 def tez_TemplateConfig(name):
@@ -49,6 +51,6 @@ def tez_TemplateConfig(name):
 
   for x in name:
     TemplateConfig(format("{config_dir}/{x}"),
-        owner = params.tez_user
+        owner=params.tez_user
     )
 

@@ -16,11 +16,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys
-import os
 from os import path
-from resource_management import *
+import os
+import sys
+
 from ganglia import generate_daemon
+from resource_management import *
 import ganglia
 import ganglia_monitor_service
 
@@ -56,7 +57,7 @@ class GangliaMonitor(Script):
           pid_file = os.path.join(cur_dir, file_name)
           check_process_status(pid_file)
           pid_file_count += 1
-    if pid_file_count == 0: # If no any pid file is present
+    if pid_file_count == 0:  # If no any pid file is present
       raise ComponentIsNotRunning()
 
 
@@ -102,66 +103,66 @@ class GangliaMonitor(Script):
 
     if params.is_namenode_master:
       generate_daemon("gmond",
-                      name = "HDPNameNode",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPNameNode",
+                      role="monitor",
+                      owner="root",
+                      group=params.user_group)
 
     if params.is_jtnode_master:
       generate_daemon("gmond",
-                      name = "HDPJobTracker",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPJobTracker",
+                      role="monitor",
+                      owner="root",
+                      group=params.user_group)
 
     if params.is_hsnode_master:
       generate_daemon("gmond",
-                      name = "HDPHistoryServer",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPHistoryServer",
+                      role="monitor",
+                      owner="root",
+                      group=params.user_group)
 
     if params.is_hbase_master:
       generate_daemon("gmond",
-                      name = "HDPHBaseMaster",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPHBaseMaster",
+                      role="monitor",
+                      owner="root",
+                      group=params.user_group)
 
     if params.is_slave:
       generate_daemon("gmond",
-                      name = "HDPDataNode",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPDataNode",
+                      role="monitor",
+                      owner="root",
+                      group=params.user_group)
 
     if params.is_tasktracker:
       generate_daemon("gmond",
-                      name = "HDPTaskTracker",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPTaskTracker",
+                      role="monitor",
+                      owner="root",
+                      group=params.user_group)
 
     if params.is_hbase_rs:
       generate_daemon("gmond",
-                      name = "HDPHBaseRegionServer",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPHBaseRegionServer",
+                      role="monitor",
+                      owner="root",
+                      group=params.user_group)
 
     if params.is_flume:
       generate_daemon("gmond",
-                      name = "HDPFlumeServer",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPFlumeServer",
+                      role="monitor",
+                      owner="root",
+                      group=params.user_group)
 
     if params.pure_slave:
       generate_daemon("gmond",
-                      name = "HDPSlaves",
-                      role = "monitor",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPSlaves",
+                      role="monitor",
+                      owner="root",
+                      group=params.user_group)
 
 
   def generate_master_configs(self):
@@ -169,65 +170,65 @@ class GangliaMonitor(Script):
 
     if params.has_namenodes:
       generate_daemon("gmond",
-                      name = "HDPNameNode",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPNameNode",
+                      role="server",
+                      owner="root",
+                      group=params.user_group)
 
     if params.has_jobtracker:
       generate_daemon("gmond",
-                      name = "HDPJobTracker",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPJobTracker",
+                      role="server",
+                      owner="root",
+                      group=params.user_group)
 
     if params.has_hbase_masters:
       generate_daemon("gmond",
-                      name = "HDPHBaseMaster",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPHBaseMaster",
+                      role="server",
+                      owner="root",
+                      group=params.user_group)
 
     if params.has_historyserver:
       generate_daemon("gmond",
-                      name = "HDPHistoryServer",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPHistoryServer",
+                      role="server",
+                      owner="root",
+                      group=params.user_group)
 
     if params.has_slaves:
       generate_daemon("gmond",
-                      name = "HDPDataNode",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPDataNode",
+                      role="server",
+                      owner="root",
+                      group=params.user_group)
 
     if params.has_tasktracker:
       generate_daemon("gmond",
-                      name = "HDPTaskTracker",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPTaskTracker",
+                      role="server",
+                      owner="root",
+                      group=params.user_group)
 
     if params.has_hbase_rs:
       generate_daemon("gmond",
-                      name = "HDPHBaseRegionServer",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPHBaseRegionServer",
+                      role="server",
+                      owner="root",
+                      group=params.user_group)
 
     if params.has_flume:
       generate_daemon("gmond",
-                      name = "HDPFlumeServer",
-                      role = "server",
-                      owner = "root",
-                      group = params.user_group)
+                      name="HDPFlumeServer",
+                      role="server",
+                      owner="root",
+                      group=params.user_group)
 
     generate_daemon("gmond",
-                    name = "HDPSlaves",
-                    role = "server",
-                    owner = "root",
-                    group = params.user_group)
+                    name="HDPSlaves",
+                    role="server",
+                    owner="root",
+                    group=params.user_group)
 
 
   def chkconfigOff(self):

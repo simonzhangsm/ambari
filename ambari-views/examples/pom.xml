@@ -32,24 +32,25 @@
   <build>
     <pluginManagement>
       <plugins>
+	    <!--
         <plugin>
           <groupId>org.apache.rat</groupId>
           <artifactId>apache-rat-plugin</artifactId>
           <version>0.8</version>
         </plugin>
+		-->
       </plugins>
     </pluginManagement>
     <plugins>
+	  <!--
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
           <excludes>
-            <!--GIT files-->
             <exclude>.git/</exclude>
             <exclude>**/.gitignore</exclude>
             <exclude>**/.gitattributes</exclude>
-            <!--gitignore content-->
             <exclude>.idea/</exclude>
             <exclude>pass.txt</exclude>
             <exclude>.DS_Store</exclude>
@@ -57,9 +58,7 @@
             <exclude>.classpath</exclude>
             <exclude>.project</exclude>
             <exclude>.settings</exclude>
-            <!--license files-->
             <exclude>MSPL-LICENSE</exclude>
-            <!--VS generated files-->
             <exclude>**/*.resources</exclude>
             <exclude>**/*.rtf</exclude>
             <exclude>**/*.snk</exclude>
@@ -67,6 +66,7 @@
           </excludes>
         </configuration>
       </plugin>
+	  -->
     </plugins>
   </build>
 </project>

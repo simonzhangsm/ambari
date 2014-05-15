@@ -34,10 +34,10 @@ class ModelUtils(object):
   def _check_is_error(expected_class, model_dict, resource_root):
     from ambari_client.model.status import StatusModel
 
-    if model_dict.has_key("status"):
+    if "status" in model_dict:
       resp = ModelUtils.create_model(StatusModel, model_dict.copy(), resource_root, "NO_KEY", check_errors=False)
       
-      if expected_class!=StatusModel or resp.is_error():
+      if expected_class != StatusModel or resp.is_error():
         if resp.status in errors._exceptions_to_codes:
           raise errors._exceptions_to_codes[resp.status](resp, resource_root)
         else:
@@ -57,17 +57,17 @@ class ModelUtils(object):
     if check_errors:
       ModelUtils._check_is_error(member_list_clss, collection_dict, resource_root)
     
-    #print locals()
+    # print locals()
     json_list = []
     
-    #remove items
-    if isinstance(collection_dict, dict) and collection_dict.has_key(LIST_KEY):
+    # remove items
+    if isinstance(collection_dict, dict) and LIST_KEY in collection_dict:
         json_list = collection_dict[LIST_KEY]
-        LOG.debug("get_model_list: collection_dict is dict ? %s ; has_key = %s" % (isinstance(collection_dict, dict), collection_dict.has_key(LIST_KEY)))
+        LOG.debug("get_model_list: collection_dict is dict ? %s ; has_key = %s" % (isinstance(collection_dict, dict), LIST_KEY in collection_dict))
         LOG.debug ("get_model_list: collection_dict has %s ;subset = %s" % (LIST_KEY, str(json_list)))
     else:
         json_list = collection_dict
-        LOG.error("get_model_list: collection_dict is dict ? %s ; has_key = %s" % (isinstance(collection_dict, dict), collection_dict.has_key(LIST_KEY)))
+        LOG.error("get_model_list: collection_dict is dict ? %s ; has_key = %s" % (isinstance(collection_dict, dict), LIST_KEY in collection_dict))
     
     LOG.debug ("get_model_list: json_list  value : \n\t" + str(json_list))
     if isinstance(json_list, list):
@@ -96,19 +96,19 @@ class ModelUtils(object):
     if check_errors:
       ModelUtils._check_is_error(model_cls, model_dict, resource_root)
       
-    #print locals()
+    # print locals()
     rw_dict = { }
     LOG.debug ("model_dict =   " + str(model_dict))
     
-    if isinstance(model_dict, dict) and model_dict.has_key(RESOURCE_KEY_WORD):
+    if isinstance(model_dict, dict) and RESOURCE_KEY_WORD in model_dict:
         model_dict = model_dict[RESOURCE_KEY_WORD]
-        LOG.debug ("model_dict has %s ;subset = %s" % (RESOURCE_KEY_WORD, str(model_dict.items())))
-    if isinstance(model_dict, dict) and model_dict.has_key("Requests"):
+        LOG.debug ("model_dict has %s ;subset = %s" % (RESOURCE_KEY_WORD, str(list(model_dict.items()))))
+    if isinstance(model_dict, dict) and "Requests" in model_dict:
         model_dict = model_dict["Requests"]
-        LOG.debug ("model_dict has Requests ;subset = %s" % (str(model_dict.items())))
+        LOG.debug ("model_dict has Requests ;subset = %s" % (str(list(model_dict.items()))))
      
       
-    for k, v in model_dict.items():
+    for k, v in list(model_dict.items()):
       LOG.debug("key = %s ; value = %s " % (str(k), str(v)))
       if k in model_cls.RW_ATTR:
         LOG.debug (k + " is there in RW_ATTR")
@@ -121,7 +121,7 @@ class ModelUtils(object):
     for attr in model_cls.RO_ATTR:
       obj._setattr(attr, None)
 
-    for k, v in model_dict.items():
+    for k, v in list(model_dict.items()):
       if k in model_cls.RO_ATTR:
         obj._setattr(k, v)
       else:
@@ -131,7 +131,7 @@ class ModelUtils(object):
       LOG.debug("%s found as reference var" % (attr))
       obj._setattr(getREF_class_name(attr), None)
 
-    for k, v in model_dict.items():
+    for k, v in list(model_dict.items()):
       if k in model_cls.REF_ATTR:
         obj._setattr(getREF_class_name(k), v)
       else:
@@ -139,16 +139,16 @@ class ModelUtils(object):
     return obj
 
 
-#get attribute with REF
+# get attribute with REF
 def getREF_class_name(REF_name):
-  if ref_dic.has_key(REF_name):
+  if REF_name in ref_dic:
     return ref_dic[str(REF_name)]
   else:
     return None
   
 
 def getREF_var_name(REF_name):
-  if ref_class_dic.has_key(REF_name):
+  if REF_name in ref_class_dic:
     return ref_class_dic[str(REF_name)]
   else:
     return None
@@ -164,9 +164,9 @@ def get_REF_object(ref_class_name):
 
 
 def get_unicode(v):
-  #import unicodedata
+  # import unicodedata
   if v:
-    if isinstance(v, unicode):
+    if isinstance(v, str):
       v = unicodedata.normalize('NFKD', v).encode('ascii', 'ignore')
       LOG.debug(v)
     elif isinstance(v, str):
@@ -175,8 +175,8 @@ def get_unicode(v):
 
 
 def retain_self_helper(memclass, self=None, **kwargs):
-    #print locals()
-    #from ambari_client.model.base_model import  BaseModel 
+    # print locals()
+    # from ambari_client.model.base_model import  BaseModel 
     memclass.__init__(self, **kwargs)
 
 
@@ -185,7 +185,7 @@ def get_unicode_kw(dic):
   We use unicode strings as keys in kwargs.
   """
   res = { }
-  for k, v in dic.iteritems():
+  for k, v in list(dic.items()):
     res[str(k)] = v
   return res
 
@@ -217,11 +217,11 @@ def get_key_value(dictt , key):
   """
   Search for some random key in the dict
   """
-  if isinstance(dictt, dict) and dictt.has_key(key):
+  if isinstance(dictt, dict) and key in dictt:
     return dictt[key]
-  elif isinstance(dictt, dict) and not dictt.has_key(key):
-    #check if values has it?
-    for v in dictt.values():
+  elif isinstance(dictt, dict) and key not in dictt:
+    # check if values has it?
+    for v in list(dictt.values()):
       if isinstance(v, dict):
         return get_key_value(v, key)
       elif isinstance(v, list):

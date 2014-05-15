@@ -79,5 +79,5 @@ def format(format_string, *args, **kwargs):
   variables = sys._getframe(1).f_locals
   
   result = checked_unite(kwargs, variables)
-  result.pop("self", None) # self kwarg would result in an error
+  result.pop("self", None)  # self kwarg would result in an error
   return ConfigurationFormatter().format(format_string, args, **result)

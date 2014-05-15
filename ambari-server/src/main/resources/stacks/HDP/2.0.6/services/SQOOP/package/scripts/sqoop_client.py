@@ -19,8 +19,8 @@ limitations under the License.
 """
 
 import sys
-from resource_management import *
 
+from resource_management import *
 from sqoop import sqoop
 
 

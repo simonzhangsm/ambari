@@ -18,8 +18,9 @@ limitations under the License.
 
 """
 
-from resource_management import *
 import sys
+
+from resource_management import *
 
 
 def hcat():

@@ -20,9 +20,10 @@ limitations under the License.
 
 from resource_management import *
 
+
 def hbase_service(
   name,
-  action = 'start'): # 'start' or 'stop' or 'status'
+  action='start'):  # 'start' or 'stop' or 'status'
     
     import params
   
@@ -34,18 +35,18 @@ def hbase_service(
     if action == 'start':
       daemon_cmd = format("{cmd} start {role}")
       
-      Execute ( daemon_cmd,
-        not_if = no_op_test,
-        user = params.hbase_user
+      Execute (daemon_cmd,
+        not_if=no_op_test,
+        user=params.hbase_user
       )
     elif action == 'stop':
       daemon_cmd = format("{cmd} stop {role}")
 
-      Execute ( daemon_cmd,
-        user = params.hbase_user,
+      Execute (daemon_cmd,
+        user=params.hbase_user,
         # BUGFIX: hbase regionserver sometimes hangs when nn is in safemode
-        timeout = 30,
-        on_timeout = format("{no_op_test} && kill -9 `cat {pid_file}`")
+        timeout=30,
+        on_timeout=format("{no_op_test} && kill -9 `cat {pid_file}`")
       )
       
       Execute (format("rm -f {pid_file}"))

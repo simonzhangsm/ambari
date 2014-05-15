@@ -25,13 +25,13 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 from resource_management.core.logger import Logger
 
-default_subdict='/configurations/global'
+default_subdict = '/configurations/global'
 
 def default(name, default_value):
-  subdicts = filter(None, name.split('/'))
+  subdicts = [_f for _f in name.split('/') if _f]
   
   if not name.startswith('/'):
-    subdicts = filter(None, default_subdict.split('/')) + subdicts
+    subdicts = [_f for _f in default_subdict.split('/') if _f] + subdicts
 
   curr_dict = Script.get_config()
   for x in subdicts:

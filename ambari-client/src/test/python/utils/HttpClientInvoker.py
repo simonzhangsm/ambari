@@ -27,7 +27,7 @@ class HttpClientInvoker():
       logger.info(localss)
       http_method = args[0]
       url = args[1]
-      payload = kwargs.get("payload",None)
+      payload = kwargs.get("payload", None)
 
       mocked_code = 200 
       mocked_content = "text/plain"
@@ -115,13 +115,13 @@ class HttpClientInvoker():
           mocked_response = open('json/get_service_components.json', 'r').read()
           return mocked_response, mocked_code , mocked_content
         else:
-          print "Unknown get request on url: %s" % url
+          print("Unknown get request on url: %s" % url)
       elif http_method == "DELETE":
         # ClusterModel
         if url == "//clusters/test1/hosts/deleted_nonexistant_cluster":
           mocked_response = open('json/clustermodel_error_deleting_host.json', 'r').read()
           return mocked_response, mocked_code , mocked_content
-        else: # DELETE (generally does not require any response)
+        else:  # DELETE (generally does not require any response)
           return "", mocked_code , mocked_content
       elif http_method == "POST":
         # AmbariClient
@@ -131,9 +131,9 @@ class HttpClientInvoker():
         elif url == '//clusters/test1/hosts?Hosts/host_name=myhost':
           mocked_code = 201
           return "", mocked_code , mocked_content
-        else: # POST (generally does not require any response)
+        else:  # POST (generally does not require any response)
           return "", mocked_code , mocked_content
-      else: # PUT (generally does not require any response)
+      else:  # PUT (generally does not require any response)
         # ServiceModel mocking
         if url == "//clusters/test1/services/GANGLIA":
           payload_stop = {'ServiceInfo': {'state': 'INSTALLED'}}

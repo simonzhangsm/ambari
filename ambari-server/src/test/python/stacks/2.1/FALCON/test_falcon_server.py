@@ -31,7 +31,7 @@ class TestFalconServer(RMFTestCase):
     )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-start -port 15000',
-                              user = 'falcon',
+                              user='falcon',
                               )
     self.assertNoMoreResources()
 
@@ -42,10 +42,10 @@ class TestFalconServer(RMFTestCase):
                        config_file="default.json"
     )
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-stop',
-                              user = 'falcon',
+                              user='falcon',
                               )
     self.assertResourceCalled('File', '/var/run/falcon/falcon.pid',
-                              action = ['delete'],
+                              action=['delete'],
                               )
     self.assertNoMoreResources()
 
@@ -60,57 +60,57 @@ class TestFalconServer(RMFTestCase):
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/var/run/falcon',
-                              owner = 'falcon',
+                              owner='falcon',
                               )
     self.assertResourceCalled('Directory', '/var/log/falcon',
-                              owner = 'falcon',
+                              owner='falcon',
                               )
     self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
-                              owner = 'falcon',
+                              owner='falcon',
                               )
     self.assertResourceCalled('Directory', '/usr/lib/falcon',
-                              owner = 'falcon',
+                              owner='falcon',
                               )
     self.assertResourceCalled('File', '/etc/falcon/conf/falcon-env.sh',
-                              content = Template('falcon-env.sh.j2'),
+                              content=Template('falcon-env.sh.j2'),
                               )
     self.assertResourceCalled('File', '/etc/falcon/conf/client.properties',
-                              content = Template('client.properties.j2'),
-                              mode = 0644,
+                              content=Template('client.properties.j2'),
+                              mode=0o644,
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/runtime.properties',
-                              mode = 0644,
-                              properties = self.getConfig()['configurations']['falcon-runtime.properties'],
+                              mode=0o644,
+                              properties=self.getConfig()['configurations']['falcon-runtime.properties'],
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/falcon/conf/startup.properties',
-                              mode = 0644,
-                              properties = self.getConfig()['configurations']['falcon-startup.properties'],
+                              mode=0o644,
+                              properties=self.getConfig()['configurations']['falcon-startup.properties'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/apps/falcon',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              mode = 0777,
-                              owner = 'falcon',
-                              action = ['create_delayed'],
+                              security_enabled=False,
+                              keytab=UnknownConfigurationMock(),
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              mode=0o777,
+                              owner='falcon',
+                              action=['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              action = ['create'],
+                              security_enabled=False,
+                              keytab=UnknownConfigurationMock(),
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              action=['create'],
                               )
     self.assertResourceCalled('Directory', '/hadoop/falcon',
-                              owner = 'falcon',
-                              recursive = True,
+                              owner='falcon',
+                              recursive=True,
                               )
     self.assertResourceCalled('Directory', '/hadoop/falcon/embeddedmq/data',
-                              owner = 'falcon',
-                              recursive = True,
+                              owner='falcon',
+                              recursive=True,
                               )
 
 

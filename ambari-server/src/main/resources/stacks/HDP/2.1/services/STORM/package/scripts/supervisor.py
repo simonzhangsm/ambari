@@ -19,10 +19,11 @@ limitations under the License.
 """
 
 import sys
+
 from resource_management import *
-from yaml_config import yaml_config
-from storm import storm
-from service import service
+import service
+import storm
+import yaml_config
 
 
 class Supervisor(Script):
@@ -33,25 +34,25 @@ class Supervisor(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    storm()
+    storm.storm()
 
   def start(self, env):
     import params
     env.set_params(params)
     self.configure(env)
 
-    service("supervisor", action="start")
-    service("logviewer", action="start")
+    service("supervisor", "start")
+    service("logviewer", "start")
 
   def stop(self, env):
     import params
     env.set_params(params)
 
-    service("supervisor", action="stop")
-    service("logviewer", action="stop")
+    service("supervisor", "stop")
+    service("logviewer", "stop")
 
   def status(self, env):
-    import status_params
+    from status_params import status_params
     env.set_params(status_params)
 
     check_process_status(status_params.pid_supervisor)

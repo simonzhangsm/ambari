@@ -17,17 +17,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-__all__ = ["RMFTestCase", "Template", "StaticFile", "InlineTemplate","UnknownConfigurationMock"]
+__all__ = ["RMFTestCase", "Template", "StaticFile", "InlineTemplate", "UnknownConfigurationMock"]
 
 from unittest import TestCase
+import imp
 import json
 import os
-import imp
-import sys
-import pprint
-from mock.mock import MagicMock, patch
 import platform
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+import pprint
+import sys
+
+from mock import MagicMock, patch
+
+
+with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):
   from resource_management.core.environment import Environment
   from resource_management.libraries.script.config_dictionary import ConfigDictionary
   from resource_management.libraries.script.script import Script
@@ -40,9 +43,9 @@ PATH_TO_STACK_TESTS = os.path.normpath("test/python/stacks/")
 class RMFTestCase(TestCase):
   def executeScript(self, path, classname=None, command=None, config_file=None,
                     # common mocks for all the scripts
-                    config_overrides = None,
-                    shell_mock_value = (0, "OK."), 
-                    os_type=('Suse','11','Final'),
+                    config_overrides=None,
+                    shell_mock_value=(0, "OK."),
+                    os_type=('Suse', '11', 'Final'),
                     kinit_path_local="/usr/bin/kinit"
                     ):
     norm_path = os.path.normpath(path)
@@ -57,10 +60,10 @@ class RMFTestCase(TestCase):
       with open(config_file_path, "r") as f:
         self.config_dict = json.load(f)
     except IOError:
-      raise RuntimeError("Can not read config file: "+ config_file_path)
+      raise RuntimeError("Can not read config file: " + config_file_path)
 
     if config_overrides:
-      for key, value in config_overrides.iteritems():
+      for key, value in list(config_overrides.items()):
         self.config_dict[key] = value
 
     self.config_dict = ConfigDictionary(self.config_dict)
@@ -75,7 +78,7 @@ class RMFTestCase(TestCase):
       with patch.object(platform, 'linux_distribution', return_value=os_type):
         script_module = imp.load_source(classname, script_path)
     except IOError:
-      raise RuntimeError("Cannot load class %s from %s",classname, norm_path)
+      raise RuntimeError("Cannot load class %s from %s", classname, norm_path)
     
     script_class_inst = RMFTestCase._get_attr(script_module, classname)()
     method = RMFTestCase._get_attr(script_class_inst, command)
@@ -86,8 +89,8 @@ class RMFTestCase(TestCase):
     
     # run
     with Environment(basedir, test_mode=True) as RMFTestCase.env:
-      with patch('resource_management.core.shell.checked_call', return_value=shell_mock_value): # we must always mock any shell calls
-        with patch.object(Script, 'get_config', return_value=self.config_dict): # mocking configurations
+      with patch('resource_management.core.shell.checked_call', return_value=shell_mock_value):  # we must always mock any shell calls
+        with patch.object(Script, 'get_config', return_value=self.config_dict):  # mocking configurations
           with patch.object(Script, 'install_packages'):
             with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local):
               with patch.object(platform, 'linux_distribution', return_value=os_type):
@@ -99,7 +102,7 @@ class RMFTestCase(TestCase):
           
   @staticmethod
   def _getSrcFolder():
-    return os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
+    return os.path.join(os.path.abspath(os.path.dirname(__file__)), os.path.normpath("../../../../"))
       
   @staticmethod
   def _get_attr(module, attr):
@@ -124,17 +127,17 @@ class RMFTestCase(TestCase):
     return "\n".join((numSpaces * " ") + i for i in s.splitlines())
 
   def printResources(self, intendation=4):
-    print
+    print()
     for resource in RMFTestCase.env.resource_list:
       s = "'{0}', {1},".format(
         resource.__class__.__name__, self._ppformat(resource.name))
       has_arguments = False
-      for k,v in resource.arguments.iteritems():
+      for k, v in list(resource.arguments.items()):
         has_arguments = True
         # correctly output octal mode numbers
-        if k == 'mode' and isinstance( v, int ):
+        if k == 'mode' and isinstance(v, int):
           val = oct(v)
-        elif  isinstance( v, UnknownConfiguration):
+        elif  isinstance(v, UnknownConfiguration):
           val = "UnknownConfigurationMock()"
         else:
           val = self._ppformat(v)
@@ -145,8 +148,8 @@ class RMFTestCase(TestCase):
           nextlines = "\n".join(lines [1:])
           nextlines = self.reindent(nextlines, 2)
           val = "\n".join([firstLine, nextlines])
-        param_str="{0} = {1},".format(k, val)
-        s+="\n" + self.reindent(param_str, intendation)
+        param_str = "{0} = {1},".format(k, val)
+        s += "\n" + self.reindent(param_str, intendation)
       # Decide whether we want bracket to be at next line
       if has_arguments:
         before_bracket = "\n"
@@ -156,24 +159,24 @@ class RMFTestCase(TestCase):
       s = "self.assertResourceCalled({0}{1})".format(s, before_bracket)
       # Intendation
       s = self.reindent(s, intendation)
-      print s
-    print(self.reindent("self.assertNoMoreResources()", intendation))
+      print(s)
+    print((self.reindent("self.assertNoMoreResources()", intendation)))
   
   def assertResourceCalled(self, resource_type, name, **kwargs):
     with patch.object(UnknownConfiguration, '__getattr__', return_value=lambda: "UnknownConfiguration()"): 
       resource = RMFTestCase.env.resource_list.pop(0)
-      self.assertEquals(resource_type, resource.__class__.__name__)
-      self.assertEquals(name, resource.name)
-      self.assertEquals(kwargs, resource.arguments)
+      self.assertEqual(resource_type, resource.__class__.__name__)
+      self.assertEqual(name, resource.name)
+      self.assertEqual(kwargs, resource.arguments)
     
   def assertNoMoreResources(self):
-    self.assertEquals(len(RMFTestCase.env.resource_list), 0, "There was other resources executed!")
+    self.assertEqual(len(RMFTestCase.env.resource_list), 0, "There was other resources executed!")
     
   def assertResourceCalledByIndex(self, index, resource_type, name, **kwargs):
     resource = RMFTestCase.env.resource_list[index]
-    self.assertEquals(resource_type, resource.__class__.__name__)
-    self.assertEquals(name, resource.name)
-    self.assertEquals(kwargs, resource.arguments)
+    self.assertEqual(resource_type, resource.__class__.__name__)
+    self.assertEqual(name, resource.name)
+    self.assertEqual(kwargs, resource.arguments)
     
 # HACK: This is used to check Templates, StaticFile, InlineTemplate in testcases    
 def Template(name, **kwargs):

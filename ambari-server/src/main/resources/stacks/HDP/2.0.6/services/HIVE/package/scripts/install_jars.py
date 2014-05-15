@@ -18,9 +18,11 @@ limitations under the License.
 
 """
 
-from resource_management import *
-import os
 import fnmatch
+import os
+
+from resource_management import *
+
 
 def install_tez_jars():
   import params
@@ -33,7 +35,7 @@ def install_tez_jars():
       params.HdfsDirectory(hdfs_dir,
                           action="create_delayed",
                           owner=params.tez_user,
-                          mode=0755
+                          mode=0o755
       )
     pass
     params.HdfsDirectory(None, action="create")
@@ -65,7 +67,7 @@ def install_tez_jars():
 
     if app_dir_path:
       CopyFromLocal(params.tez_local_api_jars,
-                    mode=0755,
+                    mode=0o755,
                     owner=params.tez_user,
                     dest_dir=app_dir_path,
                     kinnit_if_needed=kinit_if_needed,
@@ -75,7 +77,7 @@ def install_tez_jars():
 
     if lib_dir_path:
       CopyFromLocal(params.tez_local_lib_jars,
-                    mode=0755,
+                    mode=0o755,
                     owner=params.tez_user,
                     dest_dir=lib_dir_path,
                     kinnit_if_needed=kinit_if_needed,
@@ -84,7 +86,7 @@ def install_tez_jars():
     pass
 
 
-def get_tez_hdfs_dir_paths(tez_lib_uris = None):
+def get_tez_hdfs_dir_paths(tez_lib_uris=None):
   hdfs_path_prefix = 'hdfs://'
   lib_dir_paths = []
   if tez_lib_uris and tez_lib_uris.strip().find(hdfs_path_prefix, 0) != -1:

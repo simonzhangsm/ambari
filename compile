@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+cd `dirname $0`
+
+if [ $* -lt 2 ]; then
+	echo "Usage: $0 [DIRS] [clean]"
+	exit 1
+fi
+
+python -OO ./compile.py $1
+
+if [ $# -ge 2 -a "$2" = "clean" ]; then
+	echo "clean compiled files"
+	find . -name __pycache__ | xargs rm
+	find . -name *.bak | xargs rm
+	find . -name *.pyc | xargs rm
+	find . -name *.pyo | xargs rm
+fi
+

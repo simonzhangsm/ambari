@@ -22,10 +22,11 @@ Ambari Agent
 
 import json
 import sys
-#import traceback
+
 from resource_management import *
 
 
+# import traceback
 class NagiosIgnore(Script):
   def actionexecute(self, env):
     config = Script.get_config()
@@ -37,7 +38,7 @@ class NagiosIgnore(Script):
     }
 
     try:
-      if (config.has_key('passiveInfo')):
+      if ('passiveInfo' in config):
         ignores = config['passiveInfo']
       else:
         structured_output_example['result'] = "Key 'passiveInfo' not found, skipping"
@@ -62,8 +63,8 @@ class NagiosIgnore(Script):
           service = str(define['service'])
           component = str(define['component'])
           key = host + " " + service + " " + component
-          Logger.info("found entry for host=" + host +
-            ", service=" + service +
+          Logger.info("found entry for host=" + host + 
+            ", service=" + service + 
             ", component=" + component)
 
           new_file_entries.append(key)

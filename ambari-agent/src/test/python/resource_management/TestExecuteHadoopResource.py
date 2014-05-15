@@ -17,12 +17,12 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from mock.mock import patch
+from mock import patch
 from resource_management import *
 from resource_management.libraries.resources.execute_hadoop\
   import ExecuteHadoop
 
-@patch.object(System, "os_family", new = 'redhat')
+@patch.object(System, "os_family", new='redhat')
 class TestExecuteHadoopResource(TestCase):
   @patch("resource_management.core.providers.system.ExecuteProvider")
   def test_run_default_args(self, execute_mock):
@@ -36,7 +36,7 @@ class TestExecuteHadoopResource(TestCase):
                     logoutput=True,
       )
       self.assertEqual(execute_mock.call_count, 1)
-      self.assertEqual(execute_mock.call_args[0][0].command,'hadoop --config conf_dir command')
+      self.assertEqual(execute_mock.call_args[0][0].command, 'hadoop --config conf_dir command')
       self.assertEqual(execute_mock.call_args[0][0].arguments,
                        {'logoutput': True, 'tries': 1, 'user': 'user', 'try_sleep': 0})
 
@@ -56,7 +56,7 @@ class TestExecuteHadoopResource(TestCase):
                     principal=UnknownConfiguration(name="principal")
                     )
       self.assertEqual(execute_mock.call_count, 1)
-      self.assertEqual(execute_mock.call_args[0][0].command,'hadoop --config conf_dir command')
+      self.assertEqual(execute_mock.call_args[0][0].command, 'hadoop --config conf_dir command')
       self.assertEqual(execute_mock.call_args[0][0].arguments,
                        {'logoutput': False, 'tries': 1, 'user': 'user', 'try_sleep': 0})
 
@@ -81,7 +81,7 @@ class TestExecuteHadoopResource(TestCase):
                     principal="principal"
       )
       self.assertEqual(execute_mock.call_count, 1)
-      self.assertEqual(execute_mock.call_args[0][0].command,'hadoop --config conf_dir command')
+      self.assertEqual(execute_mock.call_args[0][0].command, 'hadoop --config conf_dir command')
       self.assertEqual(execute_mock.call_args[0][0].arguments,
                        {'logoutput': True, 'tries': 2, 'user': 'user', 'try_sleep': 2})
 
@@ -92,7 +92,7 @@ class TestExecuteHadoopResource(TestCase):
     Test for "command" passed as List
     '''
     with Environment("/") as env:
-      ExecuteHadoop(["command1","command2"],
+      ExecuteHadoop(["command1", "command2"],
                     action="run",
                     kinit_path_local="path",
                     conf_dir="conf_dir",
@@ -116,7 +116,7 @@ class TestExecuteHadoopResource(TestCase):
     Test for "command" passed as Tuple
     '''
     with Environment("/") as env:
-      ExecuteHadoop(("command1","command2","command3"),
+      ExecuteHadoop(("command1", "command2", "command3"),
                     action="run",
                     kinit_path_local="path",
                     conf_dir="conf_dir",

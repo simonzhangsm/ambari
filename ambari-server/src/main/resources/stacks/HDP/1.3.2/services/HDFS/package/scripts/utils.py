@@ -53,7 +53,7 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
     " ps `cat {pid_file}` >/dev/null 2>&1") if action == "start" else None
 
   Execute(daemon_cmd,
-          user = user,
+          user=user,
           not_if=service_is_up
   )
   if action == "stop":

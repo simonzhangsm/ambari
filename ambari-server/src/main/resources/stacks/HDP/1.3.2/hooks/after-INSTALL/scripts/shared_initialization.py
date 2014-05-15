@@ -17,7 +17,9 @@ limitations under the License.
 
 """
 import os
+
 from resource_management import *
+
 
 def setup_hadoop_env():
   import params

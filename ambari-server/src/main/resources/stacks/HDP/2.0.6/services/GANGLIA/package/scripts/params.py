@@ -19,10 +19,11 @@ limitations under the License.
 from resource_management import *
 from resource_management.core.system import System
 
+
 config = Script.get_config()
 
 user_group = config['configurations']['global']["user_group"]
-ganglia_conf_dir = default("/configurations/global/ganglia_conf_dir","/etc/ganglia/hdp")
+ganglia_conf_dir = default("/configurations/global/ganglia_conf_dir", "/etc/ganglia/hdp")
 ganglia_dir = "/etc/ganglia"
 ganglia_runtime_dir = config['configurations']['global']["ganglia_runtime_dir"]
 ganglia_shell_cmds_dir = "/usr/libexec/hdp/ganglia"
@@ -52,9 +53,9 @@ jn_hosts = set(default("/clusterHostInfo/journalnode_hosts", []))
 nimbus_server_hosts = set(default("/clusterHostInfo/nimbus_hosts", []))
 supervisor_server_hosts = set(default("/clusterHostInfo/supervisor_hosts", []))
 
-pure_slave = not hostname in (namenode_host | jtnode_host | rm_host | hs_host |\
-                              hbase_master_hosts |slave_hosts | tt_hosts | hbase_rs_hosts |\
-                              flume_hosts | nm_hosts | jn_hosts | nimbus_server_hosts |\
+pure_slave = not hostname in (namenode_host | jtnode_host | rm_host | hs_host | \
+                              hbase_master_hosts | slave_hosts | tt_hosts | hbase_rs_hosts | \
+                              flume_hosts | nm_hosts | jn_hosts | nimbus_server_hosts | \
                               supervisor_server_hosts)
 is_namenode_master = hostname in namenode_host
 is_jtnode_master = hostname in jtnode_host

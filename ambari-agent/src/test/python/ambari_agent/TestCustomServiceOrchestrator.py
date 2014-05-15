@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import ConfigParser
+import configparser
 import os
 
 import pprint
@@ -31,23 +31,24 @@ from threading import Thread
 from PythonExecutor import PythonExecutor
 from CustomServiceOrchestrator import CustomServiceOrchestrator
 from AmbariConfig import AmbariConfig
-from mock.mock import MagicMock, patch
-import StringIO
+from mock import MagicMock, patch
+import io
 import sys
 from AgentException import AgentException
 from FileCache import FileCache
 from LiveStatus import LiveStatus
+import manifestGenerator
 
 
 class TestCustomServiceOrchestrator(TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
     # generate sample config
     tmpdir = tempfile.gettempdir()
-    self.config = ConfigParser.RawConfigParser()
+    self.config = configparser.RawConfigParser()
     self.config.add_section('agent')
     self.config.set('agent', 'prefix', tmpdir)
     self.config.set('agent', 'cache_dir', "/cachedir")
@@ -66,7 +67,7 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertTrue(dummy_controller.registration_listeners.append.called)
 
 
-  @patch.object(CustomServiceOrchestrator, 'decompressClusterHostInfo')
+  @patch.object(manifestGenerator, 'decompressClusterHostInfo')
   @patch("hostname.public_hostname")
   @patch("os.path.isfile")
   @patch("os.unlink")
@@ -78,12 +79,12 @@ class TestCustomServiceOrchestrator(TestCase):
     hostname_mock.return_value = "test.hst"
     command = {
       'commandType': 'EXECUTION_COMMAND',
-      'role': u'DATANODE',
-      'roleCommand': u'INSTALL',
+      'role': 'DATANODE',
+      'roleCommand': 'INSTALL',
       'commandId': '1-1',
       'taskId': 3,
-      'clusterName': u'cc',
-      'serviceName': u'HDFS',
+      'clusterName': 'cc',
+      'serviceName': 'HDFS',
       'configurations':{'global' : {}},
       'configurationTags':{'global' : { 'tag': 'v1' }},
       'clusterHostInfo':{'namenode_host' : ['1'],
@@ -107,22 +108,22 @@ class TestCustomServiceOrchestrator(TestCase):
     json_file = orchestrator.dump_command_to_json(command)
     self.assertTrue(os.path.exists(json_file))
     self.assertTrue(os.path.getsize(json_file) > 0)
-    self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
+    self.assertEqual(oct(os.stat(json_file).st_mode & 0o777), '0600')
     self.assertTrue(json_file.endswith("command-3.json"))
     self.assertTrue(decompress_cluster_host_info_mock.called)
     os.unlink(json_file)
     # Test dumping STATUS_COMMAND
-    command['commandType']='STATUS_COMMAND'
+    command['commandType'] = 'STATUS_COMMAND'
     decompress_cluster_host_info_mock.reset_mock()
     json_file = orchestrator.dump_command_to_json(command)
     self.assertTrue(os.path.exists(json_file))
     self.assertTrue(os.path.getsize(json_file) > 0)
-    self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
+    self.assertEqual(oct(os.stat(json_file).st_mode & 0o777), '0600')
     self.assertTrue(json_file.endswith("status_command.json"))
     self.assertFalse(decompress_cluster_host_info_mock.called)
     os.unlink(json_file)
     # Testing side effect of dump_command_to_json
-    self.assertEquals(command['public_hostname'], "test.hst")
+    self.assertEqual(command['public_hostname'], "test.hst")
     self.assertTrue(unlink_mock.called)
 
 
@@ -145,7 +146,7 @@ class TestCustomServiceOrchestrator(TestCase):
                                        "scripts/hbase_master.py", "PYTHON")
       self.fail('ExpectedException not thrown')
     except AgentException:
-      pass # Expected
+      pass  # Expected
 
 
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
@@ -205,24 +206,24 @@ class TestCustomServiceOrchestrator(TestCase):
       }
     ret = orchestrator.runCommand(command, "out.txt", "err.txt",
               forsed_command_name=CustomServiceOrchestrator.COMMAND_NAME_STATUS)
-    ## Check that override_output_files was true only during first call
-    self.assertEquals(run_file_mock.call_args_list[0][0][7], True)
-    self.assertEquals(run_file_mock.call_args_list[1][0][7], False)
-    self.assertEquals(run_file_mock.call_args_list[2][0][7], False)
-    ## Check that forsed_command_name was taken into account
+    # # Check that override_output_files was true only during first call
+    self.assertEqual(run_file_mock.call_args_list[0][0][6], True)
+    self.assertEqual(run_file_mock.call_args_list[1][0][6], False)
+    self.assertEqual(run_file_mock.call_args_list[2][0][6], False)
+    # # Check that forsed_command_name was taken into account
     self.assertEqual(run_file_mock.call_args_list[0][0][1][0],
                                   CustomServiceOrchestrator.COMMAND_NAME_STATUS)
 
     run_file_mock.reset_mock()
 
     # unknown script type case
-    command['commandParams']['script_type'] = "SOME_TYPE"
+    command['commandParams']['script_type'] = "PUPPET"
     ret = orchestrator.runCommand(command, "out.txt", "err.txt")
     self.assertEqual(ret['exitcode'], 1)
     self.assertFalse(run_file_mock.called)
     self.assertTrue("Unknown script type" in ret['stdout'])
 
-    #By default returns empty dictionary
+    # By default returns empty dictionary
     self.assertEqual(ret['structuredOut'], '{}')
 
     pass

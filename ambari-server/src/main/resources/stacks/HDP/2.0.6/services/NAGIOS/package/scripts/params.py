@@ -24,6 +24,7 @@ from functions import is_jdk_greater_6
 from resource_management import *
 import status_params
 
+
 # server configurations
 config = Script.get_config()
 
@@ -62,11 +63,11 @@ hs_port = get_port_from_url(config['configurations']['mapred-site']['mapreduce.j
 journalnode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.journalnode.http-address'])
 datanode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.datanode.http.address'])
 flume_port = "4159"
-hive_metastore_port = config['configurations']['global']['hive_metastore_port'] #"9083"
+hive_metastore_port = config['configurations']['global']['hive_metastore_port']  # "9083"
 hive_server_port = "10000"
-templeton_port = config['configurations']['webhcat-site']['templeton.port'] #"50111"
-hbase_master_port = config['configurations']['hbase-site']['hbase.master.info.port'] #"60010"
-hbase_rs_port = config['configurations']['hbase-site']['hbase.regionserver.info.port'] #"60030"
+templeton_port = config['configurations']['webhcat-site']['templeton.port']  # "50111"
+hbase_master_port = config['configurations']['hbase-site']['hbase.master.info.port']  # "60010"
+hbase_rs_port = config['configurations']['hbase-site']['hbase.regionserver.info.port']  # "60030"
 storm_ui_port = config['configurations']['storm-site']['ui.port']
 drpc_port = config['configurations']['storm-site']['drpc.port']
 nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
@@ -74,21 +75,19 @@ supervisor_port = "56431"
 storm_rest_api_port = "8745"
 falcon_port = config['configurations']['global']['falcon_port']
 ahs_port = get_port_from_url(config['configurations']['yarn-site']['yarn.timeline-service.webapp.address'])
-dfs_namenode_checkpoint_period = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.period']
-dfs_namenode_checkpoint_txns = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.txns']
 
 # this is different for HDP1
 nn_metrics_property = "FSNamesystem"
-clientPort = config['configurations']['global']['clientPort'] #ZK 
+clientPort = config['configurations']['global']['clientPort']  # ZK 
 
 
 java64_home = config['hostLevelParams']['java_home']
 check_cpu_on = is_jdk_greater_6(java64_home)
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = (not is_empty(_authentication) and _authentication == 'kerberos')
 
 nagios_keytab_path = default("nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 dfs_ha_enabled = False
 dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
@@ -145,26 +144,25 @@ _nm_hosts = default("/clusterHostInfo/nm_hosts", None)
 _hs_host = default("/clusterHostInfo/hs_host", None)
 _zookeeper_hosts = default("/clusterHostInfo/zookeeper_hosts", None)
 _flume_hosts = default("/clusterHostInfo/flume_hosts", None)
-_nagios_server_host = default("/clusterHostInfo/nagios_server_host",None)
-_ganglia_server_host = default("/clusterHostInfo/ganglia_server_host",None)
-_app_timeline_server_hosts = default("/clusterHostInfo/app_timeline_server_hosts",None)
-_nimbus_host = default("/clusterHostInfo/nimbus_hosts",None)
-_drpc_host = default("/clusterHostInfo/drpc_server_hosts",None)
-_supervisor_hosts = default("/clusterHostInfo/supervisor_hosts",None)
-_storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts",None)
-_storm_rest_api_hosts = default("/clusterHostInfo/storm_rest_api_hosts",None)
-hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts",None)
-_hive_server_host = default("/clusterHostInfo/hive_server_host",None)
-_oozie_server = default("/clusterHostInfo/oozie_server",None)
-_webhcat_server_host = default("/clusterHostInfo/webhcat_server_host",None)
+_nagios_server_host = default("/clusterHostInfo/nagios_server_host", None)
+_ganglia_server_host = default("/clusterHostInfo/ganglia_server_host", None)
+_app_timeline_server_hosts = default("/clusterHostInfo/app_timeline_server_hosts", None)
+_nimbus_host = default("/clusterHostInfo/nimbus_hosts", None)
+_drpc_host = default("/clusterHostInfo/drpc_server_hosts", None)
+_supervisor_hosts = default("/clusterHostInfo/supervisor_hosts", None)
+_storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts", None)
+_storm_rest_api_hosts = default("/clusterHostInfo/storm_rest_api_hosts", None)
+hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", None)
+_hive_server_host = default("/clusterHostInfo/hive_server_host", None)
+_oozie_server = default("/clusterHostInfo/oozie_server", None)
+_webhcat_server_host = default("/clusterHostInfo/webhcat_server_host", None)
 _falcon_host = default("/clusterHostInfo/falcon_server_hosts", None)
 # can differ on HDP1
-#_mapred_tt_hosts = _slave_hosts
-#if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
+# _mapred_tt_hosts = _slave_hosts
+# if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 _hbase_rs_hosts = default("/clusterHostInfo/hbase_rs_hosts", _slave_hosts)
 _hue_server_host = default("/clusterHostInfo/hue_server_host", None)
 all_hosts = config['clusterHostInfo']['all_hosts']
-nn_hosts_string = " ".join(namenode_host)
 
 
 hostgroup_defs = {
@@ -172,7 +170,7 @@ hostgroup_defs = {
     'snamenode' : _snamenode_host,
     'slaves' : _slave_hosts,
     # HDP1
-    #'tasktracker-servers' : _mapred_tt_hosts,
+    # 'tasktracker-servers' : _mapred_tt_hosts,
     'agent-servers' : all_hosts,
     'nagios-server' : _nagios_server_host,
     'jobtracker' : _jtnode_host,

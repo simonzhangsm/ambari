@@ -26,7 +26,7 @@ import sys
 import traceback
 import os
 import time
-import ConfigParser
+import configparser
 import ProcessHelper
 from Controller import Controller
 import AmbariConfig
@@ -48,8 +48,8 @@ else:
   logfile = "/var/log/ambari-agent/ambari-agent.log"
 
 def signal_handler(signum, frame):
-  #we want the handler to run only for the agent process and not
-  #for the children (e.g. namenode, etc.)
+  # we want the handler to run only for the agent process and not
+  # for the children (e.g. namenode, etc.)
   if os.getpid() != agentPid:
     os._exit(0)
   logger.info('signal received, exiting.')
@@ -58,11 +58,11 @@ def signal_handler(signum, frame):
 def debug(sig, frame):
   """Interrupt running process, and provide a python prompt for
   interactive debugging."""
-  d={'_frame':frame}         # Allow access to frame object.
+  d = {'_frame':frame}  # Allow access to frame object.
   d.update(frame.f_globals)  # Unless shadowed by global
   d.update(frame.f_locals)
 
-  message  = "Signal received : entering python shell.\nTraceback:\n"
+  message = "Signal received : entering python shell.\nTraceback:\n"
   message += ''.join(traceback.format_stack(frame))
   logger.info(message)
 
@@ -96,7 +96,7 @@ def update_log_level(config):
         logging.basicConfig(format=formatstr, level=logging.INFO, filename=logfile)
         logger.setLevel(logging.INFO)
         logger.debug("Newloglevel=logging.INFO")
-  except Exception, err:
+  except Exception as err:
     logger.info("Default loglevel=DEBUG")
 
 
@@ -115,7 +115,7 @@ def resolve_ambari_config():
     else:
       raise Exception("No config found, use default")
 
-  except Exception, err:
+  except Exception as err:
     logger.warn(err)
   return config
 
@@ -152,8 +152,7 @@ def daemonize():
   # Currently daemonization is done via /usr/sbin/ambari-agent script (nohup)
   # and agent only dumps self pid to file
   if not os.path.exists(ProcessHelper.piddir):
-    os.makedirs(ProcessHelper.piddir, 0755)
-  
+    os.makedirs(ProcessHelper.piddir, 0o755)
   pid = str(os.getpid())
   file(ProcessHelper.pidfile, 'w').write(pid)
 
@@ -171,7 +170,7 @@ def stop_agent():
     if os.path.exists(ProcessHelper.pidfile):
       raise Exception("PID file still exists.")
     os._exit(0)
-  except Exception, err:
+  except Exception as err:
     if pid == -1:
       print ("Agent process is not running")
     else:
@@ -192,10 +191,10 @@ def main():
   setup_logging(options.verbose)
 
   default_cfg = { 'agent' : { 'prefix' : '/home/ambari' } }
-  config = ConfigParser.RawConfigParser(default_cfg)
+  config = configparser.RawConfigParser(default_cfg)
   bind_signal_handlers()
 
-  if (len(sys.argv) >1) and sys.argv[1]=='stop':
+  if (len(sys.argv) > 1) and sys.argv[1] == 'stop':
     stop_agent()
 
   # Check for ambari configuration file.
@@ -203,7 +202,7 @@ def main():
 
   # Starting data cleanup daemon
   data_cleaner = None
-  if int(config.get('agent','data_cleanup_interval')) > 0:
+  if int(config.get('agent', 'data_cleanup_interval')) > 0:
     data_cleaner = DataCleaner(config)
     data_cleaner.start()
 

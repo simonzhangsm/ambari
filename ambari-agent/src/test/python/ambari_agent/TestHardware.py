@@ -19,17 +19,17 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from mock.mock import patch
+from mock import patch
 import unittest
 import platform
 
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):
   from ambari_agent import hostname
   from ambari_agent.Hardware import Hardware
   from ambari_agent.Facter import Facter
   from common_functions import OSCheck
 
-@patch.object(platform,"linux_distribution", new = ('Suse','11','Final'))
+@patch.object(platform, "linux_distribution", new=('Suse', '11', 'Final'))
 class TestHardware(TestCase):
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
@@ -63,30 +63,30 @@ class TestHardware(TestCase):
     outputLine = "device type size used available percent mountpoint"
     result = Hardware.extractMountInfo(outputLine)
 
-    self.assertEquals(result['device'], 'device')
-    self.assertEquals(result['type'], 'type')
-    self.assertEquals(result['size'], 'size')
-    self.assertEquals(result['used'], 'used')
-    self.assertEquals(result['available'], 'available')
-    self.assertEquals(result['percent'], 'percent')
-    self.assertEquals(result['mountpoint'], 'mountpoint')
+    self.assertEqual(result['device'], 'device')
+    self.assertEqual(result['type'], 'type')
+    self.assertEqual(result['size'], 'size')
+    self.assertEqual(result['used'], 'used')
+    self.assertEqual(result['available'], 'available')
+    self.assertEqual(result['percent'], 'percent')
+    self.assertEqual(result['mountpoint'], 'mountpoint')
 
     outputLine = ""
     result = Hardware.extractMountInfo(outputLine)
 
-    self.assertEquals(result, None)
+    self.assertEqual(result, None)
 
     outputLine = "device type size used available percent"
     result = Hardware.extractMountInfo(outputLine)
 
-    self.assertEquals(result, None)
+    self.assertEqual(result, None)
 
     outputLine = "device type size used available percent mountpoint info"
     result = Hardware.extractMountInfo(outputLine)
 
-    self.assertEquals(result, None)
+    self.assertEqual(result, None)
 
-  @patch.object(hostname,"hostname")
+  @patch.object(hostname, "hostname")
   @patch.object(Facter, "getFqdn")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
@@ -97,9 +97,9 @@ class TestHardware(TestCase):
     get_os_version_mock.return_value = "11"
     result = Facter().facterInfo()
 
-    self.assertEquals(result['hostname'], "ambari")
-    self.assertEquals(result['domain'], "apache.org")
-    self.assertEquals(result['fqdn'], (result['hostname'] + '.' + result['domain']))
+    self.assertEqual(result['hostname'], "ambari")
+    self.assertEqual(result['domain'], "apache.org")
+    self.assertEqual(result['fqdn'], (result['hostname'] + '.' + result['domain']))
 
   @patch.object(Facter, "setDataUpTimeOutput")
   @patch.object(OSCheck, "get_os_type")
@@ -111,9 +111,9 @@ class TestHardware(TestCase):
     get_os_version_mock.return_value = "11"
     result = Facter().facterInfo()
 
-    self.assertEquals(result['uptime_seconds'], '262813')
-    self.assertEquals(result['uptime_hours'], '73')
-    self.assertEquals(result['uptime_days'], '3')
+    self.assertEqual(result['uptime_seconds'], '262813')
+    self.assertEqual(result['uptime_hours'], '73')
+    self.assertEqual(result['uptime_days'], '3')
 
   @patch.object(Facter, "setMemInfoOutput")
   @patch.object(OSCheck, "get_os_type")
@@ -135,11 +135,11 @@ SwapFree:        1598676 kB
     get_os_version_mock.return_value = "11"
     result = Facter().facterInfo()
 
-    self.assertEquals(result['memorysize'], 1832392)
-    self.assertEquals(result['memorytotal'], 1832392)
-    self.assertEquals(result['memoryfree'], 868648)
-    self.assertEquals(result['swapsize'], '2.04 GB')
-    self.assertEquals(result['swapfree'], '1.52 GB')
+    self.assertEqual(result['memorysize'], 1832392)
+    self.assertEqual(result['memorytotal'], 1832392)
+    self.assertEqual(result['memoryfree'], 868648)
+    self.assertEqual(result['swapsize'], '2.04 GB')
+    self.assertEqual(result['swapfree'], '1.52 GB')
 
   @patch.object(Facter, "setDataIfConfigOutput")
   @patch.object(OSCheck, "get_os_type")
@@ -179,9 +179,9 @@ lo        Link encap:Local Loopback
     get_os_version_mock.return_value = "11"
     result = Facter().facterInfo()
 
-    self.assertEquals(result['ipaddress'], '10.0.2.15')
-    self.assertEquals(result['netmask'], '255.255.255.0')
-    self.assertEquals(result['interfaces'], 'eth0,eth1,lo')
+    self.assertEqual(result['ipaddress'], '10.0.2.15')
+    self.assertEqual(result['netmask'], '255.255.255.0')
+    self.assertEqual(result['interfaces'], 'eth0,eth1,lo')
 
 
   @patch.object(OSCheck, "get_os_type")
@@ -193,23 +193,23 @@ lo        Link encap:Local Loopback
     get_os_family_mock.return_value = "redhat"
 
     result = Facter().facterInfo()
-    self.assertEquals(result['operatingsystem'], 'some_type_of_os')
-    self.assertEquals(result['osfamily'], 'redhat')
+    self.assertEqual(result['operatingsystem'], 'some_type_of_os')
+    self.assertEqual(result['osfamily'], 'redhat')
 
     get_os_family_mock.return_value = "debian"
     result = Facter().facterInfo()
-    self.assertEquals(result['operatingsystem'], 'some_type_of_os')
-    self.assertEquals(result['osfamily'], 'debian')
+    self.assertEqual(result['operatingsystem'], 'some_type_of_os')
+    self.assertEqual(result['osfamily'], 'debian')
 
     get_os_family_mock.return_value = "suse"
     result = Facter().facterInfo()
-    self.assertEquals(result['operatingsystem'], 'some_type_of_os')
-    self.assertEquals(result['osfamily'], 'suse')
+    self.assertEqual(result['operatingsystem'], 'some_type_of_os')
+    self.assertEqual(result['osfamily'], 'suse')
 
     get_os_family_mock.return_value = "My_new_family"
     result = Facter().facterInfo()
-    self.assertEquals(result['operatingsystem'], 'some_type_of_os')
-    self.assertEquals(result['osfamily'], 'My_new_family')
+    self.assertEqual(result['operatingsystem'], 'some_type_of_os')
+    self.assertEqual(result['osfamily'], 'My_new_family')
 
 if __name__ == "__main__":
   unittest.main()

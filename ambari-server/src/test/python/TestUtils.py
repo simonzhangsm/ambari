@@ -17,7 +17,8 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from mock.mock import patch
+
+from mock import patch
 
 
 utils = __import__('ambari_server.utils').utils
@@ -28,25 +29,25 @@ class TestUtils(TestCase):
   @patch('os.path.isdir')
   def test_get_ubuntu_pg_version(self, path_isdir_mock, os_listdir_mock):
     path_isdir_mock.return_value = True
-    os_listdir_mock.return_value = ['8.4', '9.1']
+    os_listdir_mock.return_value = ['8.4', '9.3']
 
-    self.assertEqual('9.1', utils.get_ubuntu_pg_version())
+    self.assertEqual('9.3', utils.get_ubuntu_pg_version())
 
   @patch('ambari_server.utils.get_ubuntu_pg_version')
   def test_get_postgre_hba_dir(self, get_ubuntu_pg_version_mock):
     utils.UBUNTU_PG_HBA_ROOT = '/tmp'
     utils.PG_HBA_ROOT_DEFAULT = '/redhat/postgre/data'
-    get_ubuntu_pg_version_mock.return_value = '9.1'
+    get_ubuntu_pg_version_mock.return_value = '9.3'
 
-    self.assertEqual('/tmp/9.1/main', utils.get_postgre_hba_dir('ubuntu'))
+    self.assertEqual('/tmp/9.3/main', utils.get_postgre_hba_dir('debian'))
     self.assertEqual('/redhat/postgre/data', utils.get_postgre_hba_dir('redhat'))
 
   @patch('ambari_server.utils.get_ubuntu_pg_version')
   def test_get_postgre_running_status(self, get_ubuntu_pg_version_mock):
     utils.PG_STATUS_RUNNING_DEFAULT = "red_running"
-    get_ubuntu_pg_version_mock.return_value = '9.1'
+    get_ubuntu_pg_version_mock.return_value = '9.3'
 
-    self.assertEqual('9.1/main', utils.get_postgre_running_status('ubuntu'))
+    self.assertEqual('9.3/main', utils.get_postgre_running_status('debian'))
     self.assertEqual('red_running', utils.get_postgre_running_status('redhat'))
 
   @patch('os.path.isfile')
@@ -54,10 +55,10 @@ class TestUtils(TestCase):
     utils.ENV_PATH = ['/test']
     # File was found in the path
     isfile_mock.return_value = True
-    self.assertEquals('/test/myfile', utils.locate_file('myfile'))
+    self.assertEqual('/test/myfile', utils.locate_file('myfile'))
     # File not found in the path
     isfile_mock.return_value = False
-    self.assertEquals('myfile', utils.locate_file('myfile'))
+    self.assertEqual('myfile', utils.locate_file('myfile'))
     # Testing default vaule
     isfile_mock.return_value = False
-    self.assertEquals('/tmp/myfile', utils.locate_file('myfile', '/tmp'))
+    self.assertEqual('/tmp/myfile', utils.locate_file('myfile', '/tmp'))

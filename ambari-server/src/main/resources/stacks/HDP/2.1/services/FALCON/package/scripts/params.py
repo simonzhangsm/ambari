@@ -17,18 +17,20 @@ limitations under the License.
 
 """
 
-from resource_management import *
+import functools
 
+from resource_management import *
 from status_params import *
+
 
 config = Script.get_config()
 
 oozie_user = config['configurations']['global']['oozie_user']
 falcon_user = config['configurations']['global']['falcon_user']
-smoke_user =  config['configurations']['global']['smokeuser']
+smoke_user = config['configurations']['global']['smokeuser']
 
 user_group = config['configurations']['global']['user_group']
-proxyuser_group =  config['configurations']['global']['proxyuser_group']
+proxyuser_group = config['configurations']['global']['proxyuser_group']
 
 java_home = config['hostLevelParams']['java_home']
 falcon_home = '/usr/lib/falcon'
@@ -49,22 +51,21 @@ smokeuser_keytab = config['configurations']['global']['smokeuser_keytab']
 
 falcon_webapp_dir = '/var/lib/falcon/webapp'
 flacon_apps_dir = '/apps/falcon'
-#for create_hdfs_directory
+# for create_hdfs_directory
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = (not is_empty(_authentication) and _authentication == 'kerberos')
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
 hdfs_user = config['configurations']['global']['hdfs_user']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-import functools
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+# create partial functions with common arguments for every HdfsDirectory call
+# to create hdfs directory we need to call params.HdfsDirectory in code
 HdfsDirectory = functools.partial(
   HdfsDirectory,
   conf_dir=hadoop_conf_dir,
   hdfs_user=hdfs_user,
-  security_enabled = security_enabled,
-  keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  security_enabled=security_enabled,
+  keytab=hdfs_user_keytab,
+  kinit_path_local=kinit_path_local
 )

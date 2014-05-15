@@ -21,6 +21,7 @@ limitations under the License.
 from resource_management import *
 import status_params
 
+
 # server configurations
 config = Script.get_config()
 
@@ -41,7 +42,7 @@ rest_lib_dir = "/usr/lib/storm/contrib/storm-rest"
 java_home = config['hostLevelParams']['java_home']
 
 if 'ganglia_server_host' in config['clusterHostInfo'] and \
-    len(config['clusterHostInfo']['ganglia_server_host'])>0:
+    len(config['clusterHostInfo']['ganglia_server_host']) > 0:
   ganglia_installed = True
   ganglia_server = config['clusterHostInfo']['ganglia_server_host'][0]
   ganglia_report_interval = 60
@@ -49,11 +50,11 @@ else:
   ganglia_installed = False
   
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = (not is_empty(_authentication) and _authentication == 'kerberos')
 
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   _kerberos_domain = config['configurations']['global']['kerberos_domain']
   _storm_principal_name = config['configurations']['global']['storm_principal_name']
-  storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
+  storm_jaas_principal = _storm_principal_name.replace('_HOST', _hostname_lowercase)
   storm_keytab_path = config['configurations']['global']['storm_keytab']

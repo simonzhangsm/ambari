@@ -58,16 +58,16 @@ class AttributeDictionary(object):
     self._dict.update(*args, **kwargs)
 
   def items(self):
-    return self._dict.items()
+    return list(self._dict.items())
   
   def iteritems(self):
-    return self._dict.iteritems()
+    return iter(list(self._dict.items()))
 
   def values(self):
-    return self._dict.values()
+    return list(self._dict.values())
 
   def keys(self):
-    return self._dict.keys()
+    return list(self._dict.keys())
 
   def pop(self, *args, **kwargs):
     return self._dict.pop(*args, **kwargs)
@@ -99,7 +99,7 @@ class AttributeDictionary(object):
 def checked_unite(dict1, dict2):
   for key in dict1:
     if key in dict2:
-      if not dict2[key] is dict1[key]: # it's not a big deal if this is the same variable
+      if not dict2[key] is dict1[key]:  # it's not a big deal if this is the same variable
         raise Fail("Variable '%s' already exists more than once as a variable/configuration/kwarg parameter. Cannot evaluate it." % key)
   
   result = dict1.copy()

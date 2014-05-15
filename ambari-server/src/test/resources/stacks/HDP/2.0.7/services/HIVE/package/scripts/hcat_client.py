@@ -19,8 +19,10 @@ limitations under the License.
 """
 
 import sys
-from resource_management import *
+
 from hcat import hcat
+from resource_management import *
+
 
 class HCatClient(Script):
   def install(self, env):

@@ -48,7 +48,7 @@ class PackagesAnalyzer:
     osStat = self.launch_subprocess(command)
     logger.debug("Launching watchdog thread")
     self.event.clear()
-    thread = Thread(target=self.watchdog_func, args=(osStat, ))
+    thread = Thread(target=self.watchdog_func, args=(osStat,))
     thread.start()
 
     out, err = osStat.communicate()

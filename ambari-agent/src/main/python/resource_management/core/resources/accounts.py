@@ -39,7 +39,7 @@ class User(Resource):
   comment = ResourceArgument()
   uid = ResourceArgument()
   gid = ResourceArgument()
-  groups = ForcedListArgument(default=[]) # supplementary groups
+  groups = ForcedListArgument(default=[])  # supplementary groups
   home = ResourceArgument()
   shell = ResourceArgument(default="/bin/bash")
   password = ResourceArgument()

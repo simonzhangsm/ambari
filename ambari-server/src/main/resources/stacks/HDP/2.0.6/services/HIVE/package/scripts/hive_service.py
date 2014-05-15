@@ -57,6 +57,6 @@ def hive_service(
   elif action == 'stop':
     demon_cmd = format("kill `cat {pid_file}` >/dev/null 2>&1 && rm -f {pid_file}")
     Execute(demon_cmd,
-            not_if = format("! ({is_started})")
+            not_if=format("! ({is_started})")
     )
 

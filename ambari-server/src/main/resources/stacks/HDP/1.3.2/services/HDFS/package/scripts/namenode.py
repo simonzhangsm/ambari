@@ -17,9 +17,9 @@ limitations under the License.
 
 """
 
-from resource_management import *
-from hdfs_namenode import namenode
 from hdfs import hdfs
+from hdfs_namenode import namenode
+from resource_management import *
 
 
 class NameNode(Script):

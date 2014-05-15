@@ -40,9 +40,9 @@ class Heartbeat:
     self.config = config
     self.reports = []
 
-  def build(self, id='-1', state_interval=-1, componentsMapped=False):
+  def build(self, id='-1', state_interval= -1, componentsMapped=False):
     global clusterId, clusterDefinitionRevision, firstContact
-    timestamp = int(time.time()*1000)
+    timestamp = int(time.time() * 1000)
     queueResult = self.actionQueue.result()
 
     
@@ -71,8 +71,8 @@ class Heartbeat:
       componentsMapped = False
 
     logger.info("Sending heartbeat with response id: " + str(id) + " and "
-                "timestamp: " + str(timestamp) +
-                ". Command(s) in progress: " + repr(commandsInProgress) +
+                "timestamp: " + str(timestamp) + 
+                ". Command(s) in progress: " + repr(commandsInProgress) + 
                 ". Components mapped: " + repr(componentsMapped))
     logger.debug("Heartbeat : " + pformat(heartbeat))
 
@@ -93,7 +93,7 @@ class Heartbeat:
 def main(argv=None):
   actionQueue = ActionQueue(AmbariConfig.config)
   heartbeat = Heartbeat(actionQueue)
-  print json.dumps(heartbeat.build('3',3))
+  print(json.dumps(heartbeat.build('3', 3)))
 
 if __name__ == '__main__':
   main()

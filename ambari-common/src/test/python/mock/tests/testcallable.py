@@ -155,4 +155,4 @@ class TestCallable(unittest2.TestCase):
         mock.wibble()
         mock.wibble.assert_called_once_with()
 
-        self.assertRaises(TypeError, mock.wibble, 'some',  'args')
+        self.assertRaises(TypeError, mock.wibble, 'some', 'args')

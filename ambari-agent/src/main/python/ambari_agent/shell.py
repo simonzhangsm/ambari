@@ -40,7 +40,7 @@ serverTracker = {}
 logger = logging.getLogger()
 
 threadLocal = threading.local()
-gracefull_kill_delay = 5 # seconds between SIGTERM and SIGKILL
+gracefull_kill_delay = 5  # seconds between SIGTERM and SIGKILL
 tempFiles = [] 
 def noteTempFile(filename):
   tempFiles.append(filename)
@@ -59,8 +59,8 @@ def kill_process_with_children(parent_pid):
     # shell.
     CMD = """ps xf | awk -v PID=""" + str(pid) + \
         """ ' $1 == PID { P = $1; next } P && /_/ { P = P " " $1;""" + \
-        """K=P } P && !/_/ { P="" }  END { print "kill -""" \
-        + str(signal) + """ "K }' | sh """
+        """K=P } P && !/_/ { P="" }  END { print( "kill -""" \
+        + str(signal) + """ ")K }' | sh """
     process = subprocess.Popen(CMD, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE, shell=True)
     process.communicate()
@@ -69,7 +69,7 @@ def kill_process_with_children(parent_pid):
 def run_kill_function(kill_function, pid):
   try:
     kill_function(pid, signal.SIGTERM)
-  except Exception, e:
+  except Exception as e:
     logger.warn("Failed to kill PID %d" % (pid))
     logger.warn("Reported error: " + repr(e))
 
@@ -77,7 +77,7 @@ def run_kill_function(kill_function, pid):
 
   try:
     kill_function(pid, signal.SIGKILL)
-  except Exception, e:
+  except Exception as e:
     logger.error("Failed to send SIGKILL to PID %d. Process exited?" % (pid))
     logger.error("Reported error: " + repr(e))
 
@@ -91,7 +91,7 @@ class shellRunner:
   # Run any command
   def run(self, script, user=None):
     try:
-      if user!=None:
+      if user != None:
         user = pwd.getpwnam(user)[2]
       else:
         user = os.getuid()
@@ -101,11 +101,13 @@ class shellRunner:
     code = 0
     cmd = " "
     cmd = cmd.join(script)
-    p = subprocess.Popen(cmd, preexec_fn=changeUid, stdout=subprocess.PIPE, 
+    p = subprocess.Popen(cmd, preexec_fn=changeUid, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, shell=True, close_fds=True)
     out, err = p.communicate()
     code = p.wait()
-    logger.debug("Exitcode for %s is %d" % (cmd,code))
+    out = out.decode() 
+    err = err.decode() 
+    logger.debug("Exitcode for %s is %d" % (cmd, code))
     return {'exitCode': code, 'output': out, 'error': err}
 
   def getServerTracker(self):

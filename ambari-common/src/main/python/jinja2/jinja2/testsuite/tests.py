@@ -48,10 +48,16 @@ class TestsTestCase(JinjaTestCase):
             {{ range is callable }}
             {{ 42 is callable }}
             {{ range(5) is iterable }}
+            {{ {} is mapping }}
+            {{ mydict is mapping }}
+            {{ [] is mapping }}
         ''')
-        assert tmpl.render().split() == [
+        class MyDict(dict):
+            pass
+        assert tmpl.render(mydict=MyDict()).split() == [
             'False', 'True', 'False', 'True', 'True', 'False',
-            'True', 'True', 'True', 'True', 'False', 'True'
+            'True', 'True', 'True', 'True', 'False', 'True',
+            'True', 'True', 'False'
         ]
 
     def test_sequence(self):
@@ -65,6 +71,17 @@ class TestsTestCase(JinjaTestCase):
     def test_upper(self):
         tmpl = env.from_string('{{ "FOO" is upper }}|{{ "foo" is upper }}')
         assert tmpl.render() == 'True|False'
+
+    def test_equalto(self):
+        tmpl = env.from_string('{{ foo is equalto 12 }}|'
+                               '{{ foo is equalto 0 }}|'
+                               '{{ foo is equalto (3 * 4) }}|'
+                               '{{ bar is equalto "baz" }}|'
+                               '{{ bar is equalto "zab" }}|'
+                               '{{ bar is equalto ("ba" + "z") }}|'
+                               '{{ bar is equalto bar }}|'
+                               '{{ bar is equalto foo }}')
+        assert tmpl.render(foo=12, bar="baz") == 'True|False|True|True|False|True|True|False'
 
     def test_sameas(self):
         tmpl = env.from_string('{{ foo is sameas false }}|'

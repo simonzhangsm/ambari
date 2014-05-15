@@ -26,7 +26,8 @@
     "commandParams": {
         "command_timeout": "600", 
         "service_package_folder": "HIVE",
-        "script_type": "PYTHON",
+        "script_type": "PYTHON", 
+        "schema_version": "2.0", 
         "script": "scripts/mysql_server.py",
         "excluded_hosts": "host1",
         "mark_draining_only" : "false",
@@ -190,7 +191,7 @@
             "nagios_primary_name": "nagios", 
             "jobtracker_principal_name": "jt/_HOST", 
             "hive_database": "New MySQL Database", 
-            "hcat_pid_dir": "/var/run/webhcat",
+            "hcat_pid_dir": "/etc/run/webhcat", 
             "oozie_derby_database": "Derby", 
             "snappy_enabled": "true", 
             "oozie_pid_dir": "/var/run/oozie", 
@@ -295,8 +296,7 @@
             "jtnode_opt_newsize": "200m", 
             "hbase_regionserver_keytab": "/etc/security/keytabs/hbase.service.keytab", 
             "hbase_principal_name": "hbase", 
-            "hdfs_principal_name": "hdfs",
-            "ignore_groupsusers_create": "false"
+            "hdfs_principal_name": "hdfs"
         }, 
         "hdfs-site": {
             "dfs.namenode.avoid.write.stale.datanode": "true", 
@@ -340,6 +340,7 @@
             "dfs.block.local-path-access.user": "hbase", 
             "dfs.datanode.ipc.address": "0.0.0.0:8010", 
             "dfs.web.ugi": "gopher,gopher", 
+            "dfs.datanode.du.pct": "0.85f", 
             "dfs.secondary.namenode.kerberos.principal": "nn/_HOST@EXAMPLE.COM", 
             "dfs.datanode.keytab.file": "/etc/security/keytabs/dn.service.keytab", 
             "dfs.http.address": "c6401.ambari.apache.org:50070", 

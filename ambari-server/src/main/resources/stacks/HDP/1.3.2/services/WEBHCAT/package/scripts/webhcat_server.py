@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,10 +20,11 @@ Ambari Agent
 
 """
 import sys
-from resource_management import *
 
+from resource_management import *
 from webhcat import webhcat
 from webhcat_service import webhcat_service
+
 
 class WebHCatServer(Script):
   def install(self, env):
@@ -35,14 +37,14 @@ class WebHCatServer(Script):
   def start(self, env):
     import params
     env.set_params(params)
-    self.configure(env) # FOR SECURITY
-    webhcat_service(action = 'start')
+    self.configure(env)  # FOR SECURITY
+    webhcat_service(action='start')
 
   def stop(self, env):
     import params
     env.set_params(params)
 
-    webhcat_service(action = 'stop')
+    webhcat_service(action='stop')
 
   def status(self, env):
     import status_params

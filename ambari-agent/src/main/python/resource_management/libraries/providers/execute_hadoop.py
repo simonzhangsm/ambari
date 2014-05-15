@@ -36,13 +36,13 @@ class ExecuteHadoopProvider(Provider):
     with Environment.get_instance_copy() as env:
       if self.resource.security_enabled and not self.resource.kinit_override:
         Execute (format("{kinit__path_local} -kt {keytab} {principal}"),
-          path = ['/bin'],
-          user = self.resource.user
+          path=['/bin'],
+          user=self.resource.user
         )
     
       Execute (format("hadoop --config {conf_dir} {command}"),
-        user        = self.resource.user,
-        tries       = self.resource.tries,
-        try_sleep   = self.resource.try_sleep,
-        logoutput   = self.resource.logoutput,
+        user=self.resource.user,
+        tries=self.resource.tries,
+        try_sleep=self.resource.try_sleep,
+        logoutput=self.resource.logoutput,
       )

@@ -11,20 +11,13 @@
 import re
 import unittest
 
-from jinja2.testsuite import JinjaTestCase, filesystem_loader
+from jinja2.testsuite import JinjaTestCase
 
 from jinja2 import Environment, DictLoader, contextfunction, nodes
 from jinja2.exceptions import TemplateAssertionError
 from jinja2.ext import Extension
 from jinja2.lexer import Token, count_newlines
-from jinja2.utils import next
-
-# 2.x / 3.x
-try:
-    from io import BytesIO
-except ImportError:
-    from StringIO import StringIO as BytesIO
-
+from jinja2._compat import BytesIO, itervalues, text_type
 
 importable_object = 23
 
@@ -38,6 +31,8 @@ i18n_templates = {
                   '{% trans %}watch out{% endtrans %}{% endblock %}',
     'plural.html': '{% trans user_count %}One user online{% pluralize %}'
                    '{{ user_count }} users online{% endtrans %}',
+    'plural2.html': '{% trans user_count=get_user_count() %}{{ user_count }}s'
+                    '{% pluralize %}{{ user_count }}p{% endtrans %}',
     'stringformat.html': '{{ _("User: %(num)s")|format(num=user_count) }}'
 }
 
@@ -63,14 +58,14 @@ newstyle_i18n_templates = {
 
 languages = {
     'de': {
-        'missing':                      u'fehlend',
-        'watch out':                    u'pass auf',
-        'One user online':              u'Ein Benutzer online',
-        '%(user_count)s users online':  u'%(user_count)s Benutzer online',
-        'User: %(num)s':                u'Benutzer: %(num)s',
-        'User: %(count)s':              u'Benutzer: %(count)s',
-        '%(num)s apple':                u'%(num)s Apfel',
-        '%(num)s apples':               u'%(num)s Äpfel'
+        'missing':                      'fehlend',
+        'watch out':                    'pass auf',
+        'One user online':              'Ein Benutzer online',
+        '%(user_count)s users online':  '%(user_count)s Benutzer online',
+        'User: %(num)s':                'Benutzer: %(num)s',
+        'User: %(count)s':              'Benutzer: %(count)s',
+        '%(num)s apple':                '%(num)s Apfel',
+        '%(num)s apples':               '%(num)s Äpfel'
     }
 }
 
@@ -222,7 +217,7 @@ class ExtensionsTestCase(JinjaTestCase):
         original = Environment(extensions=[TestExtension])
         overlay = original.overlay()
         for env in original, overlay:
-            for ext in env.extensions.itervalues():
+            for ext in itervalues(env.extensions):
                 assert ext.environment is env
 
     def test_preprocessor_extension(self):
@@ -259,6 +254,15 @@ class InternationalizationTestCase(JinjaTestCase):
         assert tmpl.render(LANGUAGE='de', user_count=1) == 'Ein Benutzer online'
         assert tmpl.render(LANGUAGE='de', user_count=2) == '2 Benutzer online'
 
+    def test_trans_plural_with_functions(self):
+        tmpl = i18n_env.get_template('plural2.html')
+        def get_user_count():
+            get_user_count.called += 1
+            return 1
+        get_user_count.called = 0
+        assert tmpl.render(LANGUAGE='de', get_user_count=get_user_count) == '1s'
+        assert get_user_count.called == 1
+
     def test_complex_plural(self):
         tmpl = i18n_env.from_string('{% trans foo=42, count=2 %}{{ count }} item{% '
                                     'pluralize count %}{{ count }} items{% endtrans %}')
@@ -278,9 +282,9 @@ class InternationalizationTestCase(JinjaTestCase):
         {% trans %}{{ users }} user{% pluralize %}{{ users }} users{% endtrans %}
         '''.encode('ascii')) # make python 3 happy
         assert list(babel_extract(source, ('gettext', 'ngettext', '_'), [], {})) == [
-            (2, 'gettext', u'Hello World', []),
-            (3, 'gettext', u'Hello World', []),
-            (4, 'ngettext', (u'%(users)s user', u'%(users)s users', None), [])
+            (2, 'gettext', 'Hello World', []),
+            (3, 'gettext', 'Hello World', []),
+            (4, 'ngettext', ('%(users)s user', '%(users)s users', None), [])
         ]
 
     def test_comment_extract(self):
@@ -293,9 +297,9 @@ class InternationalizationTestCase(JinjaTestCase):
         {% trans %}{{ users }} user{% pluralize %}{{ users }} users{% endtrans %}
         '''.encode('utf-8')) # make python 3 happy
         assert list(babel_extract(source, ('gettext', 'ngettext', '_'), ['trans', ':'], {})) == [
-            (3, 'gettext', u'Hello World', ['first']),
-            (4, 'gettext', u'Hello World', ['second']),
-            (6, 'ngettext', (u'%(users)s user', u'%(users)s users', None), ['third'])
+            (3, 'gettext', 'Hello World', ['first']),
+            (4, 'gettext', 'Hello World', ['second']),
+            (6, 'ngettext', ('%(users)s user', '%(users)s users', None), ['third'])
         ]
 
 
@@ -324,12 +328,12 @@ class NewstyleInternationalizationTestCase(JinjaTestCase):
     def test_newstyle_plural(self):
         tmpl = newstyle_i18n_env.get_template('ngettext.html')
         assert tmpl.render(LANGUAGE='de', apples=1) == '1 Apfel'
-        assert tmpl.render(LANGUAGE='de', apples=5) == u'5 Äpfel'
+        assert tmpl.render(LANGUAGE='de', apples=5) == '5 Äpfel'
 
     def test_autoescape_support(self):
         env = Environment(extensions=['jinja2.ext.autoescape',
                                       'jinja2.ext.i18n'])
-        env.install_gettext_callables(lambda x: u'<strong>Wert: %(name)s</strong>',
+        env.install_gettext_callables(lambda x: '<strong>Wert: %(name)s</strong>',
                                       lambda s, p, n: s, newstyle=True)
         t = env.from_string('{% autoescape ae %}{{ gettext("foo", name='
                             '"<test>") }}{% endautoescape %}')
@@ -338,7 +342,7 @@ class NewstyleInternationalizationTestCase(JinjaTestCase):
 
     def test_num_used_twice(self):
         tmpl = newstyle_i18n_env.get_template('ngettext_long.html')
-        assert tmpl.render(apples=5, LANGUAGE='de') == u'5 Äpfel'
+        assert tmpl.render(apples=5, LANGUAGE='de') == '5 Äpfel'
 
     def test_num_called_num(self):
         source = newstyle_i18n_env.compile('''
@@ -382,7 +386,7 @@ class AutoEscapeTestCase(JinjaTestCase):
             {{ "<HelloWorld>" }}
         ''')
         assert tmpl.render().split() == \
-            [u'&lt;HelloWorld&gt;', u'<HelloWorld>', u'&lt;HelloWorld&gt;']
+            ['&lt;HelloWorld&gt;', '<HelloWorld>', '&lt;HelloWorld&gt;']
 
         env = Environment(extensions=['jinja2.ext.autoescape'],
                           autoescape=False)
@@ -394,7 +398,7 @@ class AutoEscapeTestCase(JinjaTestCase):
             {{ "<HelloWorld>" }}
         ''')
         assert tmpl.render().split() == \
-            [u'<HelloWorld>', u'&lt;HelloWorld&gt;', u'<HelloWorld>']
+            ['<HelloWorld>', '&lt;HelloWorld&gt;', '<HelloWorld>']
 
     def test_nonvolatile(self):
         env = Environment(extensions=['jinja2.ext.autoescape'],
@@ -432,7 +436,7 @@ class AutoEscapeTestCase(JinjaTestCase):
         '''
         tmpl = env.from_string(tmplsource)
         assert tmpl.render(val=True).split()[0] == 'Markup'
-        assert tmpl.render(val=False).split()[0] == unicode.__name__
+        assert tmpl.render(val=False).split()[0] == text_type.__name__
 
         # looking at the source we should see <testing> there in raw
         # (and then escaped as well)

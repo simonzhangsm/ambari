@@ -124,12 +124,12 @@ class ServiceModel(BaseModel):
   """
   The ServiceModel class
   """
-  #RO_ATTR = ('state', 'cluster_name')
+  # RO_ATTR = ('state', 'cluster_name')
   RW_ATTR = ('service_name', 'state')
   REF_ATTR = ('cluster_name',)
 
   def __init__(self, resource_root, service_name , state):
-    #BaseModel.__init__(self, **locals())
+    # BaseModel.__init__(self, **locals())
     utils.retain_self_helper(BaseModel, **locals())
 
   def __str__(self):

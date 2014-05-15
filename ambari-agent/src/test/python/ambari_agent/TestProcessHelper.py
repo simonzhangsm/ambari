@@ -22,7 +22,7 @@ limitations under the License.
 import os
 import tempfile
 import unittest
-from mock.mock import patch, MagicMock
+from mock import patch, MagicMock
 from ambari_agent import ProcessHelper
 
 

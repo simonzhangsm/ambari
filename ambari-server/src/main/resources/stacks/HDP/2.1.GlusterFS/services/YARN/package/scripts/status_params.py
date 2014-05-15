@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 
+
 config = Script.get_config()
 
 mapred_user = config['configurations']['global']['mapred_user']

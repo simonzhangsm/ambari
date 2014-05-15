@@ -1,0 +1,42 @@
+#!/bin/bash
+
+if [ -a /usr/bin/python ]; then
+  PYTHON=/usr/bin/python
+fi
+
+if [ -z "$PYTHON" ]; then
+   PYTHON=/usr/bin/python
+fi
+
+majversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f1`
+minversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f2`
+case $1 in
+    install)
+	   alien -i --scripts ambari-server/target/rpm/ambari-server/RPMS/noarch/ambari-server*.rpm
+	   $? != 0 && exit 1
+
+       ambari-server setup
+       $? != 0 && exit 1
+
+       ambari-server start
+
+       sleep 10
+
+       ambari-server status
+       ;;
+   uninstall)
+       #dpkg -P ambari-server
+       rm -rf /usr/lib/ambari*
+       rm -rf /usr/sbin/ambari*
+       rm -rf /sbin/ambari* 
+	   rm -rf /sbin/ambari*
+	   rm -rf /usr/lib/python${majversion}.${minversion}/site-package/ambari*
+	   rm -rf /var/log/ambari*
+	   rm -rf /var/run/ambari*
+	   rm -rf /var/lib/ambari*
+	   rm -rf /etc/ambari*
+	   ;;
+	*)
+       ;;
+esac
+																																									                                     

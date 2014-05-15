@@ -18,8 +18,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from stacks.utils.RMFTestCase import *
 from resource_management.core.exceptions import *
+from stacks.utils.RMFTestCase import *
+
 
 class TestHookBeforeInstall(RMFTestCase):
   def test_hook_default(self):
@@ -28,107 +29,81 @@ class TestHookBeforeInstall(RMFTestCase):
                        command="hook",
                        config_file="default.json"
     )
-    self.assertResourceCalled('Execute', 'mkdir -p /tmp/HDP-artifacts/ ; curl -kf --retry 10 http://c6401.ambari.apache.org:8080/resources//jdk-7u45-linux-x64.tar.gz -o /tmp/HDP-artifacts//jdk-7u45-linux-x64.tar.gz',
-        not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',
-        path = ['/bin', '/usr/bin/'],
-        environment = {'no_proxy': 'c6401.ambari.apache.org'}
-    )
+    self.assertResourceCalled('Execute', "mkdir -p /tmp/HDP-artifacts/ ; curl -kf --noproxy c6401.ambari.apache.org --retry 10 http://c6401.ambari.apache.org:8080/resources//jdk-7u45-linux-x64.tar.gz -o /tmp/HDP-artifacts//jdk-7u45-linux-x64.tar.gz",
+                              not_if='test -e /usr/jdk64/jdk1.7.0_45/bin/java',
+                              path=['/bin', '/usr/bin/'],
+                              )
     self.assertResourceCalled('Execute', 'mkdir -p /usr/jdk64 ; cd /usr/jdk64 ; tar -xf /tmp/HDP-artifacts//jdk-7u45-linux-x64.tar.gz > /dev/null 2>&1',
-        not_if = 'test -e /usr/jdk64/jdk1.7.0_45/bin/java',
-        path = ['/bin', '/usr/bin/'],
-    )
-    self.assertResourceCalled('Execute', 'mkdir -p /tmp/HDP-artifacts/; curl -kf --retry 10 http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip -o /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
-        not_if = 'test -e /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
-        ignore_failures = True,
-        path = ['/bin', '/usr/bin/'],
-        environment = {'no_proxy': 'c6401.ambari.apache.org'}
-    )
-    self.assertResourceCalled('Group', 'hadoop',
-        ignore_failures = False,
-    )
-    self.assertResourceCalled('Group', 'users',
-        ignore_failures = False,
-    )
-    self.assertResourceCalled('Group', 'users',
-        ignore_failures = False,
-    )
+                              not_if='test -e /usr/jdk64/jdk1.7.0_45/bin/java',
+                              path=['/bin', '/usr/bin/'],
+                              )
+    self.assertResourceCalled('Execute', "mkdir -p /tmp/HDP-artifacts/; curl -kf --noproxy c6401.ambari.apache.org --retry 10 http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip -o /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip",
+                              not_if='test -e /tmp/HDP-artifacts//UnlimitedJCEPolicyJDK7.zip',
+                              ignore_failures=True,
+                              path=['/bin', '/usr/bin/'],
+                              )
+    self.assertResourceCalled('Group', 'hadoop',)
+    self.assertResourceCalled('Group', 'users',)
+    self.assertResourceCalled('Group', 'users',)
     self.assertResourceCalled('User', 'ambari-qa',
-        gid = 'hadoop',
-        ignore_failures = False,
-        groups = [u'users'],
-    )
+                              gid='hadoop',
+                              groups=['users'],
+                              )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
-        content = StaticFile('changeToSecureUid.sh'),
-        mode = 0555,
-    )
+                              content=StaticFile('changeToSecureUid.sh'),
+                              mode=0o555,
+                              )
     self.assertResourceCalled('Execute', '/tmp/changeUid.sh ambari-qa /tmp/hadoop-ambari-qa,/tmp/hsperfdata_ambari-qa,/home/ambari-qa,/tmp/ambari-qa,/tmp/sqoop-ambari-qa 2>/dev/null',
-        not_if = 'test $(id -u ambari-qa) -gt 1000',
-    )
+                              not_if='test $(id -u ambari-qa) -gt 1000',
+                              )
     self.assertResourceCalled('User', 'hbase',
-        gid = 'hadoop',
-        ignore_failures = False,
-        groups = [u'hadoop'],
-    )
+                              gid='hadoop',
+                              groups=['hadoop'],
+                              )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
-        content = StaticFile('changeToSecureUid.sh'),
-        mode = 0555,
-    )
+                              content=StaticFile('changeToSecureUid.sh'),
+                              mode=0o555,
+                              )
     self.assertResourceCalled('Execute', '/tmp/changeUid.sh hbase /home/hbase,/tmp/hbase,/usr/bin/hbase,/var/log/hbase,/hadoop/hbase 2>/dev/null',
-        not_if = 'test $(id -u hbase) -gt 1000',
-    )
-    self.assertResourceCalled('Group', 'nagios',
-        ignore_failures = False,
-    )
+                              not_if='test $(id -u hbase) -gt 1000',
+                              )
+    self.assertResourceCalled('Group', 'nagios',)
     self.assertResourceCalled('User', 'nagios',
-        gid = 'nagios',
-        ignore_failures = False,
-    )
+                              gid='nagios',
+                              )
     self.assertResourceCalled('User', 'oozie',
-        gid = 'hadoop',
-        ignore_failures = False,
-    )
+                              gid='hadoop',
+                              )
     self.assertResourceCalled('User', 'hcat',
-        gid = 'hadoop',
-        ignore_failures = False,
-    )
+                              gid='hadoop',
+                              )
     self.assertResourceCalled('User', 'hcat',
-        gid = 'hadoop',
-        ignore_failures = False,
-    )
+                              gid='hadoop',
+                              )
     self.assertResourceCalled('User', 'hive',
-        gid = 'hadoop',
-        ignore_failures = False,
-    )
-    self.assertResourceCalled('Group', 'nobody',
-        ignore_failures = False,
-    )
-    self.assertResourceCalled('Group', 'nobody',
-        ignore_failures = False,
-    )
+                              gid='hadoop',
+                              )
+    self.assertResourceCalled('Group', 'nobody',)
+    self.assertResourceCalled('Group', 'nobody',)
     self.assertResourceCalled('User', 'nobody',
-        gid = 'hadoop',
-        ignore_failures = False,
-        groups = [u'nobody'],
-    )
+                              gid='hadoop',
+                              groups=['nobody'],
+                              )
     self.assertResourceCalled('User', 'nobody',
-        gid = 'hadoop',
-        ignore_failures = False,
-        groups = [u'nobody'],
-    )
+                              gid='hadoop',
+                              groups=['nobody'],
+                              )
     self.assertResourceCalled('User', 'hdfs',
-        gid = 'hadoop',
-        ignore_failures = False,
-        groups = [u'hadoop'],
-    )
+                              gid='hadoop',
+                              groups=['hadoop'],
+                              )
     self.assertResourceCalled('User', 'mapred',
-        gid = 'hadoop',
-        ignore_failures = False,
-        groups = [u'hadoop'],
-    )
+                              gid='hadoop',
+                              groups=['hadoop'],
+                              )
     self.assertResourceCalled('User', 'zookeeper',
-        gid = 'hadoop',
-        ignore_failures = False,
-    )
+                              gid='hadoop',
+                              )
     self.assertResourceCalled('Package', 'unzip',)
     self.assertNoMoreResources()
 

@@ -26,7 +26,8 @@
     "commandParams": {
         "command_timeout": "600", 
         "service_package_folder": "HDFS",
-        "script_type": "PYTHON",
+        "script_type": "PYTHON", 
+        "schema_version": "2.0", 
         "script": "scripts/datanode.py",
         "excluded_hosts": "host1,host2",
         "mark_draining_only" : "true",
@@ -182,7 +183,7 @@
             "hive_metastore_port": "9083", 
             "hbase_master_heapsize": "1024m", 
             "zk_data_dir": "/hadoop/zookeeper", 
-            "hcat_pid_dir": "/var/run/webhcat",
+            "hcat_pid_dir": "/etc/run/webhcat", 
             "oozie_jdbc_driver": "org.apache.derby.jdbc.EmbeddedDriver", 
             "initLimit": "10", 
             "hive_database_type": "mysql", 
@@ -260,7 +261,8 @@
             "dfs.replication.max": "50", 
             "dfs.datanode.max.xcievers": "4096", 
             "dfs.namenode.write.stale.datanode.ratio": "1.0f", 
-            "dfs.hosts.exclude": "/etc/hadoop/conf/dfs.exclude",  
+            "dfs.hosts.exclude": "/etc/hadoop/conf/dfs.exclude", 
+            "dfs.datanode.du.pct": "0.85f", 
             "dfs.safemode.threshold.pct": "1.0f", 
             "dfs.umaskmode": "077"
         }, 

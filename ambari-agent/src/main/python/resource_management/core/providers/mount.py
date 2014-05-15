@@ -80,7 +80,7 @@ class MountProvider(Provider):
       Logger.info("%s enabled" % self)
 
   def action_disable(self):
-    pass # TODO
+    pass  # TODO
 
   def is_mounted(self):
     if not os.path.exists(self.resource.mount_point):

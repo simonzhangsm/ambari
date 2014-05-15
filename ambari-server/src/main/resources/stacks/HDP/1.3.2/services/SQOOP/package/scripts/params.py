@@ -18,10 +18,11 @@ limitations under the License.
 
 from resource_management import *
 
+
 config = Script.get_config()
 
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = (not is_empty(_authentication) and _authentication == 'kerberos')
 smokeuser = config['configurations']['global']['smokeuser']
 user_group = config['configurations']['global']['user_group']
 
@@ -34,4 +35,4 @@ sqoop_user = "sqoop"
 
 keytab_path = config['configurations']['global']['keytab_path']
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])

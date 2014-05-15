@@ -18,7 +18,7 @@ limitations under the License.
 
 
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from mock import patch, MagicMock
 import os
 import sys
 from resource_management.core import Environment, Fail
@@ -28,7 +28,7 @@ import resource_management.core.providers.system
 import resource_management
 
 
-@patch.object(System, "os_family", new = 'redhat')
+@patch.object(System, "os_family", new='redhat')
 class TestFileResource(TestCase):
   @patch.object(os.path, "dirname")
   @patch.object(os.path, "isdir")
@@ -41,7 +41,7 @@ class TestFileResource(TestCase):
       with Environment('/') as env:
         File('/existent_directory',
              action='create',
-             mode=0777,
+             mode=0o777,
              content='file-content'
         )
       
@@ -64,7 +64,7 @@ class TestFileResource(TestCase):
       with Environment('/') as env:
         File('/non_existent_directory/file',
              action='create',
-             mode=0777,
+             mode=0o777,
              content='file-content'
         )
       
@@ -76,7 +76,7 @@ class TestFileResource(TestCase):
     self.assertTrue(dirname_mock.called)
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
   def test_action_create_non_existent_file(self, isdir_mock, exists_mock, open_mock, ensure_mock):
@@ -90,7 +90,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            content='file-content'
       )
     
@@ -102,7 +102,7 @@ class TestFileResource(TestCase):
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
   def test_action_create_replace(self, isdir_mock, exists_mock, open_mock, ensure_mock):
@@ -118,7 +118,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            backup=False,
            content='new-content'
       )
@@ -145,7 +145,7 @@ class TestFileResource(TestCase):
       with Environment('/') as env:
         File('/directory/file',
              action='delete',
-             mode=0777,
+             mode=0o777,
              backup=False,
              content='new-content'
         )
@@ -170,7 +170,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='delete',
-           mode=0777,
+           mode=0o777,
            backup=False,
            content='new-content'
       )
@@ -192,7 +192,7 @@ class TestFileResource(TestCase):
       with Environment('/') as env:
         File('/existent_directory',
              action='create',
-             mode=0777,
+             mode=0o777,
              content='file-content'
         )
       
@@ -204,7 +204,7 @@ class TestFileResource(TestCase):
 
   @patch.object(resource_management.core.Environment, "backup_file")
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
   def test_attribute_backup(self, isdir_mock, exists_mock, open_mock, ensure_mock, backup_file_mock):
@@ -218,7 +218,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            backup=False,
            content='new-content'
       )
@@ -229,7 +229,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            backup=True,
            content='new-content'
       )
@@ -240,7 +240,7 @@ class TestFileResource(TestCase):
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
   def test_attribute_replace(self, isdir_mock, exists_mock, open_mock, ensure_mock):
@@ -256,7 +256,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            backup=False,
            content='new-content',
            replace=False
@@ -274,7 +274,7 @@ class TestFileResource(TestCase):
   @patch.object(os, "chown")
   @patch.object(os, "chmod")
   @patch.object(os, "stat")
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
   def test_ensure_metadata(self, isdir_mock, exists_mock, open_mock, stat_mock, chmod_mock, chown_mock, gid_mock,
@@ -287,7 +287,7 @@ class TestFileResource(TestCase):
 
     class stat():
       def __init__(self):
-        self.st_mode = 0666
+        self.st_mode = 0o666
         self.st_uid = 1
         self.st_gid = 1
 
@@ -298,7 +298,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            content='file-content',
            owner='root',
            group='hdfs'
@@ -321,7 +321,7 @@ class TestFileResource(TestCase):
     with Environment('/') as env:
       File('/directory/file',
            action='create',
-           mode=0777,
+           mode=0o777,
            content='file-content',
            owner='root',
            group='hdfs'

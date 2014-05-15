@@ -18,35 +18,31 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
-        <groupId>org.apache.ambari</groupId>
+		<groupId>org.apache.ambari.project</groupId>
         <artifactId>ambari-project</artifactId>
-        <version>1.3.0-SNAPSHOT</version>
+		<version>1.6.x</version>
         <relativePath>../ambari-project</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.apache.ambari</groupId>
+	<groupId>org.apache.ambari.views</groupId>
     <artifactId>ambari-views</artifactId>
     <packaging>jar</packaging>
     <name>Ambari Views</name>
-    <version>1.3.0-SNAPSHOT</version>
     <description>Ambari View interfaces.</description>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.8.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
-            <version>3.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-core</artifactId>
-            <version>1.8</version>
         </dependency>
     </dependencies>
     <build>
@@ -54,7 +50,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.8</version>
                 <executions>
                     <execution>
                         <id>parse-version</id>
@@ -71,7 +66,7 @@
                         <configuration>
                             <name>ambariVersion</name>
                             <value>${project.version}</value>
-                            <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
+							<regex>^([0-9]+)\.([0-9]+)\.([0-9]+|x)(\.|-).*</regex>
                             <replacement>$1.$2.$3</replacement>
                             <failIfNoMatch>false</failIfNoMatch>
                         </configuration>
@@ -80,12 +75,10 @@
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.0</version>
             </plugin>
             <plugin>
                 <groupId>org.vafer</groupId>
                 <artifactId>jdeb</artifactId>
-                <version>1.0.1</version>
                 <executions>
                     <execution>
                         <phase>none</phase>
@@ -119,29 +112,11 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.rat</groupId>
-                <artifactId>apache-rat-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>**/*.json</exclude>
-                    </excludes>
-                </configuration>
-              <executions>
-                <execution>
-                  <phase>test</phase>
-                  <goals>
-                    <goal>check</goal>
-                  </goals>
-                </execution>
-              </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>rpm-maven-plugin</artifactId>
-                <version>2.0.1</version>
                 <executions>
                     <execution>
-                        <phase>none</phase>
+						<phase>generate-rpm</phase>
                         <goals>
                             <goal>rpm</goal>
                         </goals>
@@ -149,6 +124,41 @@
                 </executions>
             </plugin>
         </plugins>
+        <pluginManagement>
+        	<plugins>
+        		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        		<plugin>
+        			<groupId>org.eclipse.m2e</groupId>
+        			<artifactId>lifecycle-mapping</artifactId>
+        			<version>1.0.0</version>
+        			<configuration>
+        				<lifecycleMappingMetadata>
+        					<pluginExecutions>
+        						<pluginExecution>
+        							<pluginExecutionFilter>
+        								<groupId>
+        									org.codehaus.mojo
+        								</groupId>
+        								<artifactId>
+        									build-helper-maven-plugin
+        								</artifactId>
+        								<versionRange>
+        									[1.8,)
+        								</versionRange>
+        								<goals>
+        									<goal>regex-property</goal>
+        								</goals>
+        							</pluginExecutionFilter>
+        							<action>
+        								<ignore></ignore>
+        							</action>
+        						</pluginExecution>
+        					</pluginExecutions>
+        				</lifecycleMappingMetadata>
+        			</configuration>
+        		</plugin>
+        	</plugins>
+        </pluginManagement>
     </build>
 </project>
 

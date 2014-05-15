@@ -21,16 +21,17 @@ limitations under the License.
 from ambari_agent import Controller
 import pprint, json, os, time, sys
 import tempfile
-from urllib2 import Request, urlopen, URLError
-from mock.mock import patch, MagicMock, call
+from urllib.request import Request, urlopen
+from urllib.error import URLError
+from mock import patch, MagicMock, call
 from ambari_agent.AmbariConfig  import AmbariConfig
-import Queue
+import queue
 import logging
 from ambari_agent import PythonExecutor
 
-logger=logging.getLogger()
+logger = logging.getLogger()
 
-queue = Queue.Queue()
+queue = queue.Queue()
 
 # Set to True to replace python calls with mockups
 disable_python = True
@@ -114,15 +115,15 @@ responseId = Int(0)
 def main():
 
   if disable_python:
-    with patch.object(PythonExecutor.PythonExecutor, 'run_file') \
+      with patch.object(PythonExecutor.PythonExecutor, 'run_file') \
                                           as run_file_py_method:
-      run_file_py_method.side_effect = \
-            lambda command, file, tmpoutfile, tmperrfile: {
-        'exitcode' : 0,
-        'stdout'   : "Simulated run of py %s" % file,
-        'stderr'   : 'None'
-      }
-      run_simulation()
+        run_file_py_method.side_effect = \
+              lambda command, file, tmpoutfile, tmperrfile: {
+          'exitcode' : 0,
+          'stdout'   : "Simulated run of py %s" % file,
+          'stderr'   : 'None'
+        }
+        run_simulation()
   else:
     run_simulation()
 

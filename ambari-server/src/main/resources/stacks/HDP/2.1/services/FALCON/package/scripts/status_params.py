@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management import *
 
+
 config = Script.get_config()
 falcon_pid_dir = config['configurations']['global']['falcon_pid_dir']
 server_pid_file = format('{falcon_pid_dir}/falcon.pid')

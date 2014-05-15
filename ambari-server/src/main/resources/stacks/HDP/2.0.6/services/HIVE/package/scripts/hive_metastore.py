@@ -19,11 +19,12 @@ limitations under the License.
 """
 
 import sys
-from resource_management import *
 
 from hive import hive
 from hive_service import hive_service
 from mysql_service import mysql_service
+from resource_management import *
+
 
 class HiveMetastore(Script):
 
@@ -39,21 +40,17 @@ class HiveMetastore(Script):
   def start(self, env):
     import params
     env.set_params(params)
-    self.configure(env) # FOR SECURITY
-    hive_service( 'metastore',
-                   action = 'start'
-    )
+    self.configure(env)  # FOR SECURITY
+    hive_service('metastore', action='start')
 
   def stop(self, env):
     import params
     env.set_params(params)
 
-    hive_service( 'metastore',
-                   action = 'stop'
-    )
+    hive_service('metastore', action='stop')
 
   def status(self, env):
-    import status_params
+    from status_params import status_params
     env.set_params(status_params)
     pid_file = format("{hive_pid_dir}/{hive_metastore_pid}")
     # Recursively check all existing gmetad pid files

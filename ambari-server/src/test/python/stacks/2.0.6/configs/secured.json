@@ -26,7 +26,8 @@
     "commandParams": {
         "command_timeout": "600", 
         "service_package_folder": "YARN",
-        "script_type": "PYTHON",
+        "script_type": "PYTHON", 
+        "schema_version": "2.0", 
         "script": "scripts/yarn_client.py",
         "excluded_hosts": "host1",
         "mark_draining_only" : "false"
@@ -386,8 +387,7 @@
             "falcon_user": "falcon",
             "falcon_port": "15000",
             "falcon_local_dir": "/hadoop/falcon",
-            "rca_enabled": "false",
-            "ignore_groupsusers_create": "false"
+            "rca_enabled": "false"
         }, 
         "capacity-scheduler": {
             "yarn.scheduler.capacity.node-locality-delay": "40", 
@@ -636,9 +636,6 @@
         "pig-log4j": {
             "content": "log4jproperties\nline2"
         },
-        "pig-properties": {
-            "pig-content": "pigproperties\nline2"
-        },        
         "oozie-log4j": {
             "content": "log4jproperties\nline2"
         }

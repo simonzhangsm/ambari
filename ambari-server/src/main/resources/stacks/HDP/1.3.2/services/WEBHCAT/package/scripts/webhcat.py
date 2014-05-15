@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -38,18 +39,18 @@ def webhcat():
   params.HdfsDirectory(params.webhcat_apps_dir,
                        action="create_delayed",
                        owner=params.webhcat_user,
-                       mode=0755
+                       mode=0o755
   )
   params.HdfsDirectory(None, action="create")
   Directory(params.templeton_pid_dir,
             owner=params.webhcat_user,
-            mode=0755,
+            mode=0o755,
             group=params.user_group,
             recursive=True)
 
   Directory(params.templeton_log_dir,
             owner=params.webhcat_user,
-            mode=0755,
+            mode=0o755,
             group=params.user_group,
             recursive=True)
 
@@ -83,7 +84,7 @@ def webhcat():
 
   CopyFromLocal('/usr/lib/hadoop/contrib/streaming/hadoop-streaming*.jar',
                 owner=params.webhcat_user,
-                mode=0755,
+                mode=0o755,
                 dest_dir=params.webhcat_apps_dir,
                 kinnit_if_needed=kinit_if_needed,
                 hdfs_user=params.hdfs_user
@@ -91,7 +92,7 @@ def webhcat():
 
   CopyFromLocal('/usr/share/HDP-webhcat/pig.tar.gz',
                 owner=params.webhcat_user,
-                mode=0755,
+                mode=0o755,
                 dest_dir=params.webhcat_apps_dir,
                 kinnit_if_needed=kinit_if_needed,
                 hdfs_user=params.hdfs_user
@@ -99,7 +100,7 @@ def webhcat():
 
   CopyFromLocal('/usr/share/HDP-webhcat/hive.tar.gz',
                 owner=params.webhcat_user,
-                mode=0755,
+                mode=0o755,
                 dest_dir=params.webhcat_apps_dir,
                 kinnit_if_needed=kinit_if_needed,
                 hdfs_user=params.hdfs_user

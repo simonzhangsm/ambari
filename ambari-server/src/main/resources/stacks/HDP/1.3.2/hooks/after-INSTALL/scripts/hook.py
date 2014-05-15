@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,10 +19,12 @@ limitations under the License.
 """
 
 import sys
+
 from resource_management import *
 from shared_initialization import *
 
-#Hook for hosts with only client without other components
+
+# Hook for hosts with only client without other components
 class AfterInstallHook(Hook):
 
   def hook(self, env):

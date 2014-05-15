@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management import *
 
+
 config = Script.get_config()
 
 hadoop_pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']

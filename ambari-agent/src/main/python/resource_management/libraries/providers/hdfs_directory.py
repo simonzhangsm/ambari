@@ -21,9 +21,9 @@ Ambari Agent
 """
 
 from resource_management import *
-directories_list = [] #direcotries list for mkdir
-chmod_map = {} #(mode,recursive):dir_list map
-chown_map = {} #(owner,group,recursive):dir_list map
+directories_list = []  # direcotries list for mkdir
+chmod_map = {}  # (mode,recursive):dir_list map
+chown_map = {}  # (owner,group,recursive):dir_list map
 class HdfsDirectoryProvider(Provider):
   def action_create_delayed(self):
     global delayed_directories
@@ -43,15 +43,15 @@ class HdfsDirectoryProvider(Provider):
     recursive_chmod_str = "-R" if self.resource.recursive_chmod else ""
     # grouping directories by mode/owner/group to modify them in one 'chXXX' call
     if dir_mode:
-      chmod_key = (dir_mode,recursive_chmod_str)
-      if chmod_map.has_key(chmod_key):
+      chmod_key = (dir_mode, recursive_chmod_str)
+      if chmod_key in chmod_map:
         chmod_map[chmod_key].append(dir_name)
       else:
         chmod_map[chmod_key] = [dir_name]
 
     if dir_owner:
-      owner_key = (dir_owner,dir_group,recursive_chown_str)
-      if chown_map.has_key(owner_key):
+      owner_key = (dir_owner, dir_group, recursive_chown_str)
+      if owner_key in chown_map:
         chown_map[owner_key].append(dir_name)
       else:
         chown_map[owner_key] = [dir_name]
@@ -72,13 +72,13 @@ class HdfsDirectoryProvider(Provider):
     chmod_commands = []
     chown_commands = []
 
-    for chmod_key, chmod_dirs in chmod_map.items():
+    for chmod_key, chmod_dirs in list(chmod_map.items()):
       mode = chmod_key[0]
       recursive = chmod_key[1]
       chmod_dirs_str = ' '.join(chmod_dirs)
       chmod_commands.append(format("hadoop fs -chmod {recursive} {mode} {chmod_dirs_str}"))
 
-    for chown_key, chown_dirs in chown_map.items():
+    for chown_key, chown_dirs in list(chown_map.items()):
       owner = chown_key[0]
       group = chown_key[1]
       recursive = chown_key[2]
@@ -92,9 +92,9 @@ class HdfsDirectoryProvider(Provider):
     if secured:
         Execute(format("{kinit_path} -kt {keytab_file} {hdp_hdfs_user}"),
                 user=hdp_hdfs_user)
-    #create all directories in one 'mkdir' call
+    # create all directories in one 'mkdir' call
     dir_list_str = ' '.join(directories_list)
-    #for hadoop 2 we need to specify -p to create directories recursively
+    # for hadoop 2 we need to specify -p to create directories recursively
     parent_flag = '`rpm -q hadoop | grep -q "hadoop-1" || echo "-p"`'
 
     Execute(format('hadoop fs -mkdir {parent_flag} {dir_list_str} && {chmod_cmd} && {chown_cmd}',

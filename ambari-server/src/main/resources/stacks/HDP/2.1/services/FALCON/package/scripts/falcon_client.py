@@ -17,8 +17,9 @@ limitations under the License.
 
 """
 
-from resource_management import *
 from falcon import falcon
+from resource_management import *
+
 
 class FalconClient(Script):
   def install(self, env):

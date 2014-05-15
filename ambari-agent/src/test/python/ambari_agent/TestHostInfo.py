@@ -23,11 +23,11 @@ from unittest import TestCase
 import logging
 import unittest
 import subprocess
-from mock.mock import patch
-from mock.mock import MagicMock
-from mock.mock import create_autospec
+from mock import patch
+from mock import MagicMock
+from mock import create_autospec
 
-with patch("platform.linux_distribution", return_value = ('redhat','11','Final')):
+with patch("platform.linux_distribution", return_value=('redhat', '11', 'Final')):
   from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
   from ambari_agent.PackagesAnalyzer import PackagesAnalyzer
   from ambari_agent.HostInfo import HostInfo
@@ -37,7 +37,7 @@ with patch("platform.linux_distribution", return_value = ('redhat','11','Final')
   from resource_management.core.system import System
   from common_functions import OSCheck
 
-@patch.object(System, "os_family", new = 'redhat')
+@patch.object(System, "os_family", new='redhat')
 class TestHostInfo(TestCase):
 
   logger = logging.getLogger()
@@ -93,7 +93,7 @@ class TestHostInfo(TestCase):
       ["hadoop-b", "2.3", "HDP-epel"], ["epel", "3.1", "HDP-epel"], ["epel-2", "3.1", "HDP-epel"],
       ["hadoop-c", "2.3", "Ambari"], ["ambari-s", "3.1", "Ambari"],
       ["nagios", "2.3", "NAGIOS"], ["rrd", "3.1", "RRD"],
-      ["keeper-1", "2.3", "NAGIOS"], ["keeper-2", "3.1", "base"],["def-def.x86", "2.2", "DEF.3"],
+      ["keeper-1", "2.3", "NAGIOS"], ["keeper-2", "3.1", "base"], ["def-def.x86", "2.2", "DEF.3"],
       ["def.1", "1.2", "NewDEF"]
     ]
     availablePackages = [
@@ -217,7 +217,7 @@ class TestHostInfo(TestCase):
       self.assertTrue(item in names)
 
   @patch('os.path.exists')
-  @patch('__builtin__.open')
+  @patch('builtins.open')
   def test_checkUsers(self, builtins_open_mock, path_mock):
     builtins_open_mock.return_value = [
       "hdfs:x:493:502:Hadoop HDFS:/usr/lib/hadoop:/bin/bash",
@@ -351,32 +351,32 @@ class TestHostInfo(TestCase):
 
     os_path_exists_mock.return_value = False
     result = host.dirType("/home")
-    self.assertEquals(result, 'not_exist')
+    self.assertEqual(result, 'not_exist')
 
     os_path_exists_mock.return_value = True
     os_path_islink_mock.return_value = True
     result = host.dirType("/home")
-    self.assertEquals(result, 'sym_link')
+    self.assertEqual(result, 'sym_link')
 
     os_path_exists_mock.return_value = True
     os_path_islink_mock.return_value = False
     os_path_isdir_mock.return_value = True
     result = host.dirType("/home")
-    self.assertEquals(result, 'directory')
+    self.assertEqual(result, 'directory')
 
     os_path_exists_mock.return_value = True
     os_path_islink_mock.return_value = False
     os_path_isdir_mock.return_value = False
     os_path_isfile_mock.return_value = True
     result = host.dirType("/home")
-    self.assertEquals(result, 'file')
+    self.assertEqual(result, 'file')
 
     os_path_exists_mock.return_value = True
     os_path_islink_mock.return_value = False
     os_path_isdir_mock.return_value = False
     os_path_isfile_mock.return_value = False
     result = host.dirType("/home")
-    self.assertEquals(result, 'unknown')
+    self.assertEqual(result, 'unknown')
 
 
   @patch("os.path.exists")
@@ -385,13 +385,13 @@ class TestHostInfo(TestCase):
     hostInfo = HostInfo()
 
     os_path_exists_mock.return_value = True
-    glob_glob_mock.return_value = ['pid1','pid2','pid3']
+    glob_glob_mock.return_value = ['pid1', 'pid2', 'pid3']
     result = hostInfo.hadoopVarRunCount()
-    self.assertEquals(result, 3)
+    self.assertEqual(result, 3)
 
     os_path_exists_mock.return_value = False
     result = hostInfo.hadoopVarRunCount()
-    self.assertEquals(result, 0)
+    self.assertEqual(result, 0)
 
 
   @patch("os.path.exists")
@@ -400,17 +400,17 @@ class TestHostInfo(TestCase):
     hostInfo = HostInfo()
 
     os_path_exists_mock.return_value = True
-    glob_glob_mock.return_value = ['log1','log2']
+    glob_glob_mock.return_value = ['log1', 'log2']
     result = hostInfo.hadoopVarLogCount()
-    self.assertEquals(result, 2)
+    self.assertEqual(result, 2)
 
     os_path_exists_mock.return_value = False
     result = hostInfo.hadoopVarLogCount()
-    self.assertEquals(result, 0)
+    self.assertEqual(result, 0)
 
 
   @patch("os.listdir", create=True, autospec=True)
-  @patch("__builtin__.open", create=True, autospec=True)
+  @patch("builtins.open", create=True, autospec=True)
   @patch("pwd.getpwuid", create=True, autospec=True)
   def test_javaProcs(self, pwd_getpwuid_mock, buitin_open_mock, os_listdir_mock):
     hostInfo = HostInfo()
@@ -424,10 +424,10 @@ class TestHostInfo(TestCase):
     list = []
     hostInfo.javaProcs(list)
 
-    self.assertEquals(list[0]['command'], '/java/;/hadoop/')
-    self.assertEquals(list[0]['pid'], 1)
+    self.assertEqual(list[0]['command'], '/java/;/hadoop/')
+    self.assertEqual(list[0]['pid'], 1)
     self.assertTrue(list[0]['hadoop'])
-    self.assertEquals(list[0]['user'], 'user')
+    self.assertEqual(list[0]['user'], 'user')
 
 
   @patch("subprocess.Popen")
@@ -445,7 +445,7 @@ class TestHostInfo(TestCase):
     p.communicate.return_value = ''
     result = hostInfo.osdiskAvailableSpace('')
 
-    self.assertEquals(result, {})
+    self.assertEqual(result, {})
 
 
   @patch.object(OSCheck, "get_os_type")
@@ -460,10 +460,10 @@ class TestHostInfo(TestCase):
     get_os_type_method.return_value = 'redhat'
     hostInfo.checkLiveServices(['service1'], result)
 
-    self.assertEquals(result[0]['status'], 'Healthy')
-    self.assertEquals(result[0]['name'], 'service1')
-    self.assertEquals(result[0]['desc'], '')
-    self.assertEquals(str(subproc_popen.call_args_list),
+    self.assertEqual(result[0]['status'], 'Healthy')
+    self.assertEqual(result[0]['name'], 'service1')
+    self.assertEqual(result[0]['desc'], '')
+    self.assertEqual(str(subproc_popen.call_args_list),
                       "[call(['/sbin/service', 'service1', 'status'], stderr=-1, stdout=-1)]")
 
     p.returncode = 1
@@ -471,24 +471,24 @@ class TestHostInfo(TestCase):
     result = []
     hostInfo.checkLiveServices(['service1'], result)
 
-    self.assertEquals(result[0]['status'], 'Unhealthy')
-    self.assertEquals(result[0]['name'], 'service1')
-    self.assertEquals(result[0]['desc'], 'out')
+    self.assertEqual(result[0]['status'], 'Unhealthy')
+    self.assertEqual(result[0]['name'], 'service1')
+    self.assertEqual(result[0]['desc'], 'out')
 
     p.communicate.return_value = ('', 'err')
     result = []
     hostInfo.checkLiveServices(['service1'], result)
 
-    self.assertEquals(result[0]['status'], 'Unhealthy')
-    self.assertEquals(result[0]['name'], 'service1')
-    self.assertEquals(result[0]['desc'], 'err')
+    self.assertEqual(result[0]['status'], 'Unhealthy')
+    self.assertEqual(result[0]['name'], 'service1')
+    self.assertEqual(result[0]['desc'], 'err')
 
     p.communicate.return_value = ('', 'err', '')
     result = []
     hostInfo.checkLiveServices(['service1'], result)
 
-    self.assertEquals(result[0]['status'], 'Unhealthy')
-    self.assertEquals(result[0]['name'], 'service1')
+    self.assertEqual(result[0]['status'], 'Unhealthy')
+    self.assertEqual(result[0]['name'], 'service1')
     self.assertTrue(len(result[0]['desc']) > 0)
 
 
@@ -499,19 +499,19 @@ class TestHostInfo(TestCase):
   def test_etcAlternativesConf(self, os_path_realpath_mock, os_path_islink_mock, os_listdir_mock, os_path_exists_mock):
     hostInfo = HostInfo()
     os_path_exists_mock.return_value = False
-    result = hostInfo.etcAlternativesConf('',[])
+    result = hostInfo.etcAlternativesConf('', [])
 
-    self.assertEquals(result, [])
+    self.assertEqual(result, [])
 
     os_path_exists_mock.return_value = True
     os_listdir_mock.return_value = ['config1']
     os_path_islink_mock.return_value = True
     os_path_realpath_mock.return_value = 'real_path_to_conf'
     result = []
-    hostInfo.etcAlternativesConf('project',result)
+    hostInfo.etcAlternativesConf('project', result)
 
-    self.assertEquals(result[0]['name'], 'config1')
-    self.assertEquals(result[0]['target'], 'real_path_to_conf')
+    self.assertEqual(result[0]['name'], 'config1')
+    self.assertEqual(result[0]['target'], 'real_path_to_conf')
     
 
   @patch.object(FirewallChecks, "run_os_command")

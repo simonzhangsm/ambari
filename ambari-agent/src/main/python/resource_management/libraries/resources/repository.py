@@ -30,6 +30,6 @@ class Repository(Resource):
   base_url = ResourceArgument()
   mirror_list = ResourceArgument()
   repo_file_name = ResourceArgument()
-  components = ForcedListArgument(default=[]) # ubuntu specific
+  components = ForcedListArgument(default=[])  # ubuntu specific
 
-  actions = Resource.actions + ["create","remove"]
+  actions = Resource.actions + ["create", "remove"]

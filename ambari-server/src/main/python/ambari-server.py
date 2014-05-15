@@ -18,31 +18,34 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import optparse
-import shlex
-import sys
-import os
-import signal
-import subprocess
-import re
-import string
-import glob
-import platform
-import shutil
-import stat
-import fileinput
-import urllib2
-import time
-import getpass
-import socket
 import datetime
-import tempfile
-import random
-import pwd
-from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
+import fileinput
+import getpass
+import glob
+import io
 import json
-from common_functions import OSCheck
+import optparse
+import os
+import platform
+import pwd
+import random
+import re
+import shlex
+import shutil
+import signal
+import socket
+import stat
+import string
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.request, urllib.error, urllib.parse
+
 from ambari_server import utils
+from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
+from common_functions import OSCheck
+
 
 # debug settings
 VERBOSE = False
@@ -50,7 +53,7 @@ SILENT = False
 SERVER_START_DEBUG = False
 
 # OS info
-OS_VERSION = OSCheck().get_os_major_version()
+OS_VERSION = OSCheck.get_os_major_version()
 OS_TYPE = OSCheck.get_os_type()
 OS_FAMILY = OSCheck.get_os_family()
 
@@ -69,8 +72,7 @@ SETUP_NAGIOS_HTTPS_ACTION = "setup-nagios-https"
 ENCRYPT_PASSWORDS_ACTION = "encrypt-passwords"
 SETUP_SECURITY_ACTION = "setup-security"
 
-ACTION_REQUIRE_RESTART = [RESET_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION,
-                          SETUP_SECURITY_ACTION, LDAP_SETUP_ACTION]
+ACTION_REQUIRE_RESTART = [RESET_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, SETUP_SECURITY_ACTION, LDAP_SETUP_ACTION]
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = utils.locate_file('sestatus', '/usr/sbin')
@@ -80,16 +82,12 @@ SE_STATUS_ENABLED = "enabled"
 SE_MODE_ENFORCING = "enforcing"
 SE_MODE_PERMISSIVE = "permissive"
 
-# server commands
-ambari_provider_module_option = ""
-ambari_provider_module = os.environ.get('AMBARI_PROVIDER_MODULE')
 
 # Non-root user setup commands
 NR_USER_PROPERTY = "ambari-server.user"
 NR_USER_COMMENT = "Ambari user"
 NR_GET_OWNER_CMD = 'stat -c "%U" {0}'
-NR_USERADD_CMD = 'useradd -M --comment "{1}" ' \
-                 '--shell %s -d /var/lib/ambari-server/keys/ {0}' % utils.locate_file('nologin', '/sbin')
+NR_USERADD_CMD = 'useradd -M --comment "{1}" --shell %s -d /var/lib/ambari-server/keystore/db {0}' % utils.locate_file('nologin', '/sbin')
 NR_SET_USER_COMMENT_CMD = 'usermod -c "{0}" {1}'
 NR_CHMOD_CMD = 'chmod {0} {1} {2}'
 NR_CHOWN_CMD = 'chown {0} {1} {2}'
@@ -105,7 +103,7 @@ EXPRT_KSTR_CMD = "openssl pkcs12 -export -in '{0}' -inkey '{1}' -certfile '{0}' 
 CHANGE_KEY_PWD_CND = 'openssl rsa -in {0} -des3 -out {0}.secured -passout pass:{1}'
 GET_CRT_INFO_CMD = 'openssl x509 -dates -subject -in {0}'
 
-#keytool commands
+# keytool commands
 KEYTOOL_IMPORT_CERT_CMD = "{0}" + os.sep + "bin" + os.sep + "keytool -import -alias '{1}' -storetype '{2}' -file '{3}' -storepass '{4}' -noprompt"
 KEYTOOL_DELETE_CERT_CMD = "{0}" + os.sep + "bin" + os.sep + "keytool -delete -alias '{1}' -storepass '{2}' -noprompt"
 KEYTOOL_KEYSTORE = " -keystore '{0}'"
@@ -113,80 +111,83 @@ KEYTOOL_KEYSTORE = " -keystore '{0}'"
 # constants
 STACK_NAME_VER_SEP = "-"
 JAVA_SHARE_PATH = "/usr/share/java"
-SERVER_OUT_FILE = "/var/log/ambari-server/ambari-server.out"
-SERVER_LOG_FILE = "/var/log/ambari-server/ambari-server.log"
+SERVER_OUT_FILE = "/var/log/ambari/ambari-server.out"
+SERVER_LOG_FILE = "/var/log/ambari/ambari-server.log"
 BLIND_PASSWORD = "*****"
 
 # terminal styles
 BOLD_ON = '\033[1m'
 BOLD_OFF = '\033[0m'
 
-#Common messages
+# Common messages
 PRESS_ENTER_MSG = "Press <enter> to continue."
 
-#Common setup or upgrade message
+# Common setup or upgrade message
 SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server setup\" command to create the user\n" \
 "- If this is an upgrade of an existing setup, run the \"ambari-server upgrade\" command.\n" \
 "Refer to the Ambari documentation for more information on setup and upgrade."
 
-#SSL certificate metainfo
+# SSL certificate metainfo
 COMMON_NAME_ATTR = 'CN'
 NOT_BEFORE_ATTR = 'notBefore'
 NOT_AFTER_ATTR = 'notAfter'
 
+# server commands
+ambari_provider_module_option = ""
+ambari_provider_module = os.environ.get('AMBARI_PROVIDER_MODULE')
 if ambari_provider_module is not None:
-  ambari_provider_module_option = "-Dprovider.module.class=" +\
-                                  ambari_provider_module + " "
+  ambari_provider_module_option = "-Dprovider.module.class=" + ambari_provider_module + " "
 
-SERVER_START_CMD = "{0}" + os.sep + "bin" + os.sep +\
+SERVER_START_CMD = "{0}" + os.sep + "bin" + os.sep + \
                  "java -server -XX:NewRatio=3 "\
-                 "-XX:+UseConcMarkSweepGC " +\
-                 "-XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60 " +\
-                 ambari_provider_module_option +\
-                 os.getenv('AMBARI_JVM_ARGS', '-Xms512m -Xmx2048m') +\
-                 " -cp {1}" + os.pathsep + "{2}" +\
+                 "-XX:+UseConcMarkSweepGC " + \
+                 "-XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60 " + \
+                 ambari_provider_module_option + \
+                 os.getenv('AMBARI_JVM_ARGS', '-Xms512m -Xmx2048m') + \
+                 " -cp {1}" + os.pathsep + "{2}" + \
                  " org.apache.ambari.server.controller.AmbariServer "\
                  ">" + SERVER_OUT_FILE + " 2>&1 &" \
                  " echo $! > {3}"  # Writing pidfile
-SERVER_START_CMD_DEBUG = "{0}" + os.sep + "bin" + os.sep +\
-                       "java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC " +\
-                       ambari_provider_module_option +\
-                       os.getenv('AMBARI_JVM_ARGS', '-Xms512m -Xmx2048m') +\
+SERVER_START_CMD_DEBUG = "{0}" + os.sep + "bin" + os.sep + \
+                       "java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC " + \
+                       ambari_provider_module_option + \
+                       os.getenv('AMBARI_JVM_ARGS', '-Xms512m -Xmx2048m') + \
                        " -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,"\
-                       "server=y,suspend=n -cp {1}" + os.pathsep + "{2}" +\
+                       "server=y,suspend=n -cp {1}" + os.pathsep + "{2}" + \
                        " org.apache.ambari.server.controller.AmbariServer &" \
                        " echo $! > {3}"  # Writing pidfile
 
-SECURITY_PROVIDER_GET_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
-                          os.pathsep + "{2} " +\
-                          "org.apache.ambari.server.security.encryption" +\
-                          ".CredentialProvider GET {3} {4} {5} " +\
+SECURITY_PROVIDER_GET_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" + \
+                          os.pathsep + "{2} " + \
+                          "org.apache.ambari.server.security.encryption" + \
+                          ".CredentialProvider GET {3} {4} {5} " + \
                           "> " + SERVER_OUT_FILE + " 2>&1"
 
-SECURITY_PROVIDER_PUT_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
-                          os.pathsep + "{2} " +\
-                          "org.apache.ambari.server.security.encryption" +\
-                          ".CredentialProvider PUT {3} {4} {5} " +\
+SECURITY_PROVIDER_PUT_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" + \
+                          os.pathsep + "{2} " + \
+                          "org.apache.ambari.server.security.encryption" + \
+                          ".CredentialProvider PUT {3} {4} {5} " + \
                           "> " + SERVER_OUT_FILE + " 2>&1"
 
-SECURITY_PROVIDER_KEY_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
-                          os.pathsep + "{2} " +\
-                          "org.apache.ambari.server.security.encryption" +\
-                          ".MasterKeyServiceImpl {3} {4} {5} " +\
+SECURITY_PROVIDER_KEY_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" + \
+                          os.pathsep + "{2} " + \
+                          "org.apache.ambari.server.security.encryption" + \
+                          ".MasterKeyServiceImpl {3} {4} {5} " + \
                           "> " + SERVER_OUT_FILE + " 2>&1"
 
-SCHEMA_UPGRADE_HELPER_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
-                          os.pathsep + "{2} " +\
-                          "org.apache.ambari.server.upgrade.SchemaUpgradeHelper" +\
+SCHEMA_UPGRADE_HELPER_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" + \
+                          os.pathsep + "{2} " + \
+                          "org.apache.ambari.server.upgrade.SchemaUpgradeHelper" + \
                           " > " + SERVER_OUT_FILE + " 2>&1"
 
-STACK_UPGRADE_HELPER_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
-                          os.pathsep + "{2} " +\
-                          "org.apache.ambari.server.upgrade.StackUpgradeHelper" +\
+STACK_UPGRADE_HELPER_CMD = "{0}" + os.sep + "bin" + os.sep + "java -cp {1}" + \
+                          os.pathsep + "{2} " + \
+                          "org.apache.ambari.server.upgrade.StackUpgradeHelper" + \
                           " {3} {4} > " + SERVER_OUT_FILE + " 2>&1"
 
 
 SECURITY_KEYS_DIR = "security.server.keys_dir"
+SECURITY_KEYS_DIR_DEFAULT = "/var/lib/ambari-server/keystore/db"
 SECURITY_MASTER_KEY_LOCATION = "security.master.key.location"
 SECURITY_KEY_IS_PERSISTED = "security.master.key.ispersisted"
 SECURITY_KEY_ENV_VAR_NAME = "AMBARI_SECURITY_MASTER_KEY"
@@ -223,10 +224,12 @@ SSL_TRUSTSTORE_PASSWORD_PROPERTY = "ssl.trustStore.password"
 SSL_TRUSTSTORE_TYPE_PROPERTY = "ssl.trustStore.type"
 
 AMBARI_CONF_VAR = "AMBARI_CONF_DIR"
+AMBARI_CONF_VAR_DEFAULT = "/etc/ambari-server/conf"
 AMBARI_SERVER_LIB = "AMBARI_SERVER_LIB"
 JAVA_HOME = "JAVA_HOME"
 PID_DIR = "/var/run/ambari-server"
 BOOTSTRAP_DIR_PROPERTY = "bootstrap.dir"
+BOOTSTRAP_DIR_DEFAULT = "/var/run/ambari-server/bootstrap"
 PID_NAME = "ambari-server.pid"
 AMBARI_PROPERTIES_FILE = "ambari.properties"
 AMBARI_PROPERTIES_RPMSAVE_FILE = "ambari.properties.rpmsave"
@@ -234,22 +237,30 @@ RESOURCES_DIR_PROPERTY = "resources.dir"
 
 SETUP_DB_CONNECT_TIMEOUT = 5
 SETUP_DB_CONNECT_ATTEMPTS = 3
-SETUP_DB_CMD = ['su', '-', 'postgres',
-        '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'" -v dbname="{3}"']
-UPGRADE_STACK_CMD = ['su', 'postgres',
-        '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'" -v dbname="{3}"']
-
-CHANGE_OWNER_COMMAND = ['su', '-', 'postgres',
-                        '--command=/var/lib/ambari-server/resources/scripts/change_owner.sh -d {0} -s {1} -o {2}']
+SETUP_DB_CMD = ['su', '-', 'postgres', '-c', '{0} -f {1} -v username=\'"{2}"\' -v password="\'{3}\'" -v dbname="{4}"']
+UPGRADE_STACK_CMD = ['su', 'postgres', '-c', '{0} -f {1} -v stack_name="\'{2}\'"  -v stack_version="\'{3}\'" -v dbname="{4}"']
+CHANGE_OWNER_COMMAND = ['su', '-', 'postgres', '-c', '/var/lib/ambari-server/resources/scripts/change_owner.sh -d {0} -s {1} -o {2}']
 
 PG_ERROR_BLOCKED = "is being accessed by other users"
 PG_STATUS_RUNNING = utils.get_postgre_running_status(OS_TYPE)
 PG_DEFAULT_PASSWORD = "bigdata"
-SERVICE_CMD = "/usr/bin/env service"
+SERVICE_CMD = utils.locate_file('service', '/usr/sbin')  # "/usr/bin/env service"
 PG_SERVICE_NAME = "postgresql"
+# PG_HBA_DIR = "/var/lib/ambari/pgsql/data"
+PG_HOME = "/usr/local/pgsql"
 PG_HBA_DIR = utils.get_postgre_hba_dir(OS_TYPE)
-
 PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
+
+if OS_TYPE == utils.OS_UBUNTU:
+  PG_HOME = "/usr/local/pgsql"
+  PG_HBA_DIR = '/usr/local/pgsql/data'
+elif OS_TYPE == utils.OS_DARWIN:
+  PG_HOME = '/Library/PostgreSQL/9.3'
+  PG_HBA_DIR = '/Library/PostgreSQL/9.3/data'
+  PG_ST_CMD = "su - postgres -c '%s/bin/pg_ctl status -D %s'" % (PG_HOME, PG_HBA_DIR)
+  
+PG_SQL = "%s/bin/psql" % (PG_HOME)
+
 if os.path.isfile("/usr/bin/postgresql-setup"):
     PG_INITDB_CMD = "/usr/bin/postgresql-setup initdb"
 else:
@@ -265,8 +276,7 @@ POSTGRESQL_CONF_FILE = os.path.join(PG_HBA_DIR, "postgresql.conf")
 
 SERVER_VERSION_FILE_PATH = "server.version.file"
 
-#TODO property used incorrectly in local case, it was meant to be dbms name, not postgres database name,
-# has workaround for now, as we don't need dbms name if persistence_type=local
+# TODO property used incorrectly in local case, it was meant to be dbms name, not postgres database name, has workaround for now, as we don't need dbms name if persistence_type=local
 JDBC_DATABASE_PROPERTY = "server.jdbc.database"
 JDBC_HOSTNAME_PROPERTY = "server.jdbc.hostname"
 JDBC_PORT_PROPERTY = "server.jdbc.port"
@@ -313,35 +323,40 @@ DATABASE_DRIVER_NAMES = ["org.postgresql.Driver", "oracle.jdbc.driver.OracleDriv
 DATABASE_CONNECTION_STRINGS = [
                   "jdbc:postgresql://{0}:{1}/{2}",
                   "jdbc:oracle:thin:@{0}:{1}/{2}",
-                  "jdbc:mysql://{0}:{1}/{2}"]
+                  "jdbc:mysql://{0}:{1}/{2}"
+                  ]
 DATABASE_CONNECTION_STRINGS_ALT = [
                   "jdbc:postgresql://{0}:{1}/{2}",
                   "jdbc:oracle:thin:@{0}:{1}:{2}",
-                  "jdbc:mysql://{0}:{1}/{2}"]
+                  "jdbc:mysql://{0}:{1}/{2}"
+                  ]
 ORACLE_SID_PATTERN = "jdbc:oracle:thin:@.+:.+/.+"
 ORACLE_SNAME_PATTERN = "jdbc:oracle:thin:@.+:.+:.+"
 
 DATABASE_CLI_TOOLS = [["psql"], ["sqlplus", "sqlplus64"], ["mysql"]]
 DATABASE_CLI_TOOLS_DESC = ["psql", "sqlplus", "mysql"]
-DATABASE_CLI_TOOLS_USAGE = ['su -postgres --command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"',
+DATABASE_CLI_TOOLS_USAGE = ['su - postgres {0} -f {1} -v username=\'"{2}"\' -v password="\'{3}\'"',
                             'sqlplus {1}/{2} < {0} ',
-                            'mysql --user={1} --password={2} {3}<{0}']
+                            'mysql --user={1} --password={2} {3}<{0}'
+                            ]
 
 MYSQL_INIT_SCRIPT = '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql'
 DATABASE_INIT_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-CREATE.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-CREATE.sql',
-                         MYSQL_INIT_SCRIPT]
+                         MYSQL_INIT_SCRIPT
+                         ]
 DATABASE_DROP_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-DROP.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-DROP.sql',
-                         '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-DROP.sql']
+                         '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-DROP.sql'
+                         ]
 
 JDBC_PROPERTIES_PREFIX = "server.jdbc.properties."
 DATABASE_JDBC_PROPERTIES = [
                          [ ],
                          [
-                           ["oracle.net.CONNECT_TIMEOUT", "2000"], # socket level timeout
-                           ["oracle.net.READ_TIMEOUT", "2000"], # socket level timeout
-                           ["oracle.jdbc.ReadTimeout", "8000"] # query fetch timeout
+                           ["oracle.net.CONNECT_TIMEOUT", "2000"],  # socket level timeout
+                           ["oracle.net.READ_TIMEOUT", "2000"],  # socket level timeout
+                           ["oracle.jdbc.ReadTimeout", "8000"]  # query fetch timeout
                          ],
                          [ ]
                         ]
@@ -355,31 +370,30 @@ REGEX_ANYTHING = ".*"
 
 POSTGRES_EXEC_ARGS = "-h {0} -p {1} -d {2} -U {3} -f {4} -v username='{3}'"
 ORACLE_EXEC_ARGS = "-S -L '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {0}"
-MYSQL_EXEC_ARGS_WITH_USER_VARS = "--host={0} --port={1} --user={2} --password={3} {4} " \
-                 "-e\"set @schema=\'{4}\'; set @username=\'{2}\'; source {5};\""
+MYSQL_EXEC_ARGS_WITH_USER_VARS = "--host={0} --port={1} --user={2} --password={3} {4} -e\"set @schema=\'{4}\'; set @username=\'{2}\'; source {5};\""
 MYSQL_EXEC_ARGS_WO_USER_VARS = "--force --host={0} --port={1} --user={2} --password={3} --database={4} < {5} 2> /dev/null"
-MYSQL_UPGRADE_STACK_ARGS = "--host={0} --port={1} --user={2} --password={3} --database={4} " \
-                 "-e\"set @stackName=\'{6}\'; set @stackVersion=\'{7}\'; source {5};\""
 
+MYSQL_UPGRADE_STACK_ARGS = "--host={0} --port={1} --user={2} --password={3} --database={4} -e\"set @stackName=\'{6}\'; set @stackVersion=\'{7}\'; source {5};\""
 ORACLE_UPGRADE_STACK_ARGS = "-S -L '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {7} {8}"
 
-JDBC_PATTERNS = {"oracle": "*ojdbc*.jar", "mysql": "*mysql*.jar"}
+JDBC_PATTERNS = {"oracle":"*ojdbc*.jar", "mysql":"*mysql*.jar", "postgres":"postgresql*.jar"}
 DATABASE_FULL_NAMES = {"oracle": "Oracle", "mysql": "MySQL", "postgres": "PostgreSQL"}
 ORACLE_DB_ID_TYPES = ["Service Name", "SID"]
 
 
 # jdk commands
-JDK_NAMES = ["jdk-7u45-linux-x64.tar.gz", "jdk-6u31-linux-x64.bin"]
-JDK_URL_PROPERTIES = ["jdk1.7.url", "jdk1.6.url"]
-JCE_URL_PROPERTIES = ["jce_policy1.7.url", "jce_policy1.6.url"]
+JDK_NAMES = ["jdk-8u5-linux-x64.tar.gz", "jdk-7u55-linux-x64.tar.gz", "jdk-6u45-linux-x64.bin"]
+JDK_URL_PROPERTIES = ["jdk1.8.url", "jdk1.7.url", "jdk1.6.url"]
+JCE_URL_PROPERTIES = ["jce_policy1.8.url", "jce_policy1.7.url", "jce_policy1.6.url"]
 DEFAULT_JDK16_LOCATION = "/usr/jdk64/jdk1.6.0_31"
 JDK_INDEX = 0
-JDK_VERSION_REs = ["(jdk.*)/jre", "Creating (jdk.*)/jre"]
-CUSTOM_JDK_NUMBER = "3"
+JDK_VERSION_RES = ["(jdk.*)/jre", "Creating (jdk.*)/jre", "(jdk.*)/jre"]
+CUSTOM_JDK_NUMBER = "4"
 JDK_MIN_FILESIZE = 5000
 JDK_INSTALL_DIR = "/usr/jdk64"
 CREATE_JDK_DIR_CMD = "/bin/mkdir -p " + JDK_INSTALL_DIR
 MAKE_FILE_EXECUTABLE_CMD = "chmod a+x {0}"
+JAVA_LICENSE_URL = "java.license.url"
 JAVA_HOME_PROPERTY = "java.home"
 JDK_NAME_PROPERTY = "jdk.name"
 JCE_NAME_PROPERTY = "jce.name"
@@ -390,8 +404,8 @@ JDK_DOWNLOAD_CMD = "curl --create-dirs -o {0} {1}"
 JDK_DOWNLOAD_SIZE_CMD = "curl -I {0}"
 UNTAR_JDK_ARVHIVE = "tar -xvf {0}"
 
-#JCE Policy files
-JCE_POLICY_FILENAMES = ["UnlimitedJCEPolicyJDK7.zip", "jce_policy-6.zip"]
+# JCE Policy files
+JCE_POLICY_FILENAMES = ["jce_policy-8.zip", "UnlimitedJCEPolicyJDK7.zip", "jce_policy-6.zip"]
 JCE_DOWNLOAD_CMD = "curl -o {0} {1}"
 JCE_MIN_FILESIZE = 5000
 
@@ -401,9 +415,9 @@ DEFAULT_DB_NAME = "ambari"
 STACK_LOCATION_KEY = 'metadata.path'
 STACK_LOCATION_DEFAULT = '/var/lib/ambari-server/resources/stacks'
 
-#Apache License Header
+# Apache License Header
 ASF_LICENSE_HEADER = '''
-# Copyright 2011 The Apache Software Foundation
+# Copyright 2014 The Apache Software Foundation
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -439,12 +453,12 @@ class FirewallChecks(object):
   def check_iptables(self):
     retcode, out, err = run_os_command(self.get_command())
     if err and len(err) > 0:
-      print err
+      print(err)
     if self.check_result(retcode, out, err):
-      print_warning_msg("%s is running. Confirm the necessary Ambari ports are accessible. " %
-                        self.FIREWALL_SERVICE_NAME +
+      print_warning_msg("%s is running. Confirm the necessary Ambari ports are accessible. " % 
+                        self.FIREWALL_SERVICE_NAME + 
                         "Refer to the Ambari documentation for more details on ports.")
-      ok = get_YN_input("OK to continue [y/n] (y)? ", True)
+      ok = get_YN_input("OK to continue [y/n]? (y) ", True)
       if not ok:
         raise FatalException(1, None)
 
@@ -462,7 +476,7 @@ class UbuntuFirewallChecks(FirewallChecks):
     super(UbuntuFirewallChecks, self).__init__()
 
     self.FIREWALL_SERVICE_NAME = "ufw"
-    self.SERVICE_CMD = utils.locate_file('service', '/usr/sbin')
+    self.SERVICE_CMD = SERVICE_CMD  # utils.locate_file('service', '/usr/sbin')
 
   def check_result(self, retcode, out, err):
     # On ubuntu, the status command returns 0 whether running or not
@@ -492,10 +506,17 @@ class OpenSuseFirewallChecks(FirewallChecks):
   def get_command(self):
     return "/sbin/SuSEfirewall2 status"
 
+class DarwinFirewallChecks(FirewallChecks):
+  def __init__(self):
+    self.FIREWALL_SERVICE_NAME = "/Library/Preferences/com.apple.alf"
+    self.SERVICE_CMD = "defaults read"
+    self.SERVICE_SUBCMD = "globalstate"
 
 def get_firewall_object():
   if OS_TYPE == utils.OS_UBUNTU:
     return UbuntuFirewallChecks()
+  elif OS_TYPE == utils.OS_DARWIN:
+    return DarwinFirewallChecks()
   elif OS_TYPE == utils.OS_FEDORA and int(OS_VERSION) >= 18:
     return Fedora18FirewallChecks()
   elif OS_TYPE == utils.OS_OPENSUSE:
@@ -509,7 +530,8 @@ def get_firewall_object_types():
   return (FirewallChecks,
           UbuntuFirewallChecks,
           Fedora18FirewallChecks,
-          OpenSuseFirewallChecks)
+          OpenSuseFirewallChecks,
+          DarwinFirewallChecks)
 
 
 def check_iptables():
@@ -521,9 +543,8 @@ def get_conf_dir():
     conf_dir = os.environ[AMBARI_CONF_VAR]
     return conf_dir
   except KeyError:
-    default_conf_dir = "/etc/ambari-server/conf"
-    print AMBARI_CONF_VAR + " is not set, using default " + default_conf_dir
-    return default_conf_dir
+    print(AMBARI_CONF_VAR + " is not set, using default " + AMBARI_CONF_VAR_DEFAULT)
+    return AMBARI_CONF_VAR_DEFAULT
 
 
 def find_properties_file():
@@ -531,7 +552,7 @@ def find_properties_file():
   if conf_file is None:
     err = 'File %s not found in search path $%s: %s' % (AMBARI_PROPERTIES_FILE,
           AMBARI_CONF_VAR, get_conf_dir())
-    print err
+    print(err)
     raise FatalException(1, err)
   else:
     print_info_msg('Loading properties from ' + conf_file)
@@ -550,17 +571,17 @@ def update_ambari_properties():
   try:
     old_properties = Properties()
     old_properties.load(open(prev_conf_file))
-  except Exception, e:
-    print 'Could not read "%s": %s' % (prev_conf_file, e)
+  except Exception as e:
+    print('Could not read "%s": %s' % (prev_conf_file, e))
     return -1
 
   try:
     new_properties = Properties()
     new_properties.load(open(conf_file))
 
-    for prop_key, prop_value in old_properties.getPropertyDict().items():
+    for prop_key, prop_value in list(old_properties.getPropertyDict().items()):
       if ("agent.fqdn.service.url" == prop_key):
-        #BUG-7179 what is agent.fqdn property in ambari.props?
+        # BUG-7179 what is agent.fqdn property in ambari.props?
         new_properties.process_pair(GET_FQDN_SERVICE_URL, prop_value)
       elif ("server.os_type" == prop_key):
         new_properties.process_pair(OS_TYPE_PROPERTY, OS_FAMILY + OS_VERSION)
@@ -570,20 +591,20 @@ def update_ambari_properties():
     # Adding custom user name property if it is absent
     # In previous versions without custom user support server was started as
     # "root" anyway so it's a reasonable default
-    if not NR_USER_PROPERTY in new_properties.keys():
+    if not NR_USER_PROPERTY in list(new_properties.keys()):
       new_properties.process_pair(NR_USER_PROPERTY, "root")
 
     isJDK16Installed = new_properties.get_property(JAVA_HOME_PROPERTY) == DEFAULT_JDK16_LOCATION
-    if not JDK_NAME_PROPERTY in new_properties.keys() and isJDK16Installed:
+    if not JDK_NAME_PROPERTY in list(new_properties.keys()) and isJDK16Installed:
       new_properties.process_pair(JDK_NAME_PROPERTY, JDK_NAMES[1])
 
-    if not JCE_NAME_PROPERTY in new_properties.keys() and isJDK16Installed:
+    if not JCE_NAME_PROPERTY in list(new_properties.keys()) and isJDK16Installed:
       new_properties.process_pair(JCE_NAME_PROPERTY, JCE_POLICY_FILENAMES[1])
 
     new_properties.store(open(conf_file, 'w'))
 
-  except Exception, e:
-    print 'Could not write "%s": %s' % (conf_file, e)
+  except Exception as e:
+    print('Could not write "%s": %s' % (conf_file, e))
     return -1
 
   timestamp = datetime.datetime.now()
@@ -601,17 +622,17 @@ NR_CONF_DIR = get_conf_dir()
 # {0} in user/group will be replaced by customized ambari-server username
 NR_ADJUST_OWNERSHIP_LIST = [
 
-  ("/var/log/ambari-server", "644", "{0}", True),
-  ("/var/log/ambari-server", "755", "{0}", False),
+  ("/var/log/ambari", "644", "{0}", True),
+  ("/var/log/ambari", "755", "{0}", False),
   ("/var/run/ambari-server", "644", "{0}", True),
   ("/var/run/ambari-server", "755", "{0}", False),
   ("/var/run/ambari-server/bootstrap", "755", "{0}", False),
   ("/var/lib/ambari-server/ambari-env.sh", "700", "{0}", False),
-  ("/var/lib/ambari-server/keys", "600", "{0}", True),
-  ("/var/lib/ambari-server/keys", "700", "{0}", False),
-  ("/var/lib/ambari-server/keys/db", "700", "{0}", False),
-  ("/var/lib/ambari-server/keys/db/newcerts", "700", "{0}", False),
-  ("/var/lib/ambari-server/keys/.ssh", "700", "{0}", False),
+  ("/var/lib/ambari-server/keystore", "600", "{0}", True),
+  ("/var/lib/ambari-server/keystore", "700", "{0}", False),
+  ("/var/lib/ambari-server/keystore/db", "700", "{0}", False),
+  ("/var/lib/ambari-server/keystore/db/newcerts", "700", "{0}", False),
+  ("/var/lib/ambari-server/keystore/.ssh", "700", "{0}", False),
   ("/var/lib/ambari-server/resources/stacks/", "755", "{0}", True),
   ("/var/lib/ambari-server/resources/custom_actions/", "755", "{0}", True),
   ("/etc/ambari-server/conf", "644", "{0}", True),
@@ -628,6 +649,7 @@ class FatalException(Exception):
     def __init__(self, code, reason):
       self.code = code
       self.reason = reason
+      self.message = reason
 
     def __str__(self):
         return repr("Fatal exception: %s, exit code %s" % (self.reason, self.code))
@@ -639,6 +661,7 @@ class FatalException(Exception):
 class NonFatalException(Exception):
   def __init__(self, reason):
     self.reason = reason
+    self.message = reason
 
   def __str__(self):
     return repr("NonFatal exception: %s" % self.reason)
@@ -665,7 +688,7 @@ def get_exec_path(cmd):
 
 
 def run_in_shell(cmd):
-  print_info_msg('about to run command: ' + str(cmd))
+  print_info_msg('about to run command in shell: ' + str(cmd))
   process = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
                              stdin=subprocess.PIPE,
@@ -673,11 +696,11 @@ def run_in_shell(cmd):
                              shell=True
                              )
   (stdoutdata, stderrdata) = process.communicate()
-  return process.returncode, stdoutdata, stderrdata
+  return process.returncode, stdoutdata.decode() , stderrdata.decode() 
 
 
 def run_os_command(cmd):
-  print_info_msg('about to run command: ' + str(cmd))
+  print_info_msg('about to run ' + OS_TYPE + ' os command: ' + str(cmd))
   if type(cmd) == str:
     cmd = shlex.split(cmd)
   process = subprocess.Popen(cmd,
@@ -686,6 +709,10 @@ def run_os_command(cmd):
                              stderr=subprocess.PIPE
                              )
   (stdoutdata, stderrdata) = process.communicate()
+  if stdoutdata is not None:
+      stdoutdata = stdoutdata.decode()
+  if stderrdata is not None:
+      stderrdata = stderrdata.decode()
   return process.returncode, stdoutdata, stderrdata
 
 
@@ -696,7 +723,7 @@ def check_selinux():
   try:
     retcode, out, err = run_os_command(GET_SE_LINUX_ST_CMD)
     se_status = re.search('(disabled|enabled)', out).group(0)
-    print "SELinux status is '" + se_status + "'"
+    print("SELinux status is '" + se_status + "'")
     if se_status == SE_STATUS_DISABLED:
       return 0
     else:
@@ -705,18 +732,17 @@ def check_selinux():
       except AttributeError:
         err = "Error determining SELinux mode. Exiting."
         raise FatalException(1, err)
-      print "SELinux mode is '" + se_mode + "'"
+      print("SELinux mode is '" + se_mode + "'")
       if se_mode == SE_MODE_ENFORCING:
-        print "Temporarily disabling SELinux"
+        print("Temporarily disabling SELinux")
         run_os_command(SE_SETENFORCE_CMD)
-      print_warning_msg(
-        "SELinux is set to 'permissive' mode and temporarily disabled.")
-      ok = get_YN_input("OK to continue [y/n] (y)? ", True)
+      print_warning_msg("SELinux is set to 'permissive' mode and temporarily disabled.")
+      ok = get_YN_input("OK to continue [y/n]? (y) ", True)
       if not ok:
         raise FatalException(1, None)
       return 0
   except OSError:
-    print_warning_msg("Could not run {0}: OK".format(GET_SE_LINUX_ST_CMD))
+    print_warning_msg("Could not run {0}".format(GET_SE_LINUX_ST_CMD))
   return 0
 
 
@@ -733,7 +759,7 @@ def read_ambari_user():
       return user
     else:
       return None
-  except Exception, e:
+  except Exception as e:
     print_error_msg('Could not read "%s": %s' % (conf_file, e))
     return None
 
@@ -756,7 +782,7 @@ def adjust_directory_permissions(ambari_user):
   trust_store_location = properties[SSL_TRUSTSTORE_PATH_PROPERTY]
   if trust_store_location:
     NR_ADJUST_OWNERSHIP_LIST.append((trust_store_location, "600", "{0}", "{0}", False))
-  print "Adjusting ambari-server permissions and ownership..."
+  print("Adjusting ambari-server permissions and ownership...")
   for pack in NR_ADJUST_OWNERSHIP_LIST:
     file = pack[0]
     mod = pack[1]
@@ -797,12 +823,10 @@ def create_custom_user():
   command = NR_USERADD_CMD.format(user, NR_USER_COMMENT)
   retcode, out, err = run_os_command(command)
   if retcode == 9:  # 9 = username already in use
-    print_info_msg("User {0} already exists, "
-                      "skipping user creation".format(user))
+    print_info_msg("User {0} already exists, skipping user creation".format(user))
 
   elif retcode != 0:  # fail
-    print_warning_msg("Can't create user {0}. Command {1} "
-                      "finished with {2}: \n{3}".format(user, command, retcode, err))
+    print_warning_msg("Can't create user {0}. Command {1} finished with {2}: \n{3}".format(user, command, retcode, err))
     return retcode, None
 
   print_info_msg("User configuration is done.")
@@ -815,13 +839,11 @@ def check_ambari_user():
     create_user = False
     update_user_setting = False
     if user is not None:
-      create_user = get_YN_input("Ambari-server daemon is configured to run under user '{0}'."
-                        " Change this setting [y/n] (n)? ".format(user), False)
+      create_user = get_YN_input("Ambari-server daemon is configured to run under {0} Change this setting [y/n]? (n) ".format(user), False)
       update_user_setting = create_user  # Only if we will create another user
     else:  # user is not configured yet
       update_user_setting = True  # Write configuration anyway
-      create_user = get_YN_input("Customize user account for ambari-server "
-                   "daemon [y/n] (n)? ", False)
+      create_user = get_YN_input("Customize user account for ambari-server daemon [y/n]? (n) ", False)
       if not create_user:
         user = "root"
 
@@ -838,7 +860,7 @@ def check_ambari_user():
     print_error_msg("Failed: %s" % e.strerror)
     return 4
   except Exception as e:
-    print_error_msg("Unexpected error %s" % e.message)
+    print_error_msg("Unexpected error %s" % e)
     return 1
   return 0
 
@@ -851,14 +873,11 @@ def configure_pg_hba_ambaridb_users():
 
   with open(PG_HBA_CONF_FILE, "a") as pgHbaConf:
     pgHbaConf.write("\n")
-    pgHbaConf.write("local  all  " + args.database_username +
-                    ",mapred md5")
+    pgHbaConf.write("local  all  " + args.database_username + ",mapred md5")
     pgHbaConf.write("\n")
-    pgHbaConf.write("host  all   " + args.database_username +
-                    ",mapred 0.0.0.0/0  md5")
+    pgHbaConf.write("host  all   " + args.database_username + ",mapred 0.0.0.0/0  md5")
     pgHbaConf.write("\n")
-    pgHbaConf.write("host  all   " + args.database_username +
-                    ",mapred ::/0 md5")
+    pgHbaConf.write("host  all   " + args.database_username + ",mapred ::/0 md5")
     pgHbaConf.write("\n")
   retcode, out, err = run_os_command(PG_HBA_RELOAD_CMD)
   if not retcode == 0:
@@ -868,15 +887,15 @@ def configure_pg_hba_ambaridb_users():
 def configure_pg_hba_postgres_user():
   postgresString = "all   postgres"
   for line in fileinput.input(PG_HBA_CONF_FILE, inplace=1):
-    print re.sub('all\s*all', postgresString, line),
-  os.chmod(PG_HBA_CONF_FILE, 0644)
+    print(re.sub('all\s*all', postgresString, line), end='')
+  os.chmod(PG_HBA_CONF_FILE, 0o644)
 
 
 def configure_postgresql_conf():
   listenAddress = "listen_addresses = '*'        #"
   for line in fileinput.input(POSTGRESQL_CONF_FILE, inplace=1):
-    print re.sub('#+listen_addresses.*?(#|$)', listenAddress, line),
-  os.chmod(POSTGRESQL_CONF_FILE, 0644)
+    print(re.sub('#+listen_addresses.*?(#|$)', listenAddress, line), end='')
+  os.chmod(POSTGRESQL_CONF_FILE, 0o644)
 
 
 def configure_postgres():
@@ -884,14 +903,14 @@ def configure_postgres():
     if not os.path.isfile(PG_HBA_CONF_FILE_BACKUP):
       shutil.copyfile(PG_HBA_CONF_FILE, PG_HBA_CONF_FILE_BACKUP)
     else:
-      #Postgres has been configured before, must not override backup
-      print "Backup for pg_hba found, reconfiguration not required"
+      # Postgres has been configured before, must not override backup
+      print("Backup for pg_hba found, reconfiguration not required")
       return 0
   configure_pg_hba_postgres_user()
   configure_pg_hba_ambaridb_users()
-  os.chmod(PG_HBA_CONF_FILE, 0644)
+  os.chmod(PG_HBA_CONF_FILE, 0o644)
   configure_postgresql_conf()
-  #restart postgresql if already running
+  # restart postgresql if already running
   pg_status = get_postgre_status()
   if pg_status == PG_STATUS_RUNNING:
     retcode = restart_postgres()
@@ -900,7 +919,7 @@ def configure_postgres():
 
 
 def restart_postgres():
-  print "Restarting PostgreSQL"
+  print("Restarting PostgreSQL")
   process = subprocess.Popen(PG_RESTART_CMD.split(' '),
                             stdout=subprocess.PIPE,
                             stdin=subprocess.PIPE,
@@ -927,13 +946,13 @@ def write_property(key, value):
   properties = Properties()
   try:
     properties.load(open(conf_file))
-  except Exception, e:
+  except Exception as e:
     print_error_msg('Could not read ambari config file "%s": %s' % (conf_file, e))
     return -1
   properties.process_pair(key, value)
   try:
     properties.store(open(conf_file, "w"))
-  except Exception, e:
+  except Exception as e:
     print_error_msg('Could not write ambari config file "%s": %s' % (conf_file, e))
     return -1
   return 0
@@ -944,43 +963,43 @@ def remove_property(key):
   properties = Properties()
   try:
     properties.load(open(conf_file))
-  except Exception, e:
+  except Exception as e:
     print_error_msg('Could not read ambari config file "%s": %s' % (conf_file, e))
     return -1
   properties.removeOldProp(key)
   try:
     properties.store(open(conf_file, "w"))
-  except Exception, e:
+  except Exception as e:
     print_error_msg('Could not write ambari config file "%s": %s' % (conf_file, e))
     return -1
   return 0
 
 
 def setup_db(args):
-  #password access to ambari-server and mapred
+  # password access to ambari-server and mapred
   configure_database_username_password(args)
   dbname = args.database_name
   scriptFile = args.init_script_file
   username = args.database_username
   password = args.database_password
 
-  #setup DB
+  # setup DB
   command = SETUP_DB_CMD[:]
-  command[-1] = command[-1].format(scriptFile, username, password, dbname)
+  command[-1] = command[-1].format(PG_SQL, scriptFile, username, password, dbname)
 
   for i in range(SETUP_DB_CONNECT_ATTEMPTS):
     sys.stdout.write('Connecting to local database...')
     retcode, outdata, errdata = run_os_command(command)
     if retcode == 0:
-      print 'done.'
+      print('done.')
       return retcode, outdata, errdata
     timeOutMsg = 'connection timed out'
-    if (i+1) < SETUP_DB_CONNECT_ATTEMPTS:
-      timeOutMsg += '...retrying (%d)' % (i+1)
-      print timeOutMsg
+    if (i + 1) < SETUP_DB_CONNECT_ATTEMPTS:
+      timeOutMsg += '...retrying (%d)' % (i + 1)
+      print(timeOutMsg)
       time.sleep(SETUP_DB_CONNECT_TIMEOUT)
 
-  print 'unable to connect to database'
+  print('unable to connect to database')
   print_error_msg(errdata)
   return retcode, outdata, errdata
 
@@ -1007,7 +1026,7 @@ def remove_password_file(filename):
   if os.path.exists(passFilePath):
     try:
       os.remove(passFilePath)
-    except Exception, e:
+    except Exception as e:
       print_warning_msg('Unable to remove password file: ' + str(e))
       return 1
   pass
@@ -1015,30 +1034,30 @@ def remove_password_file(filename):
 
 
 def execute_db_script(args, file):
-  #password access to ambari-server and mapred
+  # password access to ambari-server and mapred
   configure_database_username_password(args)
   dbname = args.database_name
   username = args.database_username
   password = args.database_password
   command = SETUP_DB_CMD[:]
-  command[-1] = command[-1].format(file, username, password, dbname)
+  command[-1] = command[-1].format(PG_SQL, file, username, password, dbname)
   retcode, outdata, errdata = run_os_command(command)
   if not retcode == 0:
-    print errdata
+    print(errdata)
   return retcode
 
 
 def check_db_consistency(args, file):
-  #password access to ambari-server and mapred
+  # password access to ambari-server and mapred
   configure_database_username_password(args)
   dbname = args.database_name
   username = args.database_username
   password = args.database_password
   command = SETUP_DB_CMD[:]
-  command[-1] = command[-1].format(file, username, password, dbname)
+  command[-1] = command[-1].format(PG_SQL, file, username, password, dbname)
   retcode, outdata, errdata = run_os_command(command)
   if not retcode == 0:
-    print errdata
+    print(errdata)
     return retcode
   else:
     # Assumes that the output is of the form ...\n<count>
@@ -1066,11 +1085,11 @@ def check_postgre_up():
   else:
     # run initdb only on non ubuntu systems as ubuntu does not have initdb cmd.
     if OS_TYPE != utils.OS_UBUNTU:
-      print "Running initdb: This may take upto a minute."
+      print("Running initdb: This may take upto a minute.")
       retcode, out, err = run_os_command(PG_INITDB_CMD)
       if retcode == 0:
-        print out
-    print "About to start PostgreSQL"
+        print(out)
+    print("About to start PostgreSQL")
     try:
       process = subprocess.Popen(PG_START_CMD.split(' '),
                                  stdout=subprocess.PIPE,
@@ -1088,11 +1107,15 @@ def check_postgre_up():
           retcode = result
       else:
         out, err = process.communicate()
+        if out is not None:
+          out = out.decode() 
+        if err is not None:
+          err = err.decode() 
         retcode = process.returncode
       if pg_status == PG_STATUS_RUNNING:
         print_info_msg("Postgres process is running. Returning...")
         return 0
-    except (Exception), e:
+    except Exception as e:
       pg_status = get_postgre_status()
       if pg_status == PG_STATUS_RUNNING:
         return 0
@@ -1132,14 +1155,13 @@ def read_password(passwordDefault=PG_DEFAULT_PASSWORD,
     passwordPrompt = 'Password (' + passwordDefault + '): '
 
   if passwordDescr is None:
-    passwordDescr = "Invalid characters in password. Use only alphanumeric or " \
-                    "_ or - characters"
+    passwordDescr = "Invalid characters in password. Use only alphanumeric or  _ or - characters"
 
   password = get_validated_string_input(passwordPrompt, passwordDefault,
                                         passwordPattern, passwordDescr, True)
 
   if not password:
-    print 'Password cannot be blank.'
+    print('Password cannot be blank.')
     return read_password(passwordDefault, passwordPattern, passwordPrompt,
                    passwordDescr)
 
@@ -1147,7 +1169,7 @@ def read_password(passwordDefault=PG_DEFAULT_PASSWORD,
     password1 = get_validated_string_input("Re-enter password: ",
                                            passwordDefault, passwordPattern, passwordDescr, True)
     if password != password1:
-      print "Passwords do not match"
+      print("Passwords do not match")
       return read_password(passwordDefault, passwordPattern, passwordPrompt,
                       passwordDescr)
 
@@ -1178,15 +1200,15 @@ def prompt_db_properties(args):
 
   if PROMPT_DATABASE_OPTIONS:
     load_default_db_properties(args)
-    ok = get_YN_input("Enter advanced database configuration [y/n] (n)? ", False)
+    ok = get_YN_input("Enter advanced database configuration [y/n]? (n) ", False)
     if ok:
 
-      print "=============================================================================="
-      print "Choose one of the following options:"
+      print("==============================================================================")
+      print("Choose one of the following options:")
 
       database_num = str(DATABASE_INDEX + 1)
       database_num = get_validated_string_input(
-        "[1] - PostgreSQL (Embedded)\n[2] - Oracle\n[3] - MySQL\n[4] - PostgreSQL\n"
+        "[1] - PostgreSQL (Embedded)\n[2] - PostgreSQL (External)\n[3] - Oracle\n[4] - MySQL\n"
         "==============================================================================\n"
         "Enter choice (" + database_num + "): ",
         database_num,
@@ -1198,17 +1220,12 @@ def prompt_db_properties(args):
       if int(database_num) == 1:
         args.persistence_type = 'local'
         args.database_index = 0
+        DATABASE_INDEX = 0
       else:
         args.persistence_type = 'remote'
-        selected_db_option = int(database_num)
+        args.database_index = int(database_num) - 2
 
-        if selected_db_option == 2:
-          args.database_index = 1
-        elif selected_db_option == 3:
-          args.database_index = 2
-        elif selected_db_option == 4:
-          args.database_index = 0
-        else:
+        if args.database_index < 0 or args.database_index > 2 :
           print_info_msg('Unknown db option, default to embbeded postgres.')
           args.database_index = 0
         pass
@@ -1239,7 +1256,7 @@ def prompt_db_properties(args):
           # Oracle uses service name or service id
           idType = "1"
           idType = get_validated_string_input(
-            "Select Oracle identifier type:\n1 - " + ORACLE_DB_ID_TYPES[0] +
+            "Select Oracle identifier type:\n1 - " + ORACLE_DB_ID_TYPES[0] + 
             "\n2 - " + ORACLE_DB_ID_TYPES[1] + "\n(" + idType + "): ",
             idType,
             "^[12]$",
@@ -1316,8 +1333,7 @@ def store_remote_properties(args):
     connectionStringFormat = DATABASE_CONNECTION_STRINGS_ALT
   properties.process_pair(JDBC_URL_PROPERTY, connectionStringFormat[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
-  properties.process_pair(JDBC_PASSWORD_PROPERTY,
-      store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+  properties.process_pair(JDBC_PASSWORD_PROPERTY, store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
 
   # save any other defined properties to pass to JDBC
   if DATABASE_INDEX < len(DATABASE_JDBC_PROPERTIES):
@@ -1333,8 +1349,7 @@ def store_remote_properties(args):
   properties.process_pair(JDBC_RCA_DRIVER_PROPERTY, DATABASE_DRIVER_NAMES[DATABASE_INDEX])
   properties.process_pair(JDBC_RCA_URL_PROPERTY, connectionStringFormat[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
   properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, args.database_username)
-  properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY,
-      store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+  properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
   if isSecure:
     encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, args.database_password)
     if encrypted_password != args.database_password:
@@ -1345,8 +1360,8 @@ def store_remote_properties(args):
 
   try:
     properties.store(open(conf_file, "w"))
-  except Exception, e:
-    print 'Could not write ambari config file "%s": %s' % (conf_file, e)
+  except Exception as e:
+    print('Could not write ambari config file "%s": %s' % (conf_file, e))
     return -1
 
   return 0
@@ -1355,15 +1370,22 @@ def store_remote_properties(args):
 # Initialize remote database schema
 def setup_remote_db(args):
 
-  setup_msg = "Before starting Ambari Server, you must run the following DDL " \
-              "against the database to create the schema: {0}".format(DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
+  not_found_msg = "Cannot find {0} {1} client in the path to load the Ambari Server schema. Before starting Ambari Server, you must run the following DDL against the database to create the schema ".format(DATABASE_NAMES[DATABASE_INDEX], str(DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]))
+  client_usage_cmd = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_INIT_SCRIPTS[DATABASE_INDEX], args.database_username, BLIND_PASSWORD, args.database_name)
 
-  print_warning_msg(setup_msg)
+  retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
+  if retcode != 0:
+    if retcode == -1:
+      print_warning_msg(not_found_msg + os.linesep + client_usage_cmd)
+      if not SILENT:
+        input(PRESS_ENTER_MSG)
+      return retcode
 
-  proceed = get_YN_input("Proceed with configuring remote database connection properties [y/n] (y)? ", True)
-  retCode = 0 if proceed else -1
+    print(err)
+    print_error_msg('Database bootstrap failed. Please, provide correct connection properties.')
+    return retcode
 
-  return retCode
+  return 0
 
 
 # Get database client executable path
@@ -1377,7 +1399,7 @@ def get_db_cli_tool(args):
   return None
 
 
-#execute SQL script on remote database: Deprecated
+# execute SQL script on remote database: Deprecated
 def execute_remote_script(args, scriptPath):
   print_warning_msg("Deprecated method called.")
   tool = get_db_cli_tool(args)
@@ -1436,12 +1458,10 @@ def configure_database_password(showDefault=True):
     passwordPrompt = 'Enter Database Password (' + passwordDefault + '): '
   else:
     passwordPrompt = 'Enter Database Password: '
-  passwordPattern = "^[a-zA-Z0-9_-]*$"
-  passwordDescr = "Invalid characters in password. Use only alphanumeric or "\
-                  "_ or - characters"
+  passwordPattern = PASSWORD_PATTERN
+  passwordDescr = "Invalid characters in password. Use only alphanumeric or _ or - characters"
 
-  password = read_password(passwordDefault, passwordPattern, passwordPrompt,
-    passwordDescr)
+  password = read_password(passwordDefault, passwordPattern, passwordPrompt, passwordDescr)
 
   return password
 
@@ -1536,8 +1556,8 @@ def store_local_properties(args):
 
   try:
     properties.store(open(conf_file, "w"))
-  except Exception, e:
-    print 'Unable to write ambari.properties configuration file "%s": %s' % (conf_file, e)
+  except Exception as e:
+    print('Unable to write ambari.properties configuration file "%s": %s' % (conf_file, e))
     return -1
   return 0
 
@@ -1546,12 +1566,11 @@ def store_local_properties(args):
 def get_ambari_properties():
   conf_file = find_properties_file()
 
-  properties = None
   try:
     properties = Properties()
     properties.load(open(conf_file))
-  except (Exception), e:
-    print 'Could not read "%s": %s' % (conf_file, e)
+  except (Exception) as e:
+    print('Could not read "%s": %s' % (conf_file, e))
     return -1
   return properties
 
@@ -1581,7 +1600,7 @@ def parse_properties_file(args):
     except ValueError:
       pass
   else:
-    #TODO incorrect property used!! leads to bunch of troubles. Workaround for now
+    # TODO incorrect property used!! leads to bunch of troubles. Workaround for now
     args.database_name = properties[JDBC_DATABASE_PROPERTY]
 
   args.database_username = properties[JDBC_USER_NAME_PROPERTY]
@@ -1615,7 +1634,7 @@ def get_share_jars():
   file_list.extend(glob.glob(JAVA_SHARE_PATH + os.sep + "*mysql*"))
   file_list.extend(glob.glob(JAVA_SHARE_PATH + os.sep + "*ojdbc*"))
   if len(file_list) > 0:
-    share_jars = string.join(file_list, os.pathsep)
+    share_jars = os.pathsep.join(file_list)
   return share_jars
 
 
@@ -1629,7 +1648,7 @@ def get_ambari_classpath():
 
 def search_file(filename, search_path, pathsep=os.pathsep):
   """ Given a search path, find file with requested name """
-  for path in string.split(search_path, pathsep):
+  for path in str.split(search_path, pathsep):
     candidate = os.path.join(path, filename)
     if os.path.exists(candidate):
       return os.path.abspath(candidate)
@@ -1651,12 +1670,13 @@ def dlprogress(base_name, count, blockSize, totalSize):
 
 
 def track_jdk(base_name, url, local_name):
-  u = urllib2.urlopen(url)
+  u = urllib.request.urlopen(url)
   h = u.info()
   totalSize = int(h["Content-Length"])
   fp = open(local_name, "wb")
   blockSize = 8192
   count = 0
+  percent = 0
   while True:
     chunk = u.read(blockSize)
     if not chunk:
@@ -1683,11 +1703,10 @@ def install_jce_manualy(args):
       jce_destination = os.path.join(properties[RESOURCES_DIR_PROPERTY], JCE_POLICY_FILENAMES[JDK_INDEX])
       try:
         shutil.copy(args.jce_policy, jce_destination)
-      except Exception, e:
-        err = "Can not copy file {0} to {1} due to: {2}. Please check file " \
-              "permissions and free disk space.".format(args.jce_policy, jce_destination, e.message)
+      except Exception as e:
+        err = "Can not copy file {0} to {1} due to: {2}. Please check file  permissions and free disk space.".format(args.jce_policy, jce_destination, e)
         raise FatalException(-1, err)
-      print "JCE policy copied from " + args.jce_policy + " to " + jce_destination
+      print("JCE policy copied from " + args.jce_policy + " to " + jce_destination)
       return 0
     else:
       err = "JCE Policy path " + args.jce_policy + " doesn't exists."
@@ -1708,8 +1727,7 @@ def download_jdk(args):
     raise FatalException(-1, err)
   conf_file = properties.fileName
   ok = False
-  jcePolicyWarn = "JCE Policy files are required for configuring Kerberos security. If you plan to use Kerberos," \
-         "please make sure JCE Unlimited Strength Jurisdiction Policy Files are valid on all hosts."
+  jcePolicyWarn = "JCE Policy files are required for configuring Kerberos security. If you plan to use Kerberos, please make sure JCE Unlimited Strength Jurisdiction Policy Files are valid on all hosts."
   if args.java_home:
     if not os.path.exists(args.java_home) or not os.path.isfile(os.path.join(args.java_home, "bin", "java")):
       err = "Path to java home " + args.java_home + " or java binary file does not exists"
@@ -1723,16 +1741,16 @@ def download_jdk(args):
     return 0
   else:
     if get_JAVA_HOME() and not args.jdk_location:
-      change_jdk = get_YN_input("Do you want to change Oracle JDK [y/n] (n)? ", False)
+      change_jdk = get_YN_input("Do you want to change Oracle JDK [y/n]? (n) ", False)
       if not change_jdk:
         return 0
 
     try:
       resources_dir = properties[RESOURCES_DIR_PROPERTY]
-    except (KeyError), e:
+    except KeyError as e:
       err = 'Property ' + str(e) + ' is not defined at ' + conf_file
       raise FatalException(1, err)
-    ##JDK location was set by user with --jdk-location key
+    # #JDK location was set by user with --jdk-location key
     if args.jdk_location:
       if not os.path.exists(args.jdk_location):
         err = "Path to jdk " + args.jdk_location + " does not exists"
@@ -1741,12 +1759,11 @@ def download_jdk(args):
       dest_file = resources_dir + os.sep + custom_jdk_name
       print_warning_msg("JDK must be installed on all agent hosts and JAVA_HOME must be valid on all agent hosts.")
       print_warning_msg(jcePolicyWarn)
-      print "Copying local JDK file {0} to {1}".format(args.jdk_location, dest_file)
+      print("Copying local JDK file {0} to {1}".format(args.jdk_location, dest_file))
       try:
         shutil.copyfile(args.jdk_location, dest_file)
-      except Exception, e:
-        err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
-              "permissions and free disk space.".format(args.jdk_location, dest_file, e.message)
+      except Exception as e:
+        err = "Can not copy file {0} to {1} due to: {2} . Please check file permissions and free disk space.".format(args.jdk_location, dest_file, e)
         raise FatalException(1, err)
       ambari_setup_with_jdk_location = True
       remove_property(JDK_NAME_PROPERTY)
@@ -1754,9 +1771,9 @@ def download_jdk(args):
     else:
       jdk_num = str(JDK_INDEX + 1)
       jdk_num = get_validated_string_input(
-        "[1] - Oracle JDK 1.7\n[2] - Oracle JDK 1.6\n[3] - Custom JDK\n==============================================================================\nEnter choice (" + jdk_num + "): ",
+        "[1] - Oracle JDK 1.8\n[2] - Oracle JDK 1.7\n[3] - Oracle JDK 1.6\n[4] - Custom JDK\n==============================================================================\nEnter choice (" + jdk_num + "): ",
         jdk_num,
-        "^[123]$",
+        "^[1234]$",
         "Invalid number.",
         False
       )
@@ -1768,7 +1785,7 @@ def download_jdk(args):
         if not os.path.exists(args.java_home):
           err = "Java home path is unavailable. Please put correct path to java home."
           raise FatalException(1, err)
-        print "Validating JDK on Ambari Server...done."
+        print("Validating JDK on Ambari Server...done.")
         write_property(JAVA_HOME_PROPERTY, args.java_home)
         remove_property(JDK_NAME_PROPERTY)
         remove_property(JCE_NAME_PROPERTY)
@@ -1780,31 +1797,24 @@ def download_jdk(args):
 
       try:
         jdk_url = properties[JDK_URL_PROPERTY]
-      except (KeyError), e:
+        jdk_license = properties[JAVA_LICENSE_URL]
+      except KeyError as e:
         err = 'Property ' + str(e) + ' is not defined at ' + conf_file
         raise FatalException(1, err)
       dest_file = resources_dir + os.sep + JDK_FILENAME
       if os.path.exists(dest_file):
-        print "JDK already exists, using " + dest_file
+        print("JDK already exists at " + dest_file + " to use.")
       else:
-        ok = get_YN_input("To download the Oracle JDK you must accept the "
-                          "license terms found at "
-                          "http://www.oracle.com/technetwork/java/javase/"
-                          "terms/license/index.html and not accepting will "
-                          "cancel the Ambari Server setup.\nDo you accept the "
-                          "Oracle Binary Code License Agreement [y/n] (y)? ", True)
+        ok = get_YN_input("You must accept the Oracle Binary Code License Agreement for Java SE/JDK at {0}.\nDo you accept the Oracle Binary Code License Agreement [y/n]? (y)".format(jdk_license), True)
         if not ok:
-          print 'Exiting...'
+          print('Exiting...')
           sys.exit(1)
 
-        print 'Downloading JDK from ' + jdk_url + ' to ' + dest_file
-        jdk_download_fail_msg = " Failed to download JDK: {0}. Please check that Oracle " \
-          "JDK is available at {1}. Also you may specify JDK file " \
-          "location in local filesystem using --jdk-location command " \
-          "line argument.".format("{0}", jdk_url)
+        print('Downloading JDK from ' + jdk_url + ' to ' + dest_file)
+        jdk_download_fail_msg = " Failed to download JDK: {0}. Please check that Oracle  JDK is available at {1}. Also you may specify JDK file  location in local filesystem using --jdk-location command  line argument.".format(JDK_FILENAME, jdk_url)
         try:
           size_command = JDK_DOWNLOAD_SIZE_CMD.format(jdk_url)
-          #Get Header from url,to get file size then
+          # Get Header from url,to get file size then
           retcode, out, err = run_os_command(size_command)
           if out.find("Content-Length") == -1:
             err = jdk_download_fail_msg.format("Request header doesn't contain Content-Length")
@@ -1812,7 +1822,7 @@ def download_jdk(args):
           start_with = int(out.find("Content-Length") + len("Content-Length") + 2)
           end_with = out.find("\r\n", start_with)
           src_size = int(out[start_with:end_with])
-          print 'JDK distribution size is ' + str(src_size) + ' bytes'
+          print('JDK distribution size is ' + str(src_size) + ' bytes')
           file_exists = os.path.isfile(dest_file)
           file_size = -1
           if file_exists:
@@ -1821,55 +1831,49 @@ def download_jdk(args):
             print_info_msg("File already exists")
           else:
             track_jdk(JDK_FILENAME, jdk_url, dest_file)
-            print 'Successfully downloaded JDK distribution to ' + dest_file
+            print('Successfully downloaded JDK distribution to ' + dest_file)
         except FatalException:
           raise
-        except Exception, e:
+        except Exception as e:
           err = jdk_download_fail_msg.format(str(e))
           raise FatalException(1, err)
         downloaded_size = os.stat(dest_file).st_size
         if downloaded_size != src_size or downloaded_size < JDK_MIN_FILESIZE:
-          err = 'Size of downloaded JDK distribution file is ' \
-                        + str(downloaded_size) + ' bytes, it is probably \
-                        damaged or incomplete'
+          err = 'Size of downloaded JDK distribution file is ' + str(downloaded_size) + ' bytes, it is probably  damaged or incomplete'
           raise FatalException(1, err)
 
     try:
        out = install_jdk(dest_file)
-       jdk_version = re.search(JDK_VERSION_REs[JDK_INDEX], out).group(1)
+       jdk_version = re.search(JDK_VERSION_RES[JDK_INDEX], out).group(1)
        if not ambari_setup_with_jdk_location:
          write_property(JDK_NAME_PROPERTY, JDK_FILENAME)
-    except Exception, e:
-       print "Installation of JDK has failed: %s\n" % e.message
+    except Exception as e:
+       print("Installation of JDK has failed: %s\n" % e)
        file_exists = os.path.isfile(dest_file)
        if file_exists:
-          ok = get_YN_input("JDK found at "+dest_file+". "
-                      "Would you like to re-download the JDK [y/n] (y)? ", True)
+          ok = get_YN_input("JDK found at " + dest_file + ".  Would you like to re-download the JDK [y/n]? (y) ", True)
           if not ok:
-             err = "Unable to install JDK. Please remove JDK file found at " + \
-                   dest_file + " and re-run Ambari Server setup"
+             err = "Unable to install JDK. Please remove JDK file found at " + dest_file + " and re-run Ambari Server setup"
              raise FatalException(1, err)
           else:
              track_jdk(JDK_FILENAME, jdk_url, dest_file)
-             print 'Successfully re-downloaded JDK distribution to ' + dest_file
+             print('Successfully re-downloaded JDK distribution to ' + dest_file)
              try:
                  out = install_jdk(dest_file)
-                 jdk_version = re.search(JDK_VERSION_REs[JDK_INDEX], out).group(1)
+                 jdk_version = re.search(JDK_VERSION_RES[JDK_INDEX], out).group(1)
                  if not ambari_setup_with_jdk_location:
                    write_property(JDK_NAME_PROPERTY, JDK_FILENAME)
-             except Exception, e:
-               print "Installation of JDK was failed: %s\n" % e.message
-               err = "Unable to install JDK. Please remove JDK, file found at " + \
-                     dest_file + " and re-run Ambari Server setup"
+             except Exception as e:
+               print("Installation of JDK was failed: %s\n" % e)
+               err = "Unable to install JDK. Please remove JDK, file found at " + dest_file + " and re-run Ambari Server setup"
                raise FatalException(1, err)
 
        else:
-           err = "Unable to install JDK. File " + dest_file + " does not exist, " \
-                                        "please re-run Ambari Server setup"
+           err = "Unable to install JDK. File " + dest_file + " does not exist,  please re-run Ambari Server setup"
            raise FatalException(1, err)
 
-    print "Successfully installed JDK to {0}/{1}".\
-        format(JDK_INSTALL_DIR, jdk_version)
+    print("Successfully installed JDK to {0}/{1}".\
+        format(JDK_INSTALL_DIR, jdk_version))
     write_property(JAVA_HOME_PROPERTY, "{0}/{1}".
         format(JDK_INSTALL_DIR, jdk_version))
 
@@ -1877,8 +1881,7 @@ def download_jdk(args):
     if not ambari_setup_with_jdk_location:
       download_jce_policy(properties, ok)
   except FatalException as e:
-    print "JCE Policy files are required for secure HDP setup. Please ensure " \
-            " all hosts have the JCE unlimited strength policy 6, files."
+    print("JCE Policy files are required for secure HDP setup. Please ensure  all hosts have the JCE unlimited strength policy 6, files.")
     print_error_msg("Failed to download JCE policy files:")
     if e.reason is not None:
       print_error_msg("\nREASON: {0}".format(e.reason))
@@ -1891,22 +1894,21 @@ def download_jce_policy(properties, accpeted_bcl):
   JCE_POLICY_FILENAME = JCE_POLICY_FILENAMES[JDK_INDEX]
   try:
     jce_url = properties[JCE_URL_PROPERTY]
+    jdk_license = properties[JAVA_LICENSE_URL]
     resources_dir = properties[RESOURCES_DIR_PROPERTY]
-  except KeyError, e:
+  except KeyError as e:
     err = 'Property ' + str(e) + ' is not defined in properties file'
     raise FatalException(1, err)
   dest_file = resources_dir + os.sep + JCE_POLICY_FILENAME
   if not os.path.exists(dest_file):
-    print 'Downloading JCE Policy archive from ' + jce_url + ' to ' + dest_file
-    jce_download_fail_msg = " Failed to download JCE Policy archive : {0}. " \
-        "Please check that JCE Policy archive is available at {1} . "
+    print('Downloading JCE Policy archive from ' + jce_url + ' to ' + dest_file)
+    jce_download_fail_msg = " Failed to download JCE Policy archive : {0}.  Please check that JCE Policy archive is available at {1} . "
     try:
       size_command = JDK_DOWNLOAD_SIZE_CMD.format(jce_url)
-      #Get Header from url,to get file size then
+      # Get Header from url,to get file size then
       retcode, out, err = run_os_command(size_command)
       if out.find("Content-Length") == -1:
-        err = jce_download_fail_msg.format(
-            "Request header doesn't contain Content-Length")
+        err = jce_download_fail_msg.format("Request header doesn't contain Content-Length")
         raise FatalException(1, err)
       start_with = int(out.find("Content-Length") + len("Content-Length") + 2)
       end_with = out.find("\r\n", start_with)
@@ -1919,45 +1921,37 @@ def download_jce_policy(properties, accpeted_bcl):
       if file_exists and file_size == src_size:
         print_info_msg("File already exists")
       else:
-        #BCL license before download
+        # BCL license before download
         jce_download_cmd = JCE_DOWNLOAD_CMD.format(dest_file, jce_url)
         print_info_msg("JCE download cmd: " + jce_download_cmd)
         if accpeted_bcl:
           retcode, out, err = run_os_command(jce_download_cmd)
           if retcode == 0:
             write_property(JCE_NAME_PROPERTY, JCE_POLICY_FILENAME)
-            print 'Successfully downloaded JCE Policy archive to ' + dest_file
+            print('Successfully downloaded JCE Policy archive to ' + dest_file)
           else:
             raise FatalException(1, err)
         else:
-          ok = get_YN_input("To download the JCE Policy files you must "
-                            "accept the license terms found at "
-                            "http://www.oracle.com/technetwork/java/javase"
-                            "/terms/license/index.html"
-                            "Not accepting will result in errors when "
-                            "configuring Kerberos security. \nDo you accept the "
-                            "Oracle Binary Code License Agreement [y/n] (y)? ", True)
+          ok = get_YN_input("You must accept the Oracle Binary Code License Agreement for Java SE/JDK at {0}.\nDo you accept the Oracle Binary Code License Agreement [y/n]? (y)".format(jdk_license), True)
           if ok:
             retcode, out, err = run_os_command(jce_download_cmd)
             if retcode == 0:
               write_property(JCE_NAME_PROPERTY, JCE_POLICY_FILENAME)
-              print 'Successfully downloaded JCE Policy archive to ' + dest_file
+              print('Successfully downloaded JCE Policy archive to ' + dest_file)
           else:
             raise FatalException(1, None)
     except FatalException:
         raise
-    except Exception, e:
+    except Exception as e:
       err = 'Failed to download JCE Policy archive: ' + str(e)
       raise FatalException(1, err)
     downloaded_size = os.stat(dest_file).st_size
     if downloaded_size != src_size or downloaded_size < JCE_MIN_FILESIZE:
-      err = 'Size of downloaded JCE Policy archive is ' \
-                      + str(downloaded_size) + ' bytes, it is probably \
-                    damaged or incomplete'
+      err = 'Size of downloaded JCE Policy archive is ' + str(downloaded_size) + ' bytes, it is probably damaged or incomplete'
       raise FatalException(1, err)
   else:
     write_property(JCE_NAME_PROPERTY, JCE_POLICY_FILENAME)
-    print "JCE Policy archive already exists, using " + dest_file
+    print("JCE Policy archive already exists, using " + dest_file)
 
 
 class RetCodeException(Exception):
@@ -1965,7 +1959,7 @@ class RetCodeException(Exception):
 
 
 def install_jdk(dest_file):
-  print "Installing JDK to {0}".format(JDK_INSTALL_DIR)
+  print("Installing JDK to {0}".format(JDK_INSTALL_DIR))
   retcode, out, err = run_os_command(CREATE_JDK_DIR_CMD)
   savedPath = os.getcwd()
   os.chdir(JDK_INSTALL_DIR)
@@ -1999,13 +1993,8 @@ def configure_os_settings():
     if conf_os_type != '':
       print_info_msg("os_type already setting in properties file")
       return 0
-  except (KeyError):
+  except KeyError as e:
     print_error_msg("os_type is not set in properties file")
-
-  os_system = platform.system()
-  if os_system != 'Linux':
-    print_error_msg("Non-Linux systems are not supported")
-    return -1
 
   master_os_type = OS_FAMILY + OS_VERSION
   write_property(OS_TYPE_PROPERTY, master_os_type)
@@ -2045,19 +2034,19 @@ def find_jdk():
   if jdkPath:
     if validate_jdk(jdkPath):
       return jdkPath
-  print "Looking for available JDKs at " + JDK_INSTALL_DIR
+  print("Looking for available JDKs at " + JDK_INSTALL_DIR)
   jdks = glob.glob(JDK_INSTALL_DIR + os.sep + "jdk*")
   jdks.sort()
-  print "Found: " + str(jdks)
+  print("Found: " + str(jdks))
   if len(jdks) == 0:
     return
   for jdkPath in jdks:
-    print "Trying to use JDK {0}".format(jdkPath)
+    print("Trying to use JDK {0}".format(jdkPath))
     if validate_jdk(jdkPath):
-      print "Selected JDK {0}".format(jdkPath)
+      print("Selected JDK {0}".format(jdkPath))
       return jdkPath
     else:
-      print "JDK {0} is invalid".format(jdkPath)
+      print("JDK {0} is invalid".format(jdkPath))
   return
 
 
@@ -2065,12 +2054,18 @@ def find_jdk():
 # Checks if options determine local DB configuration
 #
 def is_local_database(args):
+  # return args.persistence_type == 'local'
   return hasattr(args, 'persistence_type') and args.persistence_type == 'local'
+  # if options.dbms == DATABASE_NAMES[0] \
+  #  and options.database_host == "localhost" \
+  #  and options.database_port == DATABASE_PORTS[0]:
+  #  return True
+  # return False
 
 
-#Check if required jdbc drivers present
+# Check if required jdbc drivers present
 def find_jdbc_driver(args):
-  if args.dbms in JDBC_PATTERNS.keys():
+  if args.dbms in list(JDBC_PATTERNS.keys()):
     drivers = []
     drivers.extend(glob.glob(JAVA_SHARE_PATH + os.sep + JDBC_PATTERNS[args.dbms]))
     if drivers:
@@ -2082,9 +2077,8 @@ def find_jdbc_driver(args):
 def copy_file(src, dest_file):
   try:
     shutil.copyfile(src, dest_file)
-  except Exception, e:
-    err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
-              "permissions and free disk space.".format(src, dest_file, e.message)
+  except Exception as e:
+    err = "Can not copy file {0} to {1} due to: {2} . Please check file  permissions and free disk space.".format(src, dest_file, e)
     raise FatalException(1, err)
 
 
@@ -2092,7 +2086,7 @@ def remove_file(filePath):
   if os.path.exists(filePath):
     try:
       os.remove(filePath)
-    except Exception, e:
+    except Exception as e:
       print_warning_msg('Unable to remove file: ' + str(e))
       return 1
   pass
@@ -2116,8 +2110,7 @@ def check_jdbc_drivers(args):
 
   result = find_jdbc_driver(args)
 
-  msg = 'Before starting Ambari Server, ' \
-        'you must copy the {0} JDBC driver JAR file to {1}.'.format(
+  msg = 'Before starting Ambari Server, you must copy the {0} JDBC driver JAR file to {1}.'.format(
         DATABASE_FULL_NAMES[args.dbms],
         JAVA_SHARE_PATH)
 
@@ -2127,7 +2120,7 @@ def check_jdbc_drivers(args):
       raise FatalException(-1, msg)
     else:
       print_warning_msg(msg)
-      raw_input(PRESS_ENTER_MSG)
+      input(PRESS_ENTER_MSG)
       result = find_jdbc_driver(args)
       if result == -1:
         print_error_msg(msg)
@@ -2135,7 +2128,7 @@ def check_jdbc_drivers(args):
 
   # Check if selected RDBMS requires drivers to copy
   if type(result) is not int:
-    print 'Copying JDBC drivers to server resources...'
+    print('Copying JDBC drivers to server resources...')
     try:
       resources_dir = properties[RESOURCES_DIR_PROPERTY]
     except KeyError:
@@ -2159,9 +2152,8 @@ def verify_setup_allowed():
   isSecure = get_is_secure(properties)
   (isPersisted, masterKeyFile) = get_is_persisted(properties)
   if isSecure and not isPersisted and SILENT:
-    print "ERROR: Cannot run silent 'setup' with password encryption enabled " \
-          "and Master Key not persisted."
-    print "Ambari Server 'setup' exiting."
+    print("ERROR: Cannot run silent 'setup' with password encryption enabled and Master Key not persisted.")
+    print("Ambari Server 'setup' exiting.")
     return 1
   return 0
 
@@ -2175,11 +2167,10 @@ def setup(args):
     raise FatalException(1, None)
 
   if not is_root():
-    err = 'Ambari-server setup should be run with '\
-                     'root-level privileges'
+    err = 'Ambari-server setup should be run with root-level privileges'
     raise FatalException(4, err)
 
-  print 'Checking SELinux...'
+  print('Checking SELinux...')
   retcode = check_selinux()
   if not retcode == 0:
     err = 'Failed to disable SELinux. Exiting.'
@@ -2191,51 +2182,51 @@ def setup(args):
     err = 'Failed to create user. Exiting.'
     raise FatalException(retcode, err)
 
-  print 'Checking iptables...'
+  print('Checking iptables...')
   check_iptables()
 
-  print 'Checking JDK...'
+  print('Checking JDK...')
   try:
     download_jdk(args)
   except FatalException as e:
     err = 'Downloading or installing JDK failed: {0}. Exiting.'.format(e)
     raise FatalException(e.code, err)
 
-  print 'Completing setup...'
+  print('Completing setup...')
   retcode = configure_os_settings()
   if not retcode == 0:
     err = 'Configure of OS settings in ambari.properties failed. Exiting.'
     raise FatalException(retcode, err)
 
-  print 'Configuring database...'
+  print('Configuring database...')
   prompt_db_properties(args)
 
-  #DB setup should be done last after doing any setup.
+  # DB setup should be done last after doing any setup.
 
   if is_local_database(args):
-    #check if jdbc user is changed
+    # check if jdbc user is changed
     is_user_changed = is_jdbc_user_changed(args)
 
-    print 'Default properties detected. Using built-in database.'
+    print('Default properties detected. Using built-in database.')
     store_local_properties(args)
 
-    print 'Checking PostgreSQL...'
+    print('Checking PostgreSQL...')
     retcode = check_postgre_up()
     if not retcode == 0:
       err = 'Unable to start PostgreSQL server. Exiting'
       raise FatalException(retcode, err)
 
-    print 'Configuring local database...'
+    print('Configuring local database...')
     retcode, outdata, errdata = setup_db(args)
     if not retcode == 0:
       err = 'Running database init script was failed. Exiting.'
       raise FatalException(retcode, err)
 
     if is_user_changed:
-      #remove backup for pg_hba in order to reconfigure postgres
+      # remove backup for pg_hba in order to reconfigure postgres
       remove_file(PG_HBA_CONF_FILE_BACKUP)
 
-    print 'Configuring PostgreSQL...'
+    print('Configuring PostgreSQL...')
     retcode = configure_postgres()
     if not retcode == 0:
       err = 'Unable to configure PostgreSQL server. Exiting'
@@ -2249,7 +2240,7 @@ def setup(args):
 
     check_jdbc_drivers(args)
 
-    print 'Configuring remote database connection properties...'
+    print('Configuring remote database connection properties...')
     retcode = setup_remote_db(args)
     if retcode == -1:
       err = "Remote database setup aborted."
@@ -2265,7 +2256,7 @@ def setup(args):
 # Resets the Ambari Server.
 #
 def reset(args):
-  #force reset if silent option provided
+  # force reset if silent option provided
   global SILENT
   if SILENT:
     default = "yes"
@@ -2286,44 +2277,73 @@ def reset(args):
                      "You will be required to re-configure the Ambari server "
                      "and re-run the cluster wizard. \n"
                      "Are you SURE you want to perform the reset "
-                     "[yes/no] ({0})? ".format(default), SILENT)
+                     "[yes/no]? ({0}) ".format(default), SILENT)
   okToRun = choice
 
   if not okToRun:
     err = "Ambari Server 'reset' cancelled"
     raise FatalException(1, err)
 
+  okToRun = get_YN_input("Confirm server reset [yes/no]? ({0}) ".format(default), SILENT)
+  if not okToRun:
+    err = "Ambari Server 'reset' cancelled"
+    raise FatalException(1, err)
+  print("Resetting the Server database...")
   check_database_name_property()
   parse_properties_file(args)
 
+  # configure_database_username_password(args)
   if args.persistence_type == "remote":
+    client_desc = DATABASE_NAMES[DATABASE_INDEX] + ' ' + DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]
     client_usage_cmd_drop = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_DROP_SCRIPTS[DATABASE_INDEX], args.database_username,
                                                      BLIND_PASSWORD, args.database_name)
     client_usage_cmd_init = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_INIT_SCRIPTS[DATABASE_INDEX], args.database_username,
                                                      BLIND_PASSWORD, args.database_name)
 
-    print_warning_msg('To reset Ambari Server schema ' +
+    if get_db_cli_tool(args) != -1:
+      retcode, out, err = execute_remote_script(args, DATABASE_DROP_SCRIPTS[DATABASE_INDEX])
+      if not retcode == 0:
+        if retcode == -1:
+          print_warning_msg('Cannot find ' + client_desc + 
+                            ' client in the path to reset the Ambari Server ' + 
+                            'schema. To reset Ambari Server schema ' + 
+                            'you must run the following DDL against the database ' + 
+                            'to drop the schema:' + os.linesep + client_usage_cmd_drop
+                            + os.linesep + 'Then you must run the following DDL '
+                            + 'against the database to create the schema: ' + os.linesep
+                             + client_usage_cmd_init + os.linesep)
+        raise NonFatalException(err)
+      if err:
+        print_warning_msg(err)
+      retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
+      if not retcode == 0:
+        if retcode == -1:
+          print_warning_msg('Cannot find ' + client_desc + ' client in the path to ' + 
+                            'reset the Ambari Server schema. To reset Ambari Server schema ' + 
                       'you must run the following DDL against the database to '
                       + 'drop the schema:' + os.linesep + client_usage_cmd_drop
-                      + os.linesep + 'Then you must run the following DDL ' +
-                      'against the database to create the schema: ' + os.linesep +
+                      + os.linesep + 'Then you must run the following DDL ' + 
+                      'against the database to create the schema: ' + os.linesep + 
                       client_usage_cmd_init + os.linesep)
+        raise NonFatalException(err)
+      if err:
+        print_warning_msg(err)
+      else:
+        err = 'Cannot find ' + client_desc + ' client in the path to reset the Ambari ' + \
+            'Server schema. To reset Ambari Server schema ' + \
+            'you must run the following DDL against the database to drop the schema:' + \
+             os.linesep + client_usage_cmd_drop + os.linesep + \
+            'Then you must run the following DDL against the database to create the ' + \
+            'schema: ' + os.linesep + client_usage_cmd_init + os.linesep
+        raise NonFatalException(err)
+
   else:
-    # Run automatic reset only for embedded DB
-    okToRun = get_YN_input("Confirm server reset [yes/no]({0})? ".format(default), SILENT)
-
-    if not okToRun:
-      err = "Ambari Server 'reset' cancelled"
-      raise FatalException(1, err)
-
-    print "Resetting the Server database..."
-
     dbname = args.database_name
     filename = args.drop_script_file
     username = args.database_username
     password = args.database_password
     command = SETUP_DB_CMD[:]
-    command[-1] = command[-1].format(filename, username, password, dbname)
+    command[-1] = command[-1].format(PG_SQL, filename, username, password, dbname)
     drop_retcode, drop_outdata, drop_errdata = run_os_command(command)
     if not drop_retcode == 0:
       raise FatalException(1, drop_errdata)
@@ -2354,8 +2374,7 @@ def start(args):
     err = "Unable to detect a system user for Ambari Server.\n" + SETUP_OR_UPGRADE_MSG
     raise FatalException(1, err)
   if current_user != ambari_user and not is_root():
-    err = "Unable to start Ambari Server as user {0}. Please either run \"ambari-server start\" " \
-          "command as root, as sudo or as user \"{1}\"".format(current_user, ambari_user)
+    err = "Unable to start Ambari Server as user {0}. Please either run \"ambari-server start\" command as root, as sudo or as user \"{1}\"".format(current_user, ambari_user)
     raise FatalException(1, err)
 
   check_database_name_property()
@@ -2368,27 +2387,22 @@ def start(args):
 
   print_info_msg("Ambari Server is not running...")
 
-  conf_dir = get_conf_dir()
-  jdk_path = find_jdk()
+  jdk_path = find_jdk()  # for command
   if jdk_path is None:
-    err = "No JDK found, please run the \"ambari-server setup\" " \
-                    "command to install a JDK automatically or install any " \
-                    "JDK manually to " + JDK_INSTALL_DIR
+    err = "No JDK found, please run the \"ambari-server setup\" command to install a JDK automatically or install any JDK manually to " + JDK_INSTALL_DIR
     raise FatalException(1, err)
 
   if args.persistence_type == 'remote':
     result = find_jdbc_driver(args)
-    msg = 'Before starting Ambari Server, ' \
-          'you must copy the {0} JDBC driver JAR file to {1}.'.format(
-          DATABASE_FULL_NAMES[args.dbms],
-          JAVA_SHARE_PATH)
+    msg = 'Before starting Ambari Server, you must copy the {0} JDBC driver JAR file to {1}.'.format(DATABASE_FULL_NAMES[args.dbms], JAVA_SHARE_PATH)
     if result == -1:
       raise FatalException(-1, msg)
 
+  conf_dir = get_conf_dir()  # for command
   # Preparations
 
   if is_root():
-    print "Ambari Server running with 'root' privileges."
+    print("Ambari Server running with 'root' privileges.")
 
     if args.persistence_type == "local":
       retcode = check_postgre_up()
@@ -2397,13 +2411,11 @@ def start(args):
         raise FatalException(retcode, err)
 
   else:  # Skipping actions that require root permissions
-    print "Unable to check iptables status when starting "\
-      "without root privileges."
-    print "Please do not forget to disable or adjust iptables if needed"
+    print("Unable to check iptables status when starting without root privileges.")
+    print("Please do not forget to disable or adjust iptables if needed")
     if args.persistence_type == "local":
-      print "Unable to check PostgreSQL server status when starting " \
-            "without root privileges."
-      print "Please do not forget to start PostgreSQL server."
+      print("Unable to check PostgreSQL server status when starting without root privileges.")
+      print("Please do not forget to start PostgreSQL server.")
 
   properties = get_ambari_properties()
   stack_location = get_stack_location(properties)
@@ -2412,12 +2424,10 @@ def start(args):
   resource_files_keeper = ResourceFilesKeeper(resources_location)
 
   try:
-    print "Organizing resource files at {0}...".format(resources_location,
-                                                       verbose=VERBOSE)
+    print("Organizing resource files at {0}...".format(resources_location, verbose=VERBOSE))
     resource_files_keeper.perform_housekeeping()
-  except KeeperException, ex:
-    msg = "Can not organize resource files at {0}: {1}".format(
-                                                resources_location, str(ex))
+  except KeeperException as ex:
+    msg = "Can not organize resource files at {0}: {1}".format(resources_location, str(ex))
     raise FatalException(-1, msg)
 
   isSecure = get_is_secure(properties)
@@ -2439,8 +2449,7 @@ def start(args):
           with open(keyLocation, 'r'):
             pass
         except IOError:
-          print_warning_msg("Cannot read Master key from path specified in "
-                            "environemnt.")
+          print_warning_msg("Cannot read Master key from path specified in environemnt.")
           prompt = True
       else:
         # Key not provided in the environment
@@ -2461,11 +2470,11 @@ def start(args):
       if tempFilePath is not None:
         environ[SECURITY_MASTER_KEY_LOCATION] = tempFilePath
 
-  pidfile = PID_DIR + os.sep + PID_NAME
+  pidfile = PID_DIR + os.sep + PID_NAME  # for command
   command_base = SERVER_START_CMD_DEBUG if (SERVER_DEBUG_MODE or SERVER_START_DEBUG) else SERVER_START_CMD
   command = command_base.format(jdk_path, conf_dir, get_ambari_classpath(), pidfile)
   if not os.path.exists(PID_DIR):
-    os.makedirs(PID_DIR, 0755)
+    os.makedirs(PID_DIR, 0o755)
   if is_root() and ambari_user != "root":
     # To inherit exported environment variables (especially AMBARI_PASSPHRASE),
     # from subprocess, we have to skip --login option of su command. That's why
@@ -2479,10 +2488,11 @@ def start(args):
   print_info_msg("Running server: " + str(param_list))
   server_process = subprocess.Popen(param_list, env=environ)
 
-  print "Server PID at: "+pidfile
-  print "Server out at: "+SERVER_OUT_FILE
-  print "Server log at: "+SERVER_LOG_FILE
+  print("Server PID at: " + pidfile)
+  print("Server out at: " + SERVER_OUT_FILE)
+  print("Server log at: " + SERVER_LOG_FILE)
 
+  time.sleep(5)
 
 #
 # Stops the Ambari Server.
@@ -2496,22 +2506,21 @@ def stop(args):
   if status:
     try:
       os.killpg(os.getpgid(pid), signal.SIGKILL)
-    except OSError, e:
+    except OSError as e:
       print_info_msg("Unable to stop Ambari Server - " + str(e))
       return
     pid_file_path = PID_DIR + os.sep + PID_NAME
     os.remove(pid_file_path)
-    print "Ambari Server stopped"
+    print("Ambari Server stopped")
   else:
-    print "Ambari Server is not running"
+    print("Ambari Server is not running")
 
 
 ### Stack upgrade ###
 
 def upgrade_stack(args, stack_id, repo_url=None, repo_url_os=None):
   if not is_root():
-    err = 'Ambari-server upgradestack should be run with ' \
-          'root-level privileges'
+    err = 'Ambari-server upgradestack should be run with root-level privileges'
     raise FatalException(4, err)
   check_database_name_property()
 
@@ -2584,8 +2593,8 @@ def upgrade_local_repo(args):
     if os.path.exists(repo_file_local) and os.path.exists(repo_file):
       local_values = load_stack_values(stack_version_local, repo_file_local)
       repo_values = load_stack_values(stack_version_local, repo_file)
-      for k, v in local_values.iteritems():
-        if repo_values.has_key(k):
+      for k, v in local_values.items():
+        if k in repo_values:
           local_url = local_values[k]
           repo_url = repo_values[k]
           if repo_url != local_url:
@@ -2595,16 +2604,16 @@ def upgrade_local_repo(args):
 
 
 def change_objects_owner(args):
-  print 'Fixing database objects owner'
+  print('Fixing database objects owner')
   database_name = args.database_name
   new_owner = args.database_username
   if '"' not in new_owner:
-    #wrap to allow old username "ambari-server", postgres only
+    # wrap to allow old username "ambari-server", postgres only
     new_owner = '\'"{0}"\''.format(new_owner)
     pass
 
   command = CHANGE_OWNER_COMMAND[:]
-  command[-1] = command[-1].format(database_name, 'ambari', new_owner)
+  command[-1] = command[-1].format(PG_SQL, database_name, 'ambari', new_owner)
   return run_os_command(command)
 
 
@@ -2618,9 +2627,7 @@ def compare_versions(version1, version2):
 def run_schema_upgrade():
   jdk_path = find_jdk()
   if jdk_path is None:
-    print_error_msg("No JDK found, please run the \"setup\" "
-                    "command to install a JDK automatically or install any "
-                    "JDK manually to " + JDK_INSTALL_DIR)
+    print_error_msg("No JDK found, please run the \"setup\" command to install a JDK automatically or install any JDK manually to " + JDK_INSTALL_DIR)
     return 1
   command = SCHEMA_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath())
   (retcode, stdout, stderr) = run_os_command(command)
@@ -2633,9 +2640,7 @@ def run_schema_upgrade():
 def run_stack_upgrade(stackName, stackVersion, repo_url, repo_url_os):
   jdk_path = find_jdk()
   if jdk_path is None:
-    print_error_msg("No JDK found, please run the \"setup\" "
-                    "command to install a JDK automatically or install any "
-                    "JDK manually to " + JDK_INSTALL_DIR)
+    print_error_msg("No JDK found, please run the \"setup\" command to install a JDK automatically or install any JDK manually to " + JDK_INSTALL_DIR)
     return 1
   stackId = {}
   stackId[stackName] = stackVersion
@@ -2644,9 +2649,7 @@ def run_stack_upgrade(stackName, stackVersion, repo_url, repo_url_os):
   if repo_url_os is not None:
     stackId['repo_url_os'] = repo_url_os
 
-  command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath(),
-                                             "updateStackId",
-                                            "'" + json.dumps(stackId) + "'")
+  command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath(), "updateStackId", "'" + json.dumps(stackId) + "'")
   (retcode, stdout, stderr) = run_os_command(command)
   print_info_msg("Return code from stack upgrade command, retcode = " + str(retcode))
   if retcode > 0:
@@ -2657,20 +2660,15 @@ def run_stack_upgrade(stackName, stackVersion, repo_url, repo_url_os):
 def run_metainfo_upgrade(keyValueMap=None):
   jdk_path = find_jdk()
   if jdk_path is None:
-    print_error_msg("No JDK found, please run the \"setup\" "
-                    "command to install a JDK automatically or install any "
-                    "JDK manually to " + JDK_INSTALL_DIR)
+    print_error_msg("No JDK found, please run the \"setup\" command to install a JDK automatically or install any JDK manually to " + JDK_INSTALL_DIR)
 
   retcode = 1
   if keyValueMap:
-    command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath(),
-                                              'updateMetaInfo',
-                                              "'" + json.dumps(keyValueMap) + "'")
+    command = STACK_UPGRADE_HELPER_CMD.format(jdk_path, get_conf_dir(), get_ambari_classpath(), 'updateMetaInfo', "'" + json.dumps(keyValueMap) + "'")
     (retcode, stdout, stderr) = run_os_command(command)
     print_info_msg("Return code from stack upgrade command, retcode = " + str(retcode))
     if retcode > 0:
-      print_error_msg("Error executing metainfo upgrade, please check the "
-                      "server logs.")
+      print_error_msg("Error executing metainfo upgrade, please check the server logs.")
 
   return retcode
 
@@ -2680,11 +2678,10 @@ def run_metainfo_upgrade(keyValueMap=None):
 #
 def upgrade(args):
   if not is_root():
-    err = 'Ambari-server upgrade should be run with ' \
-          'root-level privileges'
+    err = 'Ambari-server upgrade should be run with root-level privileges'
     raise FatalException(4, err)
 
-  print 'Updating properties in ' + AMBARI_PROPERTIES_FILE + ' ...'
+  print('Updating properties in ' + AMBARI_PROPERTIES_FILE + ' ...')
   retcode = update_ambari_properties()
   if not retcode == 0:
     err = AMBARI_PROPERTIES_FILE + ' file can\'t be updated. Exiting'
@@ -2697,18 +2694,17 @@ def upgrade(args):
     if properties == -1:
       print_error_msg("Error getting ambari properties")
       return -1
-    print_warning_msg(JDBC_DATABASE_PROPERTY + " property isn't set in " +
-    AMBARI_PROPERTIES_FILE + ". Setting it to default value - " + DEFAULT_DB_NAME)
+    print_warning_msg(JDBC_DATABASE_PROPERTY + " property isn't set in " + AMBARI_PROPERTIES_FILE + ". Setting it to default value - " + DEFAULT_DB_NAME)
     properties.process_pair(JDBC_DATABASE_PROPERTY, DEFAULT_DB_NAME)
     conf_file = find_properties_file()
     try:
       properties.store(open(conf_file, "w"))
-    except Exception, e:
+    except Exception as e:
       print_error_msg('Could not write ambari config file "%s": %s' % (conf_file, e))
       return -1
 
   parse_properties_file(args)
-  #TODO check database version
+  # TODO check database version
   if args.persistence_type == 'local':
     retcode, stdout, stderr = change_objects_owner(args)
     if not retcode == 0:
@@ -2716,7 +2712,7 @@ def upgrade(args):
 
   retcode = run_schema_upgrade()
   if not retcode == 0:
-    print_error_msg("Ambari server upgrade failed. Please look at /var/log/ambari-server/ambari-server.log, for more details.")
+    print_error_msg("Ambari server upgrade failed. Please look at /var/log/ambari/ambari-server.log, for more details.")
     raise FatalException(11, 'Schema upgrade failed.')
 
   user = read_ambari_user()
@@ -2737,10 +2733,10 @@ def status(args):
   args.exit_message = None
   status, pid = is_server_runing()
   if status:
-    print "Ambari Server running"
-    print "Found Ambari Server PID: '" + str(pid) + " at: " + PID_DIR + os.sep + PID_NAME
+    print("Ambari Server is running")
+    print("Found Ambari Server PID: '" + str(pid) + " at: " + PID_DIR + os.sep + PID_NAME)
   else:
-    print "Ambari Server not running. Stale PID File at: " + PID_DIR + os.sep + PID_NAME
+    print("Ambari Server is not running. Stale PID File at: " + PID_DIR + os.sep + PID_NAME)
 
 
 #
@@ -2783,7 +2779,7 @@ def get_choice_string_input(prompt, default, firstChoice, secondChoice):
   if SILENT:
     print(prompt)
     return default
-  choice = raw_input(prompt).lower()
+  choice = input(prompt).lower()
   if choice in firstChoice:
     return True
   elif choice in secondChoice:
@@ -2791,45 +2787,45 @@ def get_choice_string_input(prompt, default, firstChoice, secondChoice):
   elif choice is "":  # Just enter pressed
     return default
   else:
-    print "input not recognized, please try again: "
+    print("input not recognized, please try again: ")
     return get_choice_string_input(prompt, default, firstChoice, secondChoice)
 
 
-def get_validated_string_input(prompt, default, pattern, description,
-                               is_pass, allowEmpty=True, validatorFunction=None):
+def get_validated_string_input(prompt, default, pattern, description, is_pass, allowEmpty=True, validatorFunction=None):
 
-  input = ""
-  while not input:
+  input_str = ""
+  while not input_str:
     if SILENT:
       print (prompt)
-      input = default
+      input_str = default
     elif is_pass:
-      input = getpass.getpass(prompt)
+      input_str = getpass.getpass(prompt)
     else:
-      input = raw_input(prompt)
-    if not input.strip():
+      input_str = input(prompt)
+
+    if not input_str.strip():
       # Empty input - if default available use default
       if not allowEmpty and not default:
-        print 'Property cannot be blank.'
-        input = ""
+        print('Property cannot be blank.')
+        input_str = ""
         continue
       else:
-        input = default
+        input_str = default
         if validatorFunction:
-          if not validatorFunction(input):
-            input = ""
+          if not validatorFunction(input_str):
+            input_str = ""
             continue
         break  # done here and picking up default
     else:
-      if not pattern == None and not re.search(pattern, input.strip()):
-        print description
-        input = ""
+      if not pattern == None and not re.search(pattern, input_str.strip()):
+        print(description)
+        input_str = ""
 
       if validatorFunction:
-        if not validatorFunction(input):
-          input = ""
+        if not validatorFunction(input_str):
+          input_str = ""
           continue
-  return input
+  return input_str
 
 
 def get_value_from_properties(properties, key, default=""):
@@ -2851,8 +2847,7 @@ def get_prompt_default(defaultStr=None):
 
 def setup_ldap():
   if not is_root():
-    err = 'Ambari-server setup-ldap should be run with ' \
-          'root-level privileges'
+    err = 'Ambari-server setup-ldap should be run with root-level privileges'
     raise FatalException(4, err)
 
   properties = get_ambari_properties()
@@ -2871,11 +2866,11 @@ def setup_ldap():
                              SSL_TRUSTSTORE_PATH_PROPERTY,
                              SSL_TRUSTSTORE_PASSWORD_PROPERTY]
 
-  ldap_property_list_truststore=[SSL_TRUSTSTORE_TYPE_PROPERTY,
+  ldap_property_list_truststore = [SSL_TRUSTSTORE_TYPE_PROPERTY,
                                  SSL_TRUSTSTORE_PATH_PROPERTY,
                                  SSL_TRUSTSTORE_PASSWORD_PROPERTY]
 
-  ldap_property_list_passwords=[LDAP_MGR_PASSWORD_PROPERTY,
+  ldap_property_list_passwords = [LDAP_MGR_PASSWORD_PROPERTY,
                                 SSL_TRUSTSTORE_PASSWORD_PROPERTY]
 
   LDAP_PRIMARY_URL_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[0])
@@ -2889,13 +2884,13 @@ def setup_ldap():
   SSL_TRUSTSTORE_PATH_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_PATH_PROPERTY)
 
 
-  ldap_properties_map_reqd =\
+  ldap_properties_map_reqd = \
   {
-    ldap_property_list_reqd[0]:(LDAP_PRIMARY_URL_DEFAULT, "Primary URL* {{host:port}} {0}: ".format(get_prompt_default(LDAP_PRIMARY_URL_DEFAULT)), False),\
-    ldap_property_list_reqd[1]:(LDAP_SECONDARY_URL_DEFAULT, "Secondary URL {{host:port}} {0}: ".format(get_prompt_default(LDAP_SECONDARY_URL_DEFAULT)), True),\
-    ldap_property_list_reqd[2]:(LDAP_USE_SSL_DEFAULT, "Use SSL* [true/false] {0}: ".format(get_prompt_default(LDAP_USE_SSL_DEFAULT)), False),\
-    ldap_property_list_reqd[3]:(LDAP_USER_ATT_DEFAULT, "User name attribute* {0}: ".format(get_prompt_default(LDAP_USER_ATT_DEFAULT)), False),\
-    ldap_property_list_reqd[4]:(LDAP_BASE_DN_DEFAULT, "Base DN* {0}: ".format(get_prompt_default(LDAP_BASE_DN_DEFAULT)), False),\
+    ldap_property_list_reqd[0]:(LDAP_PRIMARY_URL_DEFAULT, "Primary URL* {{host:port}} {0}: ".format(get_prompt_default(LDAP_PRIMARY_URL_DEFAULT)), False), \
+    ldap_property_list_reqd[1]:(LDAP_SECONDARY_URL_DEFAULT, "Secondary URL {{host:port}} {0}: ".format(get_prompt_default(LDAP_SECONDARY_URL_DEFAULT)), True), \
+    ldap_property_list_reqd[2]:(LDAP_USE_SSL_DEFAULT, "Use SSL* [true/false] {0}: ".format(get_prompt_default(LDAP_USE_SSL_DEFAULT)), False), \
+    ldap_property_list_reqd[3]:(LDAP_USER_ATT_DEFAULT, "User name attribute* {0}: ".format(get_prompt_default(LDAP_USER_ATT_DEFAULT)), False), \
+    ldap_property_list_reqd[4]:(LDAP_BASE_DN_DEFAULT, "Base DN* {0}: ".format(get_prompt_default(LDAP_BASE_DN_DEFAULT)), False), \
     ldap_property_list_reqd[5]:(LDAP_BIND_DEFAULT, "Bind anonymously* [true/false] {0}: ".format(get_prompt_default(LDAP_BIND_DEFAULT)), False)\
   }
 
@@ -2908,8 +2903,11 @@ def setup_ldap():
     else:
       pattern = REGEX_ANYTHING
     input = get_validated_string_input(ldap_properties_map_reqd[key][1],
-      ldap_properties_map_reqd[key][0], pattern,
-      "Invalid characters in the input!", False, ldap_properties_map_reqd[key][2])
+                       ldap_properties_map_reqd[key][0],
+                       pattern,
+                       "Invalid characters in the input!",
+                       False,
+                       ldap_properties_map_reqd[key][2])
     if input is not None and input != "":
       ldap_property_value_map[key] = input
 
@@ -2918,8 +2916,9 @@ def setup_ldap():
   mgr_password = None
   # Ask for manager credentials only if bindAnonymously is false
   if not anonymous:
-    username = get_validated_string_input("Manager DN* {0}: ".format(
-      get_prompt_default(LDAP_MGR_DN_DEFAULT)), LDAP_MGR_DN_DEFAULT, ".*",
+    username = get_validated_string_input("Manager DN* {0}: ".format(get_prompt_default(LDAP_MGR_DN_DEFAULT)),
+                                          LDAP_MGR_DN_DEFAULT,
+                                          ".*",
                 "Invalid characters in the input!", False, False)
     ldap_property_value_map[LDAP_MGR_USERNAME_PROPERTY] = username
     mgr_password = configure_ldap_password()
@@ -2934,9 +2933,7 @@ def setup_ldap():
     truststore_set = bool(SSL_TRUSTSTORE_PATH_DEFAULT)
     if truststore_set:
       truststore_default = "y"
-    custom_trust_store = get_YN_input("Do you want to provide custom TrustStore for Ambari [y/n] ({0})?".
-                                      format(truststore_default),
-                                      truststore_set)
+    custom_trust_store = get_YN_input("Do you want to provide custom TrustStore for Ambari [y/n]? ({0}) ".format(truststore_default), truststore_set)
     if custom_trust_store:
       ts_type = get_validated_string_input(
         "TrustStore type [jks/jceks/pkcs12] {0}:".format(get_prompt_default(SSL_TRUSTSTORE_TYPE_DEFAULT)),
@@ -2944,14 +2941,13 @@ def setup_ldap():
         "^(jks|jceks|pkcs12)?$", "Wrong type", False)
       ts_path = None
       while True:
-        ts_path = get_validated_string_input(
-          "Path to TrustStore file {0}:".format(get_prompt_default(SSL_TRUSTSTORE_PATH_DEFAULT)),
+        ts_path = get_validated_string_input("Path to TrustStore file {0}:".format(get_prompt_default(SSL_TRUSTSTORE_PATH_DEFAULT)),
           SSL_TRUSTSTORE_PATH_DEFAULT,
           ".*", False, False)
         if os.path.exists(ts_path):
           break
         else:
-          print 'File not found.'
+          print('File not found.')
 
       ts_password = read_password("", ".*", "Password for TrustStore:", "Invalid characters in password")
 
@@ -2966,21 +2962,21 @@ def setup_ldap():
     pass
   pass
 
-  print '=' * 20
-  print 'Review Settings'
-  print '=' * 20
+  print('=' * 20)
+  print('Review Settings')
+  print('=' * 20)
   for property in ldap_property_list_reqd:
     if property in ldap_property_value_map:
       print("%s: %s" % (property, ldap_property_value_map[property]))
 
   for property in ldap_property_list_opt:
-    if ldap_property_value_map.has_key(property):
+    if property in ldap_property_value_map:
       if property not in ldap_property_list_passwords:
         print("%s: %s" % (property, ldap_property_value_map[property]))
       else:
         print("%s: %s" % (property, BLIND_PASSWORD))
 
-  save_settings = get_YN_input("Save settings [y/n] (y)? ", True)
+  save_settings = get_YN_input("Save settings [y/n]? (y) ", True)
 
   if save_settings:
     ldap_property_value_map[CLIENT_SECURITY_KEY] = 'ldap'
@@ -2999,16 +2995,15 @@ def setup_ldap():
 
     # Persisting values
     update_properties(properties, ldap_property_value_map)
-    print 'Saving...done'
+    print('Saving...done')
 
   return 0
 
 
 def read_master_key(isReset=False):
-  passwordPattern = ".*"
+  passwordPattern = PASSWORD_PATTERN
   passwordPrompt = "Please provide master key for locking the credential store: "
-  passwordDescr = "Invalid characters in password. Use only alphanumeric or "\
-                  "_ or - characters"
+  passwordDescr = "Invalid characters in password. Use only alphanumeric or _ or - characters"
   passwordDefault = ""
   if isReset:
     passwordPrompt = "Enter new Master Key: "
@@ -3017,14 +3012,14 @@ def read_master_key(isReset=False):
                             passwordPattern, passwordDescr, True, True)
 
   if not masterKey:
-    print "Master Key cannot be empty!"
+    print("Master Key cannot be empty!")
     return read_master_key()
 
   masterKey2 = get_validated_string_input("Re-enter master key: ",
       passwordDefault, passwordPattern, passwordDescr, True, True)
 
   if masterKey != masterKey2:
-    print "Master key did not match!"
+    print("Master key did not match!")
     return read_master_key()
 
   return masterKey
@@ -3048,7 +3043,7 @@ def get_encrypted_password(alias, password, properties):
 
     retCode = save_passwd_for_alias(alias, password, masterKey)
     if retCode != 0:
-      print 'Failed to save secure password!'
+      print('Failed to save secure password!')
       return password
     else:
       return get_alias_string(alias)
@@ -3076,10 +3071,9 @@ def decrypt_password_for_alias(alias):
 
 def get_original_master_key(properties):
   try:
-    masterKey = get_validated_string_input('Enter current Master Key: ',
-                                             "", ".*", "", True, False)
+    masterKey = get_validated_string_input('Enter current Master Key: ', "", ".*", "", True, False)
   except KeyboardInterrupt:
-    print 'Exiting...'
+    print('Exiting...')
     sys.exit(1)
 
   # Find an alias that exists
@@ -3102,7 +3096,7 @@ def get_original_master_key(properties):
   if alias and masterKey:
     password = read_passwd_for_alias(alias, masterKey)
     if not password:
-      print "ERROR: Master key does not match."
+      print("ERROR: Master key does not match.")
       return get_original_master_key(properties)
 
   return masterKey
@@ -3124,8 +3118,7 @@ def get_is_persisted(properties):
 
 def setup_master_key():
   if not is_root():
-    err = 'Ambari-server setup should be run with '\
-                     'root-level privileges'
+    err = 'Ambari-server setup should be run with root-level privileges'
     raise FatalException(4, err)
 
   properties = get_ambari_properties()
@@ -3135,7 +3128,7 @@ def setup_master_key():
   db_password = properties.get_property(JDBC_PASSWORD_PROPERTY)
   # Encrypt passwords cannot be called before setup
   if not db_password:
-    print 'Please call "setup" before "encrypt-passwords". Exiting...'
+    print('Please call "setup" before "encrypt-passwords". Exiting...')
     return 1
 
   # Check configuration for location of master key
@@ -3153,34 +3146,32 @@ def setup_master_key():
   masterKey = None
 
   if isSecure:
-    print "Password encryption is enabled."
-    resetKey = get_YN_input("Do you want to reset Master Key? [y/n] (n): ", False)
+    print("Password encryption is enabled.")
+    resetKey = get_YN_input("Do you want to reset Master Key [y/n]? (n): ", False)
 
   # For encrypting of only unencrypted passwords without resetting the key ask
   # for master key if not persisted.
   if isSecure and not isPersisted and not resetKey:
-    print "Master Key not persisted."
+    print("Master Key not persisted.")
     masterKey = get_original_master_key(properties)
   pass
 
   # Make sure both passwords are clear-text if master key is lost
   if resetKey:
     if not isPersisted:
-      print "Master Key not persisted."
+      print("Master Key not persisted.")
       masterKey = get_original_master_key(properties)
       # Unable get the right master key or skipped question <enter>
       if not masterKey:
-        print "To disable encryption, do the following:"
-        print "- Edit " + find_properties_file() + \
-              " and set " + SECURITY_IS_ENCRYPTION_ENABLED + " = " + "false."
-        err = "{0} is already encrypted. Please call {1} to store unencrypted" \
-              " password and call 'encrypt-passwords' again."
+        print("To disable encryption, do the following:")
+        print("- Edit " + find_properties_file() + " and set " + SECURITY_IS_ENCRYPTION_ENABLED + " = " + "false.")
+        err = "{0} is already encrypted. Please call {1} to store unencrypted password and call 'encrypt-passwords' again."
         if db_password and is_alias_string(db_password):
-          print err.format('- Database password', "'" + SETUP_ACTION + "'")
+          print(err.format('- Database password', "'" + SETUP_ACTION + "'"))
         if ldap_password and is_alias_string(ldap_password):
-          print err.format('- LDAP manager password', "'" + LDAP_SETUP_ACTION + "'")
+          print(err.format('- LDAP manager password', "'" + LDAP_SETUP_ACTION + "'"))
         if ts_password and is_alias_string(ts_password):
-          print err.format('TrustStore password', "'" + LDAP_SETUP_ACTION + "'")
+          print(err.format('TrustStore password', "'" + LDAP_SETUP_ACTION + "'"))
 
         return 1
       pass
@@ -3197,22 +3188,18 @@ def setup_master_key():
   # Read master key, if non-secure or reset is true
   if resetKey or not isSecure:
     masterKey = read_master_key(resetKey)
-    persist = get_YN_input("Do you want to persist master key. If you choose "\
-                           "not to persist, you need to provide the Master "\
-                           "Key while starting the ambari server as an env "\
-                           "variable named " + SECURITY_KEY_ENV_VAR_NAME +\
-                           " or the start will prompt for the master key."
-                           " Persist [y/n] (y)? ", True)
+    persist = get_YN_input("Do you want to persist master key. If you choose  not to persist, you need to provide the Master  Key while starting the ambari server as an env "\
+                           "variable named " + SECURITY_KEY_ENV_VAR_NAME + \
+                           " or the start will prompt for the master key. Persist [y/n]? (y) ", True)
     if persist:
-      save_master_key(masterKey, get_master_key_location(properties) + os.sep +
+      save_master_key(masterKey, get_master_key_location(properties) + os.sep + 
                                  SECURITY_MASTER_KEY_FILENAME, persist)
     elif not persist and masterKeyFile:
       try:
         os.remove(masterKeyFile)
-        print_info_msg("Deleting master key file at location: " + str(
-          masterKeyFile))
-      except Exception, e:
-        print 'ERROR: Could not remove master key file. %s' % e
+        print_info_msg("Deleting master key file at location: " + str(masterKeyFile))
+      except Exception as e:
+        print('ERROR: Could not remove master key file. %s' % e)
     # Blow up the credential store made with previous key, if any
     store_file = get_credential_store_location(properties)
     if os.path.exists(store_file):
@@ -3229,7 +3216,7 @@ def setup_master_key():
   if db_password and not is_alias_string(db_password):
     retCode = save_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, db_password, masterKey)
     if retCode != 0:
-      print 'Failed to save secure database password.'
+      print('Failed to save secure database password.')
     else:
       propertyMap[JDBC_PASSWORD_PROPERTY] = get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
       remove_password_file(JDBC_PASSWORD_FILENAME)
@@ -3240,7 +3227,7 @@ def setup_master_key():
   if ldap_password and not is_alias_string(ldap_password):
     retCode = save_passwd_for_alias(LDAP_MGR_PASSWORD_ALIAS, ldap_password, masterKey)
     if retCode != 0:
-      print 'Failed to save secure LDAP password.'
+      print('Failed to save secure LDAP password.')
     else:
       propertyMap[LDAP_MGR_PASSWORD_PROPERTY] = get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
   pass
@@ -3248,7 +3235,7 @@ def setup_master_key():
   if ts_password and not is_alias_string(ts_password):
     retCode = save_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, ts_password, masterKey)
     if retCode != 0:
-      print 'Failed to save secure TrustStore password.'
+      print('Failed to save secure TrustStore password.')
     else:
       propertyMap[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS)
   pass
@@ -3267,8 +3254,8 @@ def setup_master_key():
 def get_credential_store_location(properties):
   store_loc = properties[SECURITY_KEYS_DIR]
   if store_loc is None or store_loc == "":
-    store_loc = "/var/lib/ambari-server/keys/credentials.jceks"
-  else:
+    store_loc = SECURITY_KEYS_DIR_DEFAULT
+
     store_loc += os.sep + "credentials.jceks"
   return store_loc
 
@@ -3277,6 +3264,8 @@ def get_master_key_location(properties):
   keyLocation = properties[SECURITY_MASTER_KEY_LOCATION]
   if keyLocation is None or keyLocation == "":
     keyLocation = properties[SECURITY_KEYS_DIR]
+  if keyLocation is None or keyLocation == "":
+    keyLocation = SECURITY_KEYS_DIR_DEFAULT
   return keyLocation
 
 
@@ -3302,15 +3291,13 @@ def read_passwd_for_alias(alias, masterKey=""):
   if alias:
     jdk_path = find_jdk()
     if jdk_path is None:
-      print_error_msg("No JDK found, please run the \"setup\" "
-                      "command to install a JDK automatically or install any "
-                      "JDK manually to " + JDK_INSTALL_DIR)
+      print_error_msg("No JDK found, please run the \"setup\"  command to install a JDK automatically or install any  JDK manually to " + JDK_INSTALL_DIR)
       return 1
 
     tempFileName = "ambari.passwd"
     passwd = ""
     tempDir = tempfile.gettempdir()
-    #create temporary file for writing
+    # create temporary file for writing
     tempFilePath = tempDir + os.sep + tempFileName
     file = open(tempFilePath, 'w+')
     os.chmod(tempFilePath, stat.S_IREAD | stat.S_IWRITE)
@@ -3322,10 +3309,9 @@ def read_passwd_for_alias(alias, masterKey=""):
     command = SECURITY_PROVIDER_GET_CMD.format(jdk_path,
       get_conf_dir(), get_ambari_classpath(), alias, tempFilePath, masterKey)
     (retcode, stdout, stderr) = run_os_command(command)
-    print_info_msg("Return code from credential provider get passwd: " +
-                   str(retcode))
+    print_info_msg("Return code from credential provider get passwd: " + str(retcode))
     if retcode != 0:
-      print 'ERROR: Unable to read password from store. alias = ' + alias
+      print('ERROR: Unable to read password from store. alias = ' + alias)
     else:
       passwd = open(tempFilePath, 'r').read()
       # Remove temporary file
@@ -3339,9 +3325,7 @@ def save_passwd_for_alias(alias, passwd, masterKey=""):
   if alias and passwd:
     jdk_path = find_jdk()
     if jdk_path is None:
-      print_error_msg("No JDK found, please run the \"setup\" "
-                      "command to install a JDK automatically or install any "
-                      "JDK manually to " + JDK_INSTALL_DIR)
+      print_error_msg("No JDK found, please run the \"setup\" command to install a JDK automatically or install any  JDK manually to " + JDK_INSTALL_DIR)
       return 1
 
     if masterKey is None or masterKey == "":
@@ -3350,8 +3334,7 @@ def save_passwd_for_alias(alias, passwd, masterKey=""):
     command = SECURITY_PROVIDER_PUT_CMD.format(jdk_path, get_conf_dir(),
       get_ambari_classpath(), alias, passwd, masterKey)
     (retcode, stdout, stderr) = run_os_command(command)
-    print_info_msg("Return code from credential provider save passwd: " +
-                   str(retcode))
+    print_info_msg("Return code from credential provider save passwd: " + str(retcode))
     return retcode
   else:
     print_error_msg("Alias or password is unreadable.")
@@ -3361,15 +3344,12 @@ def save_master_key(master_key, key_location, persist=True):
   if master_key:
     jdk_path = find_jdk()
     if jdk_path is None:
-      print_error_msg("No JDK found, please run the \"setup\" "
-                      "command to install a JDK automatically or install any "
-                      "JDK manually to " + JDK_INSTALL_DIR)
+      print_error_msg("No JDK found, please run the \"setup\"  command to install a JDK automatically or install any JDK manually to " + JDK_INSTALL_DIR)
       return 1
     command = SECURITY_PROVIDER_KEY_CMD.format(jdk_path,
       get_ambari_classpath(), get_conf_dir(), master_key, key_location, persist)
     (retcode, stdout, stderr) = run_os_command(command)
-    print_info_msg("Return code from credential provider save KEY: " +
-                   str(retcode))
+    print_info_msg("Return code from credential provider save KEY: " + str(retcode))
   else:
     print_error_msg("Master key cannot be None.")
 
@@ -3377,7 +3357,7 @@ def save_master_key(master_key, key_location, persist=True):
 def configure_ldap_password():
   passwordDefault = ""
   passwordPrompt = 'Enter Manager Password* : '
-  passwordPattern = ".*"
+  passwordPattern = PASSWORD_PATTERN
   passwordDescr = "Invalid characters in password."
 
   password = read_password(passwordDefault, passwordPattern, passwordPrompt,
@@ -3392,11 +3372,10 @@ def backup_file_in_temp(filePath):
     tmpDir = tempfile.gettempdir()
     back_up_file_count = len(glob.glob1(tmpDir, AMBARI_PROPERTIES_FILE + "*"))
     try:
-      shutil.copyfile(filePath, tmpDir + os.sep +
+      shutil.copyfile(filePath, tmpDir + os.sep + 
                                 AMBARI_PROPERTIES_FILE + "." + str(back_up_file_count + 1))
-    except (Exception), e:
-      print_error_msg('Could not backup file in temp "%s": %s' % (str(
-        back_up_file_count, e)))
+    except Exception as e:
+      print_error_msg('Could not backup file in temp "%s": %s' % (str(back_up_file_count, e)))
   return 0
 
 
@@ -3410,13 +3389,13 @@ def update_properties(propertyMap):
     try:
       with open(conf_file, 'r') as file:
         properties.load(file)
-    except (Exception), e:
+    except Exception as e:
       print_error_msg('Could not read "%s": %s' % (conf_file, e))
       return -1
 
-    #for key in propertyMap.keys():
-      #properties[key] = propertyMap[key]
-    for key in propertyMap.keys():
+    # for key in propertyMap.keys():
+      # properties[key] = propertyMap[key]
+    for key in list(propertyMap.keys()):
       properties.removeOldProp(key)
       properties.process_pair(key, str(propertyMap[key]))
 
@@ -3431,7 +3410,7 @@ def update_properties(properties, propertyMap):
   backup_file_in_temp(conf_file)
   if conf_file is not None:
     if propertyMap is not None:
-      for key in propertyMap.keys():
+      for key in list(propertyMap.keys()):
         properties.removeOldProp(key)
         properties.process_pair(key, str(propertyMap[key]))
       pass
@@ -3444,8 +3423,7 @@ def update_properties(properties, propertyMap):
 
 def setup_https(args):
   if not is_root():
-    err = 'ambari-server setup-https should be run with ' \
-          'root-level privileges'
+    err = 'ambari-server setup-https should be run with root-level privileges'
     raise FatalException(4, err)
   args.exit_message = None
   if not SILENT:
@@ -3458,27 +3436,27 @@ def setup_https(args):
       cert_was_imported = False
       cert_must_import = True
       if api_ssl:
-       if get_YN_input("Do you want to disable HTTPS [y/n] (n)? ", False):
+       if get_YN_input("Do you want to disable HTTPS [y/n]? (n) ", False):
         properties.process_pair(SSL_API, "false")
-        cert_must_import=False
+        cert_must_import = False
        else:
         properties.process_pair(SSL_API_PORT, \
                                 get_validated_string_input(\
-                                "SSL port ["+str(client_api_ssl_port)+"] ? ",\
-                                str(client_api_ssl_port),\
-                                "^[0-9]{1,5}$", "Invalid port.", False, validatorFunction = is_valid_https_port))
+                                "SSL port [" + str(client_api_ssl_port) + "] ? ", \
+                                str(client_api_ssl_port), \
+                                "^[0-9]{1,5}$", "Invalid port.", False, validatorFunction=is_valid_https_port))
         cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties)
       else:
-       if get_YN_input("Do you want to configure HTTPS [y/n] (y)? ", True):
-        properties.process_pair(SSL_API_PORT,\
-        get_validated_string_input("SSL port ["+str(client_api_ssl_port)+"] ? ",\
-        str(client_api_ssl_port), "^[0-9]{1,5}$", "Invalid port.", False, validatorFunction = is_valid_https_port))
+       if get_YN_input("Do you want to configure HTTPS [y/n]? (y) ", True):
+        properties.process_pair(SSL_API_PORT, \
+        get_validated_string_input("SSL port [" + str(client_api_ssl_port) + "] ? ", \
+        str(client_api_ssl_port), "^[0-9]{1,5}$", "Invalid port.", False, validatorFunction=is_valid_https_port))
         cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties)
        else:
         return False
 
       if cert_must_import and not cert_was_imported:
-        print 'Setup of HTTPS failed. Exiting.'
+        print('Setup of HTTPS failed. Exiting.')
         return False
 
       conf_file = find_properties_file()
@@ -3489,7 +3467,7 @@ def setup_https(args):
       if ambari_user:
         adjust_directory_permissions(ambari_user)
       return True
-    except (KeyError), e:
+    except KeyError as e:
       err = 'Property ' + str(e) + ' is not defined'
       raise FatalException(1, err)
   else:
@@ -3503,7 +3481,7 @@ def is_server_runing():
   if os.path.exists(pid_file_path):
     try:
       f = open(pid_file_path, "r")
-    except IOError, ex:
+    except IOError as ex:
       raise FatalException(1, str(ex))
 
     pid = f.readline().strip()
@@ -3530,9 +3508,7 @@ def setup_component_https(component, command, property, alias):
 
     jdk_path = find_jdk()
     if jdk_path is None:
-      err = "No JDK found, please run the \"ambari-server setup\" " \
-                      "command to install a JDK automatically or install any " \
-                      "JDK manually to " + JDK_INSTALL_DIR
+      err = "No JDK found, please run the \"ambari-server setup\"  command to install a JDK automatically or install any  JDK manually to " + JDK_INSTALL_DIR
       raise FatalException(1, err)
 
     properties = get_ambari_properties()
@@ -3540,7 +3516,7 @@ def setup_component_https(component, command, property, alias):
     use_https = properties.get_property(property) in ['true']
 
     if use_https:
-      if get_YN_input("Do you want to disable HTTPS for " + component + " [y/n] (n)? ", False):
+      if get_YN_input("Do you want to disable HTTPS for " + component + " [y/n]? (n) ", False):
 
         truststore_path = get_truststore_path(properties)
         truststore_password = get_truststore_password(properties)
@@ -3552,7 +3528,7 @@ def setup_component_https(component, command, property, alias):
       else:
         return
     else:
-      if get_YN_input("Do you want to configure HTTPS for " + component + " [y/n] (y)? ", True):
+      if get_YN_input("Do you want to configure HTTPS for " + component + " [y/n]? (y) ", True):
 
         truststore_type = get_truststore_type(properties)
         truststore_path = get_truststore_path(properties)
@@ -3560,9 +3536,7 @@ def setup_component_https(component, command, property, alias):
 
         run_os_command(get_delete_cert_command(jdk_path, alias, truststore_path, truststore_password))
 
-        import_cert_path = get_validated_filepath_input(\
-                          "Enter path to " + component + " Certificate: ",\
-                          "Certificate not found")
+        import_cert_path = get_validated_filepath_input("Enter path to " + component + " Certificate: ", "Certificate not found")
 
         run_component_https_cmd(get_import_cert_command(jdk_path, alias, truststore_type, import_cert_path, truststore_path, truststore_password))
 
@@ -3576,7 +3550,7 @@ def setup_component_https(component, command, property, alias):
     properties.store(f, "Changed by 'ambari-server " + command + "' command")
 
   else:
-    print command + " is not enabled in silent mode."
+    print(command + " is not enabled in silent mode.")
 
 
 def get_truststore_type(properties):
@@ -3662,11 +3636,8 @@ def import_cert_and_key_action(security_server_keys_dir, properties):
 
 
 def import_cert_and_key(security_server_keys_dir):
-  import_cert_path = get_validated_filepath_input(\
-                    "Enter path to Certificate: ",\
-                    "Certificate not found")
-  import_key_path  =  get_validated_filepath_input(\
-                      "Enter path to Private Key: ", "Private Key not found")
+  import_cert_path = get_validated_filepath_input("Enter path to Certificate: ", "Certificate not found")
+  import_key_path = get_validated_filepath_input("Enter path to Private Key: ", "Private Key not found")
   pem_password = get_validated_string_input("Please enter password for Private Key: ", "", None, None, True)
 
   certInfoDict = get_cert_info(import_cert_path)
@@ -3674,36 +3645,36 @@ def import_cert_and_key(security_server_keys_dir):
   if not certInfoDict:
     print_warning_msg('Unable to get Certificate information')
   else:
-    #Validate common name of certificate
+    # Validate common name of certificate
     if not is_valid_cert_host(certInfoDict):
       print_warning_msg('Unable to validate Certificate hostname')
 
-    #Validate issue and expirations dates of certificate
+    # Validate issue and expirations dates of certificate
     if not is_valid_cert_exp(certInfoDict):
       print_warning_msg('Unable to validate Certificate issue and expiration dates')
 
-  #jetty requires private key files with non-empty key passwords
+  # jetty requires private key files with non-empty key passwords
   retcode = 0
   err = ''
   if not pem_password:
-    print 'Generating random password for HTTPS keystore...done.'
+    print('Generating random password for HTTPS keystore...done.')
     pem_password = generate_random_string()
     retcode, out, err = run_os_command(CHANGE_KEY_PWD_CND.format(
       import_key_path, pem_password))
     import_key_path += '.secured'
 
   if retcode == 0:
-    keystoreFilePath = os.path.join(security_server_keys_dir,\
+    keystoreFilePath = os.path.join(security_server_keys_dir, \
                                     SSL_KEYSTORE_FILE_NAME)
-    keystoreFilePathTmp = os.path.join(tempfile.gettempdir(),\
+    keystoreFilePathTmp = os.path.join(tempfile.gettempdir(), \
                                        SSL_KEYSTORE_FILE_NAME)
-    passFilePath = os.path.join(security_server_keys_dir,\
+    passFilePath = os.path.join(security_server_keys_dir, \
                                 SSL_KEY_PASSWORD_FILE_NAME)
-    passFilePathTmp = os.path.join(tempfile.gettempdir(),\
+    passFilePathTmp = os.path.join(tempfile.gettempdir(), \
       SSL_KEY_PASSWORD_FILE_NAME)
-    passinFilePath = os.path.join(tempfile.gettempdir(),\
+    passinFilePath = os.path.join(tempfile.gettempdir(), \
                                    SSL_PASSIN_FILE)
-    passwordFilePath = os.path.join(tempfile.gettempdir(),\
+    passwordFilePath = os.path.join(tempfile.gettempdir(), \
                                    SSL_PASSWORD_FILE)
 
     with open(passFilePathTmp, 'w+') as passFile:
@@ -3716,10 +3687,10 @@ def import_cert_and_key(security_server_keys_dir):
     copy_file(passFilePathTmp, passinFilePath)
     copy_file(passFilePathTmp, passwordFilePath)
 
-    retcode, out, err = run_os_command(EXPRT_KSTR_CMD.format(import_cert_path,\
+    retcode, out, err = run_os_command(EXPRT_KSTR_CMD.format(import_cert_path, \
     import_key_path, passwordFilePath, passinFilePath, keystoreFilePathTmp))
   if retcode == 0:
-   print 'Importing and saving Certificate...done.'
+   print('Importing and saving Certificate...done.')
    import_file_to_keystore(keystoreFilePathTmp, keystoreFilePath)
    import_file_to_keystore(passFilePathTmp, passFilePath)
 
@@ -3728,24 +3699,22 @@ def import_cert_and_key(security_server_keys_dir):
    import_file_to_keystore(import_key_path, os.path.join(\
                           security_server_keys_dir, SSL_KEY_FILE_NAME))
 
-   #Validate keystore
-   retcode, out, err = run_os_command(VALIDATE_KEYSTORE_CMD.format(keystoreFilePath,\
+   # Validate keystore
+   retcode, out, err = run_os_command(VALIDATE_KEYSTORE_CMD.format(keystoreFilePath, \
    passwordFilePath, passinFilePath))
 
    remove_file(passinFilePath)
    remove_file(passwordFilePath)
 
    if not retcode == 0:
-     print 'Error during keystore validation occured!:'
-     print err
+     print('Error during keystore validation occured!:')
+     print(err)
      return False
 
    return True
   else:
    print_error_msg('Could not import Certificate and Private Key.')
-   print 'SSL error on exporting keystore: ' + err.rstrip() + \
-         '.\nPlease ensure that provided Private Key password is correct and ' +\
-         're-import Certificate.'
+   print('SSL error on exporting keystore: ' + err.rstrip() + '.\nPlease ensure that provided Private Key password is correct and ' + 're-import Certificate.')
 
    return False
 
@@ -3761,34 +3730,34 @@ def generate_random_string(length=SSL_KEY_PASSWORD_LENGTH):
 
 
 def get_validated_filepath_input(prompt, description, default=None):
-  input = False
-  while not input:
+  inputstr = False
+  while not inputstr:
     if SILENT:
       print (prompt)
       return default
     else:
-      input = raw_input(prompt)
-      if not input == None:
-        input = input.strip()
-      if not input == None and not "" == input and os.path.isfile(input):
-        return input
+      inputstr = input(prompt)
+      if not inputstr == None:
+        inputstr = inputstr.strip()
+      if not inputstr == None and not "" == inputstr and os.path.exists(input):
+        return inputstr
       else:
-        print description
-        input = False
+        print(description)
+        inputstr = False
 
 
 def get_cert_info(path):
   retcode, out, err = run_os_command(GET_CRT_INFO_CMD.format(path))
 
   if retcode != 0:
-    print 'Error getting Certificate info'
-    print err
+    print('Error getting Certificate info')
+    print(err)
     return None
 
   if out:
     certInfolist = out.split(os.linesep)
   else:
-    print 'Empty Certificate info'
+    print('Empty Certificate info')
     return None
 
   notBefore = None
@@ -3806,13 +3775,13 @@ def get_cert_info(path):
     if certInfolist[item].startswith('subject='):
       subject = certInfolist[item].split('=', 1)[1]
 
-  #Convert subj to dict
+  # Convert subj to dict
   pattern = re.compile(r"[A-Z]{1,2}=[\w.-]{1,}")
   if subject:
     subjList = pattern.findall(subject)
     keys = [item.split('=')[0] for item in subjList]
     values = [item.split('=')[1] for item in subjList]
-    subjDict = dict(zip(keys, values))
+    subjDict = dict(list(zip(keys, values)))
 
     result = subjDict
     result['notBefore'] = notBefore
@@ -3825,13 +3794,13 @@ def get_cert_info(path):
 
 
 def is_valid_cert_exp(certInfoDict):
-  if certInfoDict.has_key(NOT_BEFORE_ATTR):
+  if NOT_BEFORE_ATTR in certInfoDict:
     notBefore = certInfoDict[NOT_BEFORE_ATTR]
   else:
     print_warning_msg('There is no Not Before value in Certificate')
     return False
 
-  if certInfoDict.has_key(NOT_AFTER_ATTR):
+  if NOT_AFTER_ATTR in certInfoDict:
     notAfter = certInfoDict['notAfter']
   else:
     print_warning_msg('There is no Not After value in Certificate')
@@ -3854,7 +3823,7 @@ def is_valid_cert_exp(certInfoDict):
 
 
 def is_valid_cert_host(certInfoDict):
-  if certInfoDict.has_key(COMMON_NAME_ATTR):
+  if COMMON_NAME_ATTR in certInfoDict:
    commonName = certInfoDict[COMMON_NAME_ATTR]
   else:
     print_warning_msg('There is no Common Name in Certificate')
@@ -3876,7 +3845,7 @@ def is_valid_cert_host(certInfoDict):
 def is_valid_https_port(port):
   properties = get_ambari_properties()
   if properties == -1:
-    print "Error getting ambari properties"
+    print("Error getting ambari properties")
     return False
 
   one_way_port = properties[SRVR_ONE_WAY_SSL_PORT_PROPERTY]
@@ -3888,11 +3857,11 @@ def is_valid_https_port(port):
     two_way_port = SRVR_TWO_WAY_SSL_PORT
 
   if port.strip() == one_way_port.strip():
-    print "Port for https can't match the port for one way authentication port(" + one_way_port + ")"
+    print("Port for https can't match the port for one way authentication port(" + one_way_port + ")")
     return False
 
   if port.strip() == two_way_port.strip():
-    print "Port for https can't match the port for two way authentication port(" + two_way_port + ")"
+    print("Port for https can't match the port for two way authentication port(" + two_way_port + ")")
     return False
 
   return True
@@ -3901,12 +3870,12 @@ def is_valid_https_port(port):
 def get_fqdn():
   properties = get_ambari_properties()
   if properties == -1:
-    print "Error reading ambari properties"
+    print("Error reading ambari properties")
     return None
 
   get_fqdn_service_url = properties[GET_FQDN_SERVICE_URL]
   try:
-    handle = urllib2.urlopen(get_fqdn_service_url, '', 2)
+    handle = urllib.request.urlopen(get_fqdn_service_url, '', 2)
     str = handle.read()
     handle.close()
     return str
@@ -3916,7 +3885,7 @@ def get_fqdn():
 
 def is_valid_filepath(filepath):
   if not filepath or not os.path.exists(filepath) or os.path.isdir(filepath):
-    print 'Invalid path, please provide the absolute file path.'
+    print('Invalid path, please provide the absolute file path.')
     return False
   else:
     return True
@@ -3925,8 +3894,8 @@ def is_valid_filepath(filepath):
 def setup_ambari_krb5_jaas():
   jaas_conf_file = search_file(SECURITY_KERBEROS_JASS_FILENAME, get_conf_dir())
   if os.path.exists(jaas_conf_file):
-    print 'Setting up Ambari kerberos JAAS configuration to access ' +\
-          'secured Hadoop daemons...'
+    print('Setting up Ambari kerberos JAAS configuration to access ' + \
+          'secured Hadoop daemons...')
     principal = get_validated_string_input('Enter ambari server\'s kerberos '
                   'principal name (ambari@EXAMPLE.COM): ', 'ambari@EXAMPLE.COM', '.*', '', False,
                   False)
@@ -3938,35 +3907,32 @@ def setup_ambari_krb5_jaas():
     for line in fileinput.FileInput(jaas_conf_file, inplace=1):
       line = re.sub('keyTab=.*$', 'keyTab="' + keytab + '"', line)
       line = re.sub('principal=.*$', 'principal="' + principal + '"', line)
-      print line,
+      print(line, end='')
 
   else:
-    raise NonFatalException('No jaas config file found at location: ' +
+    raise NonFatalException('No jaas config file found at location: ' + 
                             jaas_conf_file)
 
 
 def setup_security(args):
   need_restart = True
-  #Print menu options
-  print '=' * 75
-  print 'Choose one of the following options: '
-  print '  [1] Enable HTTPS for Ambari server.'
-  print '  [2] Enable HTTPS for Ganglia service.'
-  print '  [3] Enable HTTPS for Nagios service.'
-  print '  [4] Encrypt passwords stored in ambari.properties file.'
-  print '  [5] Setup Ambari kerberos JAAS configuration.'
-  print '=' * 75
-  choice = get_validated_string_input('Enter choice, (1-5): ', '0', '[1-5]',
-                                      'Invalid choice', False, False)
+  # Print menu options
+  print('=' * 75)
+  print('Choose one of the following options: ')
+  print('  [1] Enable HTTPS for Ambari server.')
+  print('  [2] Enable HTTPS for Ganglia service.')
+  print('  [3] Enable HTTPS for Nagios service.')
+  print('  [4] Encrypt passwords stored in ambari.properties file.')
+  print('  [5] Setup Ambari kerberos JAAS configuration.')
+  print('=' * 75)
+  choice = get_validated_string_input('Enter choice, (1-5): ', '0', '[1-5]', 'Invalid choice', False, False)
 
   if choice == '1':
     need_restart = setup_https(args)
   elif choice == '2':
-    setup_component_https("Ganglia", "setup-ganglia-https", GANGLIA_HTTPS,
-                         "ganglia_cert")
+    setup_component_https("Ganglia", "setup-ganglia-https", GANGLIA_HTTPS, "ganglia_cert")
   elif choice == '3':
-    setup_component_https("Nagios", "setup-nagios-https", NAGIOS_HTTPS,
-                          "nagios_cert")
+    setup_component_https("Nagios", "setup-nagios-https", NAGIOS_HTTPS, "nagios_cert")
   elif choice == '4':
     setup_master_key()
   elif choice == '5':
@@ -3981,23 +3947,19 @@ def setup_security(args):
 # Main.
 #
 def main():
-  parser = optparse.OptionParser(usage="usage: %prog [options] action [stack_id]",)
+  parser = optparse.OptionParser(usage="usage: %prog [options] action [stack_id]")
 
   parser.add_option('-f', '--init-script-file',
-                      default='/var/lib/ambari-server/'
-                              'resources/Ambari-DDL-Postgres-EMBEDDED-CREATE.sql',
+                      default='/var/lib/ambari-server/resources/Ambari-DDL-Postgres-EMBEDDED-CREATE.sql',
                       help="File with setup script")
-  parser.add_option('-r', '--drop-script-file', default="/var/lib/"
-                              "ambari-server/resources/"
-                              "Ambari-DDL-Postgres-EMBEDDED-DROP.sql",
+  parser.add_option('-r', '--drop-script-file',
+                      default="/var/lib/ambari-server/resources/Ambari-DDL-Postgres-EMBEDDED-DROP.sql",
                       help="File with drop script")
-  parser.add_option('-u', '--upgrade-script-file', default="/var/lib/"
-                              "ambari-server/resources/upgrade/ddl/"
-                              "Ambari-DDL-Postgres-UPGRADE-1.3.0.sql",
+  parser.add_option('-u', '--upgrade-script-file',
+                      default="/var/lib/ambari-server/resources/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-1.3.0.sql",
                       help="File with upgrade script")
-  parser.add_option('-t', '--upgrade-stack-script-file', default="/var/lib/"
-                              "ambari-server/resources/upgrade/dml/"
-                              "Ambari-DML-Postgres-UPGRADE_STACK.sql",
+  parser.add_option('-t', '--upgrade-stack-script-file',
+                      default="/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Postgres-UPGRADE_STACK.sql",
                       help="File with stack upgrade script")
   parser.add_option('-j', '--java-home', default=None,
                   help="Use specified java_home.  Must be valid on all hosts")
@@ -4012,15 +3974,13 @@ def main():
   parser.add_option('-g', '--debug', action="store_true", dest='debug', default=False,
                     help="Start ambari-server in debug mode")
 
-  parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|postgres", dest="dbms")
+  parser.add_option('--database', default=None, help="Database to use embedded|postgres|oracle|mysql", dest="dbms")
   parser.add_option('--databasehost', default=None, help="Hostname of database server", dest="database_host")
   parser.add_option('--databaseport', default=None, help="Database port", dest="database_port")
-  parser.add_option('--databasename', default=None, help="Database/Schema/Service name or ServiceID",
-                    dest="database_name")
+  parser.add_option('--databasename', default=None, help="Database/Schema/Service name or ServiceID", dest="database_name")
   parser.add_option('--databaseusername', default=None, help="Database user login", dest="database_username")
   parser.add_option('--databasepassword', default=None, help="Database user password", dest="database_password")
-  parser.add_option('--sidorsname', default="sname", help="Oracle database identifier type, Service ID/Service "
-                                                         "Name sid|sname", dest="sid_or_sname")
+  parser.add_option('--sidorsname', default="sname", help="Oracle database identifier type, Service ID/Service Name sid|sname", dest="sid_or_sname")
   (options, args) = parser.parse_args()
 
   # set verbose
@@ -4037,7 +3997,7 @@ def main():
 
   global DATABASE_INDEX
   global PROMPT_DATABASE_OPTIONS
-  #perform checks
+  # perform checks
 
   options.warnings = []
 
@@ -4058,10 +4018,9 @@ def main():
     and options.database_password is not None):
     parser.error('All database options should be set. Please see help for the options.')
 
-  #correct database
+  # correct database
   if options.dbms == 'embedded':
-    print "WARNING: HostName for postgres server " + options.database_host + \
-          " will be ignored: using localhost."
+    print("WARNING: HostName for postgres server " + options.database_host + " will be ignored: using localhost.")
     options.database_host = "localhost"
     options.dbms = 'postgres'
     options.persistence_type = 'local'
@@ -4075,7 +4034,7 @@ def main():
     options.dbms = options.dbms.lower()
     DATABASE_INDEX = DATABASE_NAMES.index(options.dbms)
 
-  #correct port
+  # correct port
   if options.database_port is not None:
     correct = False
     try:
@@ -4088,17 +4047,19 @@ def main():
       parser.print_help()
       parser.error("Incorrect database port " + options.database_port)
 
+  if options.dbms is not None and options.dbms == "postgres":
+    print("WARNING: HostName for postgres server " + options.database_host + " will be ignored: using localhost.")
+    options.database_host = "localhost"
 
   if options.sid_or_sname.lower() not in ["sid", "sname"]:
-    print "WARNING: Valid values for sid_or_sname are 'sid' or 'sname'. Use 'sid' if the db identifier type is " \
-          "Service ID. Use 'sname' if the db identifier type is Service Name"
+    print("WARNING: Valid values for sid_or_sname are 'sid' or 'sname'. Use 'sid' if the db identifier type is  Service ID. Use 'sname' if the db identifier type is Service Name")
     parser.print_help()
     exit(-1)
   else:
     options.sid_or_sname = options.sid_or_sname.lower()
 
   if len(args) == 0:
-    print parser.print_help()
+    print(parser.print_help())
     parser.error("No action entered")
 
   action = args[0]
@@ -4109,7 +4070,7 @@ def main():
     args_number_required = 1
 
   if len(args) < args_number_required:
-    print parser.print_help()
+    print(parser.print_help())
     parser.error("Invalid number of arguments. Entered: " + str(len(args)) + ", required: " + str(args_number_required))
 
   options.exit_message = "Ambari Server '%s' completed successfully." % action
@@ -4119,6 +4080,7 @@ def main():
       setup(options)
     elif action == START_ACTION:
       start(options)
+      status(options)
     elif action == STOP_ACTION:
       stop(options)
     elif action == RESET_ACTION:
@@ -4148,8 +4110,7 @@ def main():
     if action in ACTION_REQUIRE_RESTART and need_restart:
       pstatus, pid = is_server_runing()
       if pstatus:
-        print 'NOTE: Restart Ambari Server to apply changes' + \
-              ' ("ambari-server restart|stop|start")'
+        print('NOTE: Restart Ambari Server to apply changes ("ambari-server restart|stop|start")')
 
     if options.warnings:
       for warning in options.warnings:
@@ -4167,7 +4128,7 @@ def main():
       print_warning_msg(e.reason)
 
   if options.exit_message is not None:
-    print options.exit_message
+    print(options.exit_message)
 
 
 # A Python replacement for java.util.Properties
@@ -4214,7 +4175,7 @@ class Properties(object):
         first, last = m.span()
         sepidx = last - 1
       while line[-1] == '\\':
-        nextline = i.next()
+        nextline = next(i)
         nextline = nextline.strip()
         lineno += 1
         line = line[:-1] + nextline
@@ -4241,7 +4202,7 @@ class Properties(object):
     oldvalue = self.unescape(oldvalue)
     value = self.unescape(value)
     self._props[key] = None if value is None else value.strip()
-    if self._keymap.has_key(key):
+    if key in self._keymap:
       oldkey = self._keymap.get(key)
       self._origprops[oldkey] = None if oldvalue is None else oldvalue.strip()
     else:
@@ -4256,15 +4217,15 @@ class Properties(object):
     return newvalue
 
   def removeOldProp(self, key):
-    if self._origprops.has_key(key):
+    if key in self._origprops:
       del self._origprops[key]
     pass
 
   def load(self, stream):
-    if type(stream) is not file:
-      raise TypeError, 'Argument should be a file object!'
+    if type(stream) is not io.TextIOWrapper:
+      raise TypeError('Argument should be a file object!')
     if stream.mode != 'r':
-      raise ValueError, 'Stream should be opened in read-only mode!'
+      raise ValueError('Stream should be opened in read-only mode!')
     try:
       self.fileName = os.path.abspath(stream.name)
       lines = stream.readlines()
@@ -4276,7 +4237,7 @@ class Properties(object):
     return self._props.get(key, '')
 
   def propertyNames(self):
-    return self._props.keys()
+    return list(self._props.keys())
 
   def getPropertyDict(self):
     return self._props
@@ -4292,10 +4253,9 @@ class Properties(object):
         return getattr(self._props, name)
 
   def store(self, out, header=""):
-    """ Write the properties list to the stream 'out' along
-    with the optional 'header' """
+    """ Write the properties list to the stream 'out' along with the optional 'header' """
     if out.mode[0] != 'w':
-      raise ValueError, 'Steam should be opened in write mode!'
+      raise ValueError('Steam should be opened in writable mode...')
     try:
       out.write(''.join(('#', ASF_LICENSE_HEADER, '\n')))
       out.write(''.join(('#', header, '\n')))
@@ -4303,7 +4263,9 @@ class Properties(object):
       tstamp = time.strftime('%a %b %d %H:%M:%S %Z %Y', time.localtime())
       out.write(''.join(('#', tstamp, '\n')))
       # Write properties from the pristine dictionary
-      for prop, val in self._origprops.items():
+      upls = list(self._origprops.items())
+      upls.sort()
+      for prop, val in upls:
         if val is not None:
           out.write(''.join((prop, '=', val, '\n')))
       out.close()

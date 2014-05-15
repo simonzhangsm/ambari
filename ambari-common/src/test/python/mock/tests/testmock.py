@@ -17,12 +17,13 @@ from mock import (
     NonCallableMagicMock, _CallList,
     create_autospec
 )
+import collections
 
 
 try:
-    unicode
+    str
 except NameError:
-    unicode = str
+    str = str
 
 
 class Iter(object):
@@ -32,7 +33,7 @@ class Iter(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         return next(self.thing)
 
     __next__ = next
@@ -87,7 +88,7 @@ class MockTest(unittest2.TestCase):
 
     def test_unicode_not_broken(self):
         # This used to raise an exception with Python 2.5 and Mock 0.4
-        unicode(Mock())
+        str(Mock())
 
 
     def test_return_value_in_constructor(self):
@@ -183,7 +184,7 @@ class MockTest(unittest2.TestCase):
             pass
         else:
             self.fail('java exception not raised')
-        mock.assert_called_with(1,2, fish=3)
+        mock.assert_called_with(1, 2, fish=3)
 
 
     def test_reset_mock(self):
@@ -211,7 +212,7 @@ class MockTest(unittest2.TestCase):
         self.assertEqual(mock.call_args, None, "call_args not reset")
         self.assertEqual(mock.call_args_list, [], "call_args_list not reset")
         self.assertEqual(mock.method_calls, [],
-                        "method_calls not initialised correctly: %r != %r" %
+                        "method_calls not initialised correctly: %r != %r" % 
                         (mock.method_calls, []))
         self.assertEqual(mock.mock_calls, [])
 
@@ -396,7 +397,7 @@ class MockTest(unittest2.TestCase):
 
                 # this should be allowed
                 mock.something
-                self.assertRaisesRegexp(
+                self.assertRaisesRegex(
                     AttributeError,
                     "Mock object has no attribute 'something_else'",
                     getattr, mock, 'something_else'
@@ -415,12 +416,12 @@ class MockTest(unittest2.TestCase):
             mock.x
             mock.y
             mock.__something__
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 AttributeError,
                 "Mock object has no attribute 'z'",
                 getattr, mock, 'z'
             )
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 AttributeError,
                 "Mock object has no attribute '__foobar__'",
                 getattr, mock, '__foobar__'
@@ -486,7 +487,7 @@ class MockTest(unittest2.TestCase):
 
     def test_assert_called_with_message(self):
         mock = Mock()
-        self.assertRaisesRegexp(AssertionError, 'Not called',
+        self.assertRaisesRegex(AssertionError, 'Not called',
                                 mock.assert_called_with)
 
 
@@ -880,7 +881,7 @@ class MockTest(unittest2.TestCase):
         for mock in mocks:
             assert_attrs(mock)
 
-            if callable(mock):
+            if isinstance(mock, collections.Callable):
                 mock()
                 mock(1, 2)
                 mock(a=3)
@@ -1042,7 +1043,7 @@ class MockTest(unittest2.TestCase):
         for mock, kalls in mocks:
             for i in range(len(kalls)):
                 for step in 1, 2, 3:
-                    these = kalls[i:i+step]
+                    these = kalls[i:i + step]
                     mock.assert_has_calls(these)
 
                     if len(these) > 1:
@@ -1116,7 +1117,7 @@ class MockTest(unittest2.TestCase):
         for Klass in klasses:
             for kwargs in dict(), dict(spec_set=True):
                 mock = Klass()
-                #no error
+                # no error
                 mock.one, mock.two, mock.three
 
                 for One, Two in [(_One, _Two), (['one'], ['two'])]:
@@ -1161,7 +1162,7 @@ class MockTest(unittest2.TestCase):
 
             mock = Klass()
             mock['foo']
-            mock.__int__.return_value =4
+            mock.__int__.return_value = 4
 
             mock.mock_add_spec(int)
             self.assertEqual(int(mock), 4)

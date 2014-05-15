@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -126,7 +126,7 @@ msg_ids = {'Host::Ping':'host_down',
 
 # Determine the severity of the TVI alert based on the Nagios alert state.
 def determine_severity(state, service):
-    if severities.has_key(state):
+    if state in severities:
         severity = severities[state]
     else: severity = 'Warning'
 
@@ -142,7 +142,7 @@ def determine_severity(state, service):
 # Determine the msg id for the TVI alert from based on the service which generates the Nagios alert.
 # The msg id is used to correlate a log msg to a TVI rule.
 def determine_msg_id(service, severity):
-    if msg_ids.has_key(service):
+    if service in msg_ids:
         msg_id = msg_ids[service]
         if severity == 'OK':
             msg_id = '{0}_ok'.format(msg_id)
@@ -166,8 +166,8 @@ def log_tvi_msg(msg):
 def generate_tvi_log_msg(alert_type, attempt, state, service, msg):
     # Determine the TVI msg contents
     severity = determine_severity(state, service)  # The TVI alert severity.
-    domain   = determine_domain()                  # The domain specified in the TVI alert.
-    msg_id   = determine_msg_id(service, severity) # The msg_id used to correlate to a TVI rule.
+    domain = determine_domain()  # The domain specified in the TVI alert.
+    msg_id = determine_msg_id(service, severity)  # The msg_id used to correlate to a TVI rule.
 
     # Only log HARD alerts
     if alert_type == 'HARD':

@@ -1,4 +1,4 @@
-#!/usr/bin/env ambari-python-wrap
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -42,9 +42,9 @@ GET_MEMINFO_CMD = "cat /proc/meminfo"
 
 class Facter():
   def __init__(self):
-
-    self.DATA_IFCONFIG_OUTPUT = Facter.setDataIfConfigOutput()
-    self.DATA_UPTIME_OUTPUT = Facter.setDataUpTimeOutput()
+    
+    self.DATA_IFCONFIG_OUTPUT = Facter.setDataIfConfigOutput()    
+    self.DATA_UPTIME_OUTPUT = Facter.setDataUpTimeOutput()    
     self.DATA_MEMINFO_OUTPUT = Facter.setMemInfoOutput()
 
   @staticmethod
@@ -111,7 +111,7 @@ class Facter():
 
   # Returns the full name of the OS
   def getOperatingSystem(self):
-    return OSCheck.get_os_type()
+    return OSCheck.get_os_family()
 
   # Returns the OS version
   def getOperatingSystemRelease(self):
@@ -143,7 +143,7 @@ class Facter():
   def getMacAddress(self):
     mac = uuid.getnode()
     if uuid.getnode() == mac:
-      mac = ':'.join('%02X' % ((mac >> 8 * i) & 0xff) for i in reversed(xrange(6)))
+      mac = ':'.join('%02X' % ((mac >> 8 * i) & 0xff) for i in reversed(list(range(6))))
     else:
       mac = 'UNKNOWN'
     return mac
@@ -183,7 +183,7 @@ class Facter():
 
     return result
 
-  #Convert kB to GB
+  # Convert kB to GB
   def convertSizeKbToGb(self, size):
     return "%0.2f GB" % round(float(size) / (1024.0 * 1024.0), 2)
 
@@ -235,7 +235,7 @@ class Facter():
 
   # Return memoryfree
   def getMemoryFree(self):
-    #:memoryfree_mb => "MemFree",
+    # :memoryfree_mb => "MemFree",
     try:
       return int(self.data_return_first("MemFree:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
     except ValueError:
@@ -252,7 +252,7 @@ class Facter():
 
   # Return swapfree
   def getSwapFree(self):
-    #:swapfree_mb   => "SwapFree"
+    # :swapfree_mb   => "SwapFree"
     try:
       return int(self.data_return_first("SwapFree:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
     except ValueError:
@@ -261,7 +261,7 @@ class Facter():
 
   # Return swapsize
   def getSwapSize(self):
-    #:swapsize_mb   => "SwapTotal",
+    # :swapsize_mb   => "SwapTotal",
     try:
       return int(self.data_return_first("SwapTotal:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
     except ValueError:
@@ -270,7 +270,7 @@ class Facter():
 
   # Return memorysize
   def getMemorySize(self):
-    #:memorysize_mb => "MemTotal"
+    # :memorysize_mb => "MemTotal"
     try:
       return int(self.data_return_first("MemTotal:.*?(\d+) .*", self.DATA_MEMINFO_OUTPUT))
     except ValueError:
@@ -325,11 +325,11 @@ def run_os_command(cmd):
                              stderr=subprocess.PIPE
   )
   (stdoutdata, stderrdata) = process.communicate()
-  return process.returncode, stdoutdata, stderrdata
+  return process.returncode, stdoutdata.decode() , stderrdata.decode() 
 
 
 def main(argv=None):
-  print Facter().facterInfo()
+  print(Facter().facterInfo())
 
 
 if __name__ == '__main__':

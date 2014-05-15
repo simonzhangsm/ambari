@@ -18,9 +18,9 @@ limitations under the License.
 
 """
 
+from hcat_service_check import hcat_service_check
 from resource_management import *
 
-from hcat_service_check import hcat_service_check
 
 class HiveServiceCheck(Script):
   def service_check(self, env):
@@ -36,7 +36,7 @@ class HiveServiceCheck(Script):
 
     File(params.smoke_test_path,
          content=StaticFile('hiveserver2Smoke.sh'),
-         mode=0755
+         mode=0o755
     )
 
     File(params.smoke_test_sql,

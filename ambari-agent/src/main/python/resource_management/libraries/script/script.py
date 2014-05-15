@@ -81,23 +81,20 @@ class Script(object):
     cherr.setFormatter(formatter)
     logger.addHandler(cherr)
     logger.addHandler(chout)
-    
     # parse arguments
     if len(sys.argv) < 6: 
      logger.error("Script expects at least 5 arguments")
-     print USAGE.format(os.path.basename(sys.argv[0])) # print to stdout
+     print(USAGE.format(os.path.basename(sys.argv[0])))  # print to stdout
      sys.exit(1)
-    
+      
     command_name = str.lower(sys.argv[1])
     command_data_file = sys.argv[2]
     basedir = sys.argv[3]
     self.stroutfile = sys.argv[4]
     logging_level = sys.argv[5]
-    
     logging_level_str = logging._levelNames[logging_level]
     chout.setLevel(logging_level_str)
     logger.setLevel(logging_level_str)
-      
     try:
       with open(command_data_file, "r") as f:
         pass
@@ -161,16 +158,16 @@ class Script(object):
     
     try:
       package_list_str = config['hostLevelParams']['package_list']
-      if isinstance(package_list_str,basestring) and len(package_list_str) > 0:
+      if isinstance(package_list_str, str) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
           if not package['name'] in exclude_packages:
             name = package['name']
-            Package(name)
+          Package(name)
     except KeyError:
-      pass # No reason to worry
+      pass  # No reason to worry
     
-    #RepoInstaller.remove_repos(config)
+    # RepoInstaller.remove_repos(config)
 
 
 

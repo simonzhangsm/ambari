@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+ulimit -n 10000 
+sudo npm install -g brunch
+sudo rm -rf node_modules public
+npm install
+brunch build
+
+npm install -g mocha-phantomjs phantomjs
+#brunch w -s # In different terminal #on terminal 1
+#mocha-phantomjs public/test/test.html #on terminal 2 

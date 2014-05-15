@@ -25,16 +25,15 @@ import ambari_agent.AmbariConfig as AmbariConfig
 import socket
 import tempfile
 import shutil
-import os, pprint, json,stat
-from mock.mock import patch
+import os, pprint, json, stat
+from mock import patch
 
 class TestHostname(TestCase):
 
   def test_hostname(self):
     hostname.cached_hostname = None
     hostname.cached_public_hostname = None
-    self.assertEquals(hostname.hostname(), socket.getfqdn(), 
-                      "hostname should equal the socket-based hostname")
+    self.assertEqual(hostname.hostname(), socket.getfqdn(), "hostname should equal the socket-based hostname")
     pass
 
   def test_hostname_override(self):
@@ -53,10 +52,11 @@ class TestHostname(TestCase):
 
       config.set('agent', 'hostname_script', tmpname)
 
-      self.assertEquals(hostname.hostname(), 'test.example.com', "expected hostname 'test.example.com'")
+      self.assertEqual(hostname.hostname(), 'test.example.com', "expected hostname 'test.example.com'")
     finally:
       os.remove(tmpname)
       config.remove_option('agent', 'hostname_script')
+
     pass
 
   def test_public_hostname_override(self):
@@ -76,7 +76,7 @@ class TestHostname(TestCase):
 
       config.set('agent', 'public_hostname_script', tmpname)
 
-      self.assertEquals(hostname.public_hostname(), 'test.example.com', 
+      self.assertEqual(hostname.public_hostname(), 'test.example.com',
                         "expected hostname 'test.example.com'")
     finally:
       os.remove(tmpname)
@@ -88,14 +88,12 @@ class TestHostname(TestCase):
     hostname.cached_hostname = None
     hostname.cached_public_hostname = None
     getfqdn_mock.side_effect = ["test.example.com", "test2.example.com'"]
-    self.assertEquals(hostname.hostname(), "test.example.com")
-    self.assertEquals(hostname.hostname(), "test.example.com")
+    self.assertEqual(hostname.hostname(), "test.example.com")
+    self.assertEqual(hostname.hostname(), "test.example.com")
     self.assertEqual(getfqdn_mock.call_count, 1)
     pass
 
 if __name__ == "__main__":
   unittest.main(verbosity=2)
-
-
 
 

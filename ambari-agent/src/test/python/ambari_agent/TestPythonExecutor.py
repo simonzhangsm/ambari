@@ -28,7 +28,7 @@ from threading import Thread
 
 from PythonExecutor import PythonExecutor
 from AmbariConfig import AmbariConfig
-from mock.mock import MagicMock, patch
+from mock import MagicMock, patch
 
 
 class TestPythonExecutor(TestCase):
@@ -55,12 +55,12 @@ class TestPythonExecutor(TestCase):
     runShellKillPgrp_method.side_effect = lambda python : python.terminate()
     executor.runShellKillPgrp = runShellKillPgrp_method
     subproc_mock.returncode = None
-    thread = Thread(target =  executor.run_file, args = ("fake_puppetFile",
-      ["arg1", "arg2"], tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS, tmpstrucout,"INFO"))
+    thread = Thread(target=executor.run_file, args=("fake_puppetFile",
+      ["arg1", "arg2"], tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS, tmpstrucout))
     thread.start()
     time.sleep(0.1)
     subproc_mock.finished_event.wait()
-    self.assertEquals(subproc_mock.was_terminated, True, "Subprocess should be terminated due to timeout")
+    self.assertEqual(subproc_mock.was_terminated, True, "Subprocess should be terminated due to timeout")
 
 
   def test_watchdog_2(self):
@@ -72,7 +72,7 @@ class TestPythonExecutor(TestCase):
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
     _, tmpstrucout = tempfile.mkstemp()
-    PYTHON_TIMEOUT_SECONDS =  5
+    PYTHON_TIMEOUT_SECONDS = 5
 
     def launch_python_subprocess_method(command, tmpout, tmperr):
       subproc_mock.tmpout = tmpout
@@ -83,15 +83,15 @@ class TestPythonExecutor(TestCase):
     runShellKillPgrp_method.side_effect = lambda python : python.terminate()
     executor.runShellKillPgrp = runShellKillPgrp_method
     subproc_mock.returncode = 0
-    thread = Thread(target =  executor.run_file, args = ("fake_puppetFile", ["arg1", "arg2"],
+    thread = Thread(target=executor.run_file, args=("fake_puppetFile", ["arg1", "arg2"],
                                                       tmpoutfile, tmperrfile,
-                                                      PYTHON_TIMEOUT_SECONDS, tmpstrucout, "INFO"))
+                                                      PYTHON_TIMEOUT_SECONDS, tmpstrucout))
     thread.start()
     time.sleep(0.1)
     subproc_mock.should_finish_event.set()
     subproc_mock.finished_event.wait()
-    self.assertEquals(subproc_mock.was_terminated, False, "Subprocess should not be terminated before timeout")
-    self.assertEquals(subproc_mock.returncode, 0, "Subprocess should not be terminated before timeout")
+    self.assertEqual(subproc_mock.was_terminated, False, "Subprocess should not be terminated before timeout")
+    self.assertEqual(subproc_mock.returncode, 0, "Subprocess should not be terminated before timeout")
 
 
   def test_execution_results(self):
@@ -100,7 +100,7 @@ class TestPythonExecutor(TestCase):
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
     _, tmpstroutfile = tempfile.mkstemp()
-    PYTHON_TIMEOUT_SECONDS =  5
+    PYTHON_TIMEOUT_SECONDS = 5
 
     def launch_python_subprocess_method(command, tmpout, tmperr):
       subproc_mock.tmpout = tmpout
@@ -112,8 +112,8 @@ class TestPythonExecutor(TestCase):
     executor.runShellKillPgrp = runShellKillPgrp_method
     subproc_mock.returncode = 0
     subproc_mock.should_finish_event.set()
-    result = executor.run_file("file", ["arg1", "arg2"], tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS, tmpstroutfile, "INFO")
-    self.assertEquals(result, {'exitcode': 0, 'stderr': 'Dummy err', 'stdout': 'Dummy output',
+    result = executor.run_file("file", ["arg1", "arg2"], tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS, tmpstroutfile)
+    self.assertEqual(result, {'exitcode': 0, 'stderr': 'Dummy err', 'stdout': 'Dummy output',
                                'structuredOut': {}})
 
 
@@ -134,8 +134,8 @@ class TestPythonExecutor(TestCase):
     command = executor.python_command("script", ["script_param1"])
     self.assertEqual(3, len(command))
     self.assertTrue("python" in command[0])
-    self.assertEquals("script", command[1])
-    self.assertEquals("script_param1", command[2])
+    self.assertEqual("script", command[1])
+    self.assertEqual("script_param1", command[2])
 
 
   class Subprocess_mockup():
@@ -152,7 +152,7 @@ class TestPythonExecutor(TestCase):
     was_terminated = False
     tmpout = None
     tmperr = None
-    pid=-1
+    pid = -1
 
     def communicate(self):
       self.started_event.set()

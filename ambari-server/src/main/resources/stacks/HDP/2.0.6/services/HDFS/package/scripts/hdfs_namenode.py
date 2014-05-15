@@ -23,8 +23,8 @@ from utils import service
 
 def namenode(action=None, do_format=True):
   import params
-  #we need this directory to be present before any action(HA manual steps for
-  #additional namenode)
+  # we need this directory to be present before any action(HA manual steps for
+  # additional namenode)
   if action == "configure":
     create_name_dirs(params.dfs_name_dir)
 
@@ -53,16 +53,16 @@ def namenode(action=None, do_format=True):
 
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_user}"),
-              user = params.hdfs_user)
+              user=params.hdfs_user)
     Execute(namenode_safe_mode_off,
             tries=40,
             try_sleep=10,
-            only_if=dfs_check_nn_status_cmd #skip when HA not active
+            only_if=dfs_check_nn_status_cmd  # skip when HA not active
     )
     create_hdfs_directories(dfs_check_nn_status_cmd)
   if action == "stop":
     service(
-      action="stop", name="namenode", 
+      action="stop", name="namenode",
       user=params.hdfs_user
     )
 
@@ -74,7 +74,7 @@ def create_name_dirs(directories):
 
   dirs = directories.split(",")
   Directory(dirs,
-            mode=0755,
+            mode=0o755,
             owner=params.hdfs_user,
             group=params.user_group,
             recursive=True
@@ -87,7 +87,7 @@ def create_hdfs_directories(check):
   params.HdfsDirectory("/tmp",
                        action="create_delayed",
                        owner=params.hdfs_user,
-                       mode=0777
+                       mode=0o777
   )
   params.HdfsDirectory(params.smoke_hdfs_user_dir,
                        action="create_delayed",
@@ -95,7 +95,7 @@ def create_hdfs_directories(check):
                        mode=params.smoke_hdfs_user_mode
   )
   params.HdfsDirectory(None, action="create",
-                       only_if=check #skip creation when HA not active
+                       only_if=check  # skip creation when HA not active
   )
 
 def format_namenode(force=None):
@@ -114,7 +114,7 @@ def format_namenode(force=None):
     else:
       File('/tmp/checkForFormat.sh',
            content=StaticFile("checkForFormat.sh"),
-           mode=0755)
+           mode=0o755)
       Execute(format(
         "/tmp/checkForFormat.sh {hdfs_user} {hadoop_conf_dir} {old_mark_dir} "
         "{mark_dir} {dfs_name_dir}"),
@@ -123,7 +123,7 @@ def format_namenode(force=None):
       )
     
       Directory(mark_dir,
-        recursive = True
+        recursive=True
       )
 
 
@@ -133,16 +133,11 @@ def decommission():
   hdfs_user = params.hdfs_user
   conf_dir = params.hadoop_conf_dir
   user_group = params.user_group
-  dn_kinit_cmd = params.dn_kinit_cmd
-  
+
   File(params.exclude_file_path,
        content=Template("exclude_hosts_list.j2"),
        owner=hdfs_user,
        group=user_group
-  )
-  
-  Execute(dn_kinit_cmd,
-          user=hdfs_user
   )
 
   ExecuteHadoop('dfsadmin -refreshNodes',

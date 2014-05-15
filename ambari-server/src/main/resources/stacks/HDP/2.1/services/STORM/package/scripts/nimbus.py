@@ -19,9 +19,10 @@ limitations under the License.
 """
 
 import sys
+
 from resource_management import *
-from storm import storm
-from service import service
+import service
+import storm
 
 
 class Nimbus(Script):
@@ -40,13 +41,13 @@ class Nimbus(Script):
     env.set_params(params)
     self.configure(env)
 
-    service("nimbus", action="start")
+    service("nimbus", "start")
 
   def stop(self, env):
     import params
     env.set_params(params)
 
-    service("nimbus", action="stop")
+    service("nimbus", "stop")
 
   def status(self, env):
     import status_params

@@ -3,7 +3,7 @@ Switching from other Template Engines
 
 .. highlight:: html+jinja
 
-If you have used a different template engine in the past and want to swtich
+If you have used a different template engine in the past and want to switch
 to Jinja2 here is a small guide that shows the basic syntatic and semantic
 changes between some common, similar text template engines for Python.
 
@@ -177,9 +177,25 @@ operator.  Here are some examples::
 Loops
 ~~~~~
 
-For loops work very similar to Django, the only incompatibility is that in
-Jinja2 the special variable for the loop context is called `loop` and not
-`forloop` like in Django.
+For loops work very similar to Django. Notably, in Jinja2 the special variable for 
+the loop context is called `loop` and not `forloop` like in Django.
+
+In addition, the Django `empty` argument is called `else` in Jinja2. For example, the
+Django template::
+
+    {% for item in items %}
+        {{ item }}
+    {% empty %}
+        No items!
+    {% endfor %}
+
+would be handled in Jinja2 as::
+
+    {% for item in items %}
+        {{ item }}
+    {% else %}
+        No items!
+    {% endfor %}
 
 Cycle
 ~~~~~
@@ -213,9 +229,9 @@ Jinja2 to look more like Mako:
 
 .. sourcecode:: python
 
-    env = Environment('<%', '%>', '${', '}', '%')
+    env = Environment('<%', '%>', '${', '}', '<%doc>', '</%doc>', '%', '##')
 
-Once the environment is configure like that Jinja2 should be able to interpret
+Once the environment is configured like that Jinja2 should be able to interpret
 a small subset of Mako templates.  Jinja2 does not support embedded Python code
 so you would have to move that out of the template.  The syntax for defs (in
 Jinja2 defs are called macros) and template inheritance is different too.  The

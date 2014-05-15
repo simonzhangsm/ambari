@@ -30,10 +30,10 @@ class TestFalconServer(RMFTestCase):
                        config_file="default.json"
     )
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon admin -version',
-                              logoutput = True,
-                              tries = 3,
-                              user = 'ambari-qa',
-                              try_sleep = 20,)
+                              logoutput=True,
+                              tries=3,
+                              user='ambari-qa',
+                              try_sleep=20,)
     self.assertNoMoreResources()
   def test_service_check_secured(self):
     self.executeScript("2.1/services/FALCON/package/scripts/service_check.py",
@@ -41,13 +41,13 @@ class TestFalconServer(RMFTestCase):
                        command="service_check",
                        config_file="secured.json"
     )
-    self.assertResourceCalled('Execute','/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa',
                               user='ambari-qa'
     )
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon admin -version',
-                              logoutput = True,
-                              tries = 3,
-                              user = 'ambari-qa',
-                              try_sleep = 20,)
+                              logoutput=True,
+                              tries=3,
+                              user='ambari-qa',
+                              try_sleep=20,)
     self.assertNoMoreResources()
 

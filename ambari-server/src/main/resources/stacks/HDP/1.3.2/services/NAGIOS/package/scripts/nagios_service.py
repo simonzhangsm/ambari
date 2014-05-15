@@ -22,7 +22,8 @@ Ambari Agent
 
 from resource_management import *
 
-def nagios_service(action='start'): # start or stop
+
+def nagios_service(action='start'):  # start or stop
   import params
 
   if action == 'start':
@@ -30,7 +31,7 @@ def nagios_service(action='start'): # start or stop
   elif action == 'stop':
    command = format("service nagios stop && rm -f {nagios_pid_file}")
 
-  Execute( command,
-     path    = "/usr/local/bin/:/bin/:/sbin/"      
+  Execute(command,
+     path="/usr/local/bin/:/bin/:/sbin/"      
   )
   MonitorWebserver("restart")

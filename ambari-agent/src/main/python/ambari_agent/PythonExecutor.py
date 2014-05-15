@@ -25,7 +25,8 @@ import pprint
 import threading
 from threading import Thread
 from Grep import Grep
-import shell, sys
+import shell
+import sys
 
 
 logger = logging.getLogger()
@@ -58,21 +59,19 @@ class PythonExecutor:
     override_output_files option defines whether stdout/stderr files will be
     recreated or appended
     """
-    if override_output_files: # Recreate files
-      tmpout =  open(tmpoutfile, 'w')
-      tmperr =  open(tmperrfile, 'w')
-    else: # Append to files
-      tmpout =  open(tmpoutfile, 'a')
-      tmperr =  open(tmperrfile, 'a')
-
+    if override_output_files:  # Recreate files
+      tmpout = open(tmpoutfile, 'w')
+      tmperr = open(tmperrfile, 'w')
+    else:  # Append to files
+      tmpout = open(tmpoutfile, 'a')
+      tmperr = open(tmperrfile, 'a')
     # need to remove this file for the following case:
     # status call 1 does not write to file; call 2 writes to file;
     # call 3 does not write to file, so contents are still call 2's result
     try:
       os.unlink(tmpstructedoutfile)
     except OSError:
-      pass # no error
-
+      pass  # no error
     script_params += [tmpstructedoutfile, logger_level]
     pythonCommand = self.python_command(script, script_params)
     logger.info("Running command " + pprint.pformat(pythonCommand))
@@ -80,7 +79,7 @@ class PythonExecutor:
     logger.debug("Launching watchdog thread")
     self.event.clear()
     self.python_process_has_been_killed = False
-    thread = Thread(target =  self.python_watchdog_func, args = (process, timeout))
+    thread = Thread(target=self.python_watchdog_func, args=(process, timeout))
     thread.start()
     # Waiting for the process to be either finished or killed
     process.communicate()

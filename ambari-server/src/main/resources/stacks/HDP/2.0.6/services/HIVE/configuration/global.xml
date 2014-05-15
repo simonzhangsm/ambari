@@ -109,7 +109,7 @@
   </property>
   <property>
     <name>hcat_pid_dir</name>
-    <value>/var/run/webhcat</value>
+    <value>/etc/run/webhcat</value>
     <description>WebHCat Pid Dir.</description>
   </property>
   <property>

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,8 +20,10 @@ Ambari Agent
 
 """
 
-from resource_management import *
 import sys
+
+from resource_management import *
+
 
 class ServiceCheck(Script):
   def service_check(self, env):
@@ -48,7 +51,7 @@ class ServiceCheck(Script):
 
     File(validateStatusFilePath,
          content=StaticFile(validateStatusFileName),
-         mode=0755
+         mode=0o755
     )
 
     Execute(smoke_cmd,

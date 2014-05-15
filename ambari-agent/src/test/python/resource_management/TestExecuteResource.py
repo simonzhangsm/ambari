@@ -17,7 +17,7 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from mock.mock import patch, MagicMock, call
+from mock import patch, MagicMock, call
 
 from resource_management.core.system import System
 from resource_management.core.resources.system import Execute

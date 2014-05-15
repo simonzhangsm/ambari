@@ -19,10 +19,10 @@ limitations under the License.
 '''
 
 import unittest
-import StringIO
+import io
 import sys
 
-from mock.mock import MagicMock, patch
+from mock import MagicMock, patch
 
 import checkWebUI
 
@@ -30,7 +30,7 @@ class TestMain(unittest.TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 
@@ -42,7 +42,7 @@ class TestMain(unittest.TestCase):
   @patch('httplib.HTTPConnection')
   def test_check_web_ui(self, http_mock, parse_args_mock):
       
-    #Positive scenario
+    # Positive scenario
     options = MagicMock()
     options.hosts = 'host1,host2'
     options.port = '10000' 
@@ -56,7 +56,7 @@ class TestMain(unittest.TestCase):
     self.assertTrue(http_conn.getresponse.called)
     self.assertTrue(http_conn.close.called)
     
-    #Negative scenario
+    # Negative scenario
     options = MagicMock()
     options.hosts = 'host1,host2'
     options.port = '10000'
@@ -65,7 +65,7 @@ class TestMain(unittest.TestCase):
 
     try:
       checkWebUI.main()
-    except SystemExit, e:
+    except SystemExit as e:
       self.assertEqual(e.code, 1)
 
     self.assertTrue(http_conn.request.called)

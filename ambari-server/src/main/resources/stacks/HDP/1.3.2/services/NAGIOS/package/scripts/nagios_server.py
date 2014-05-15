@@ -21,11 +21,12 @@ Ambari Agent
 """
 
 import sys
-from resource_management import *
+
 from nagios import nagios
 from nagios_service import nagios_service
+from resource_management import *
 
-         
+
 class NagiosServer(Script):
   def install(self, env):
     remove_conflicting_packages()
@@ -44,7 +45,7 @@ class NagiosServer(Script):
 
     update_ignorable(params)
 
-    self.configure(env) # done for updating configs after Security enabled
+    self.configure(env)  # done for updating configs after Security enabled
     nagios_service(action='start')
 
     
@@ -61,21 +62,21 @@ class NagiosServer(Script):
     check_process_status(status_params.nagios_pid_file)
     
 def remove_conflicting_packages():  
-  Package( 'hdp_mon_nagios_addons',
-    action = "remove"
+  Package('hdp_mon_nagios_addons',
+    action="remove"
   )
 
-  Package( 'nagios-plugins',
-    action = "remove"
+  Package('nagios-plugins',
+    action="remove"
   )
 
-  Execute( "rpm -e --allmatches --nopostun nagios",
-    path    = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-    ignore_failures = True 
+  Execute("rpm -e --allmatches --nopostun nagios",
+    path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    ignore_failures=True 
   )
 
 def update_ignorable(params):
-  if not params.config.has_key('passiveInfo'):
+  if 'passiveInfo' not in params.config:
     return
   else:
     buf = ""

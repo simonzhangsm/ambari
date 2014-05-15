@@ -17,8 +17,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from mock.mock import MagicMock, call, patch
+from mock import MagicMock, call, patch
+
 from stacks.utils.RMFTestCase import *
+
 
 class TestServiceCheck(RMFTestCase):
 
@@ -30,14 +32,14 @@ class TestServiceCheck(RMFTestCase):
                        config_file="default.json"
     )
     self.assertResourceCalled('File', '/tmp/templetonSmoke.sh',
-                       content = StaticFile('templetonSmoke.sh'),
-                       mode = 0755,
+                       content=StaticFile('templetonSmoke.sh'),
+                       mode=0o755,
     )
     self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa no_keytab false /usr/bin/kinit',
-                       logoutput = True,
-                       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                       tries = 3,
-                       try_sleep = 5,
+                       logoutput=True,
+                       path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                       tries=3,
+                       try_sleep=5,
     )
     self.assertNoMoreResources()
 
@@ -49,13 +51,13 @@ class TestServiceCheck(RMFTestCase):
                        config_file="secured.json"
     )
     self.assertResourceCalled('File', '/tmp/templetonSmoke.sh',
-                       content = StaticFile('templetonSmoke.sh'),
-                       mode = 0755,
+                       content=StaticFile('templetonSmoke.sh'),
+                       mode=0o755,
     )
     self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa /etc/security/keytabs/smokeuser.headless.keytab true /usr/bin/kinit',
-                       logoutput = True,
-                       path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                       tries = 3,
-                       try_sleep = 5,
+                       logoutput=True,
+                       path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                       tries=3,
+                       try_sleep=5,
     )
     self.assertNoMoreResources()

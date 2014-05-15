@@ -15,12 +15,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import subprocess
-from mock.mock import MagicMock
 from unittest import TestCase
-from mock.mock import patch
+import subprocess
 import sys
-setup_agent = __import__('setupAgent')
+
+from mock import MagicMock
+from mock import patch
+
+setup_agent = __import__('ambari_server.setupAgent')
 
 class TestSetupAgent(TestCase):
 
@@ -214,7 +216,7 @@ class TestSetupAgent(TestCase):
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 0}
     runAgent_mock.return_value = 0
     getOptimalVersion_mock.return_value = {'log': '1.1.2, 1.1.3, ', 'exitstatus': 1}
-    setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
+    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
     self.assertTrue(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
     exit_mock.reset_mock()
@@ -224,7 +226,7 @@ class TestSetupAgent(TestCase):
     isAgentPackageAlreadyInstalled_mock.return_value = False
     is_suse_family_mock.return_value = True
     is_debian_family_mock.return_value = False
-    setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
+    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
     self.assertTrue(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
     self.assertTrue(isAgentPackageAlreadyInstalled_mock.called)
@@ -239,7 +241,7 @@ class TestSetupAgent(TestCase):
     installAgent_mock.reset_mock()
 
     getOptimalVersion_mock.return_value = {'log': '', 'exitstatus': 0}
-    setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
+    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
     self.assertTrue(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
     self.assertFalse(isAgentPackageAlreadyInstalled_mock.called)
@@ -256,7 +258,7 @@ class TestSetupAgent(TestCase):
     is_suse_family_mock.return_value = False
     is_debian_family_mock.return_value = False
     getOptimalVersion_mock.return_value = {'log': '1.1.1', 'exitstatus': 0}
-    setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
+    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
     self.assertTrue(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
     self.assertTrue(isAgentPackageAlreadyInstalled_mock.called)
@@ -273,27 +275,27 @@ class TestSetupAgent(TestCase):
     is_debian_family_mock.reset_mock()
     installAgent_mock.reset_mock()
 
-    setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","{ambariVersion}","8080"))
+    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "{ambariVersion}", "8080"))
     self.assertTrue(getOptimalVersion_mock.called)
     self.assertTrue(exit_mock.called)
     exit_mock.reset_mock()
     getOptimalVersion_mock.reset_mock()
-    setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","null","8080"))
+    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "null", "8080"))
     self.assertTrue(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
     exit_mock.reset_mock()
     is_suse_family_mock.return_value = False
     is_debian_family_mock.return_value = False
-    setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","null","null"))
+    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "null", "null"))
     self.assertTrue(exit_mock.called)
     exit_mock.reset_mock()
     def side_effect(retcode):
       raise Exception(retcode, "sys.exit")
     exit_mock.side_effect = side_effect
-    #if "yum -y install --nogpgcheck ambari-agent" return not 0 result
+    # if "yum -y install --nogpgcheck ambari-agent" return not 0 result
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 1}
     try:
-        setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
+        setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
         self.fail("Should throw exception")
     except Exception:
         # Expected
@@ -301,26 +303,26 @@ class TestSetupAgent(TestCase):
     self.assertTrue(exit_mock.called)
     installAgent_mock.reset_mock()
     exit_mock.reset_mock()
-    #if suse
+    # if suse
     is_suse_family_mock.return_value = True
     is_debian_family_mock.return_value = False
-    #if "zypper install -y ambari-agent" return not 0 result
+    # if "zypper install -y ambari-agent" return not 0 result
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 1}
     try:
-        setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
+        setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
         self.fail("Should throw exception")
     except Exception:
         # Expected
         pass
     self.assertTrue(exit_mock.called)
     exit_mock.reset_mock()
-    #if ubuntu
+    # if ubuntu
     is_suse_family_mock.return_value = False
     is_debian_family_mock.return_value = True
 
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 1}
     try:
-        setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
+        setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
         self.fail("Should throw exception")
     except Exception:
         # Expected

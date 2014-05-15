@@ -25,7 +25,7 @@ import sys
 import os
 import time
 import threading
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import pprint
 from random import randint
 
@@ -94,35 +94,35 @@ class Controller(threading.Thread):
         # exitstatus = 0 (OK - Default)
         # exitstatus = 1 (Registration failed because
         #                different version of agent and server)
-        if 'exitstatus' in ret.keys():
+        if 'exitstatus' in list(ret.keys()):
           exitstatus = int(ret['exitstatus'])
         # log - message, which will be printed to agents  log  
-        if 'log' in ret.keys():
+        if 'log' in list(ret.keys()):
           log = ret['log']
         if exitstatus == 1:
           logger.error(log)
           self.isRegistered = False
-          self.repeatRegistration=False
+          self.repeatRegistration = False
           return ret
         logger.info("Registered with the server with " + pprint.pformat(ret))
         print("Registered with the server")
-        self.responseId= int(ret['responseId'])
+        self.responseId = int(ret['responseId'])
         self.isRegistered = True
-        if 'statusCommands' in ret.keys():
-          logger.info("Got status commands on registration " + pprint.pformat(ret['statusCommands']) )
+        if 'statusCommands' in list(ret.keys()):
+          logger.info("Got status commands on registration " + pprint.pformat(ret['statusCommands']))
           self.addToStatusQueue(ret['statusCommands'])
           pass
         else:
           self.hasMappedComponents = False
         pass
       except ssl.SSLError:
-        self.repeatRegistration=False
+        self.repeatRegistration = False
         self.isRegistered = False
         return
-      except Exception, err:
+      except Exception as err:
         # try a reconnect only after a certain amount of random time
         delay = randint(0, self.range)
-        logger.info("Unable to connect to: " + self.registerUrl, exc_info = True)
+        logger.info("Unable to connect to: " + self.registerUrl, exc_info=True)
         """ Sleeping for {0} seconds and then retrying again """.format(delay)
         time.sleep(delay)
         pass
@@ -164,7 +164,7 @@ class Controller(threading.Thread):
     config = AmbariConfig.config
     hb_interval = config.get('heartbeat', 'state_interval')
 
-    #TODO make sure the response id is monotonically increasing
+    # TODO make sure the response id is monotonically increasing
     id = 0
     while not self.DEBUG_STOP_HEARTBEATING:
       try:
@@ -179,12 +179,12 @@ class Controller(threading.Thread):
 
         logger.debug('Got server response: ' + pprint.pformat(response))
         
-        serverId=int(response['responseId'])
+        serverId = int(response['responseId'])
 
-        if 'hasMappedComponents' in response.keys():
+        if 'hasMappedComponents' in list(response.keys()):
           self.hasMappedComponents = response['hasMappedComponents'] != False
 
-        if 'registrationCommand' in response.keys():
+        if 'registrationCommand' in list(response.keys()):
           # check if the registration command is None. If none skip
           if response['registrationCommand'] is not None:
             logger.info("RegistrationCommand received - repeat agent registration")
@@ -192,16 +192,16 @@ class Controller(threading.Thread):
             self.repeatRegistration = True
             return
 
-        if serverId!=self.responseId+1:
+        if serverId != self.responseId + 1:
           logger.error("Error in responseId sequence - restarting")
           self.restartAgent()
         else:
-          self.responseId=serverId
+          self.responseId = serverId
 
-        if 'executionCommands' in response.keys():
+        if 'executionCommands' in list(response.keys()):
           self.addToQueue(response['executionCommands'])
           pass
-        if 'statusCommands' in response.keys():
+        if 'statusCommands' in list(response.keys()):
           self.addToStatusQueue(response['statusCommands'])
           pass
         if "true" == response['restartAgent']:
@@ -214,17 +214,17 @@ class Controller(threading.Thread):
         if retry:
           print("Reconnected to the server")
           logger.info("Reconnected to the server")
-        retry=False
+        retry = False
         certVerifFailed = False
         self.DEBUG_SUCCESSFULL_HEARTBEATS += 1
         self.DEBUG_HEARTBEAT_RETRIES = 0
         self.heartbeat_wait_event.clear()
       except ssl.SSLError:
-        self.repeatRegistration=False
+        self.repeatRegistration = False
         self.isRegistered = False
         return
-      except Exception, err:
-        #randomize the heartbeat
+      except Exception as err:
+        # randomize the heartbeat
         delay = randint(0, self.range)
         time.sleep(delay)
         if "code" in err:
@@ -237,12 +237,12 @@ class Controller(threading.Thread):
           if 'certificate verify failed' in str(err) and not certVerifFailed:
             print("Server certificate verify failed. Did you regenerate server certificate?")
             certVerifFailed = True
-        self.cachedconnect = None # Previous connection is broken now
-        retry=True
+        self.cachedconnect = None  # Previous connection is broken now
+        retry = True
       # Sleep for some time
       timeout = self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC \
                 - self.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS
-      self.heartbeat_wait_event.wait(timeout = timeout)
+      self.heartbeat_wait_event.wait(timeout=timeout)
       # Sleep a bit more to allow STATUS_COMMAND results to be collected
       # and sent in one heartbeat. Also avoid server overload with heartbeats
       time.sleep(self.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS)
@@ -254,8 +254,8 @@ class Controller(threading.Thread):
     self.register = Register(self.config)
     self.heartbeat = Heartbeat(self.actionQueue, self.config)
 
-    opener = urllib2.build_opener()
-    urllib2.install_opener(opener)
+    opener = urllib.request.build_opener()
+    urllib.request.install_opener(opener)
 
     while True:
       self.repeatRegistration = False
@@ -282,11 +282,11 @@ class Controller(threading.Thread):
 
   def sendRequest(self, url, data):
     try:
-      if self.cachedconnect is None: # Lazy initialization
-        self.cachedconnect = security.CachedHTTPSConnection(self.config)
-      req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
+    if self.cachedconnect is None:  # Lazy initialization
+      self.cachedconnect = security.CachedHTTPSConnection(self.config)
+    req = urllib.request.Request(url, data, {'Content-Type': 'application/json'})
       response = None
-      response = self.cachedconnect.request(req)
+    response = self.cachedconnect.request(req)
       return json.loads(response)
     except Exception:
       if response is None:
@@ -303,9 +303,9 @@ class Controller(threading.Thread):
     logger.info("Updating components map of cluster " + cluster_name)
     response = self.sendRequest(self.componentsUrl + cluster_name, None)
     logger.debug("Response from server = " + str(response))
-    for service, components in response['components'].items():
+    for service, components in list(response['components'].items()):
       LiveStatus.SERVICES.append(service)
-      for component, category in components.items():
+      for component, category in list(components.items()):
         if category == 'CLIENT':
           LiveStatus.CLIENT_COMPONENTS.append({"serviceName": service, "componentName": component})
         else:

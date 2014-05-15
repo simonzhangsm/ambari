@@ -21,15 +21,16 @@ limitations under the License.
 #
 # Main.
 #
-import sys
-import optparse
-import getpass
-import logging
-import urllib2
-import re
-import json
 import base64
+import getpass
+import json
+import logging
+import optparse
 import os
+import re
+import sys
+import urllib.request, urllib.error, urllib.parse
+
 
 SILENT = False
 ACTION = None
@@ -63,11 +64,11 @@ def get_validated_string_input(prompt, default, pattern, description,
     elif is_pass:
       input = getpass.getpass(prompt)
     else:
-      input = raw_input(prompt)
+      input = eval(input(prompt))
     if not input.strip():
       # Empty input - if default available use default
       if not allowEmpty and not default:
-        print 'Property cannot be blank.'
+        print('Property cannot be blank.')
         input = ""
         continue
       else:
@@ -79,7 +80,7 @@ def get_validated_string_input(prompt, default, pattern, description,
         break  # done here and picking up default
     else:
       if not pattern == None and not re.search(pattern, input.strip()):
-        print description
+        print(description)
         input = ""
 
       if validatorFunction:
@@ -114,10 +115,10 @@ def get_server_info(silent=False):
   pass
 
 
-class PreemptiveBasicAuthHandler(urllib2.BaseHandler):
+class PreemptiveBasicAuthHandler(urllib.request.BaseHandler):
 
   def __init__(self):
-    password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+    password_mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
     password_mgr.add_password(None, getUrl(''), USERNAME, PASSWORD)
     self.passwd = password_mgr
     self.add_password = self.passwd.add_password
@@ -135,9 +136,9 @@ class AmbariBlueprint:
 
   def __init__(self):
     handler = PreemptiveBasicAuthHandler()
-    opener = urllib2.build_opener(handler)
+    opener = urllib.request.build_opener(handler)
     # Install opener for all requests
-    urllib2.install_opener(opener)
+    urllib.request.install_opener(opener)
     self.urlOpener = opener
 
   def importBlueprint(self, blueprintLocation, hostsLocation, clusterName):
@@ -222,7 +223,7 @@ class AmbariBlueprint:
 
 
   def buildHostAssignments(self, blueprintName, blueprintJson, masters,
-                           slaves, gateway = None):
+                           slaves, gateway=None):
     hostAssignments = '{{"blueprint":"{0}","host_groups":[{1}]}}'
     hostGroupHosts = '{{"name":"{0}","hosts":[{1}]}}'
     hosts = '{{"fqdn":"{0}"}},'
@@ -288,7 +289,7 @@ class AmbariBlueprint:
           return unUsedHosts[0:cardinality]
         else:
           usedHosts = hostList[0:usedCount]
-          for i in range(cardinality-len(unUsedHosts), cardinality):
+          for i in range(cardinality - len(unUsedHosts), cardinality):
             unUsedHosts += usedHosts[i]
           pass
           return unUsedHosts
@@ -362,7 +363,7 @@ class AmbariBlueprint:
 
 
   def performPostOperation(self, url, data):
-    req = urllib2.Request(url, data)
+    req = urllib.request.Request(url, data)
     req.add_header("X-Requested-By", "ambari_scripts")
     req.get_method = lambda: 'POST'
 
@@ -379,13 +380,13 @@ class AmbariBlueprint:
           return retCode
         pass
       pass
-    except urllib2.HTTPError, e:
+    except urllib.error.HTTPError as e:
       logger.error("POST request failed.")
       logger.error('HTTPError : %s' % e.read())
       if e.code == 409:
         return '409'
       pass
-    except Exception, e:
+    except Exception as e:
       logger.error("POST request failed.")
       logger.error(e)
       if 'HTTP Error 409' in str(e):
@@ -419,7 +420,7 @@ def main():
 
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
                   default=False, help="output verbosity.")
-  parser.add_option("-a", "--action", dest="action", default = "import",
+  parser.add_option("-a", "--action", dest="action", default="import",
                   help="Script action. (import/export) [default: import]")
   parser.add_option("-f", "--blueprint", dest="blueprint", metavar="FILE",
                   help="File Path. (import/export) file path.")

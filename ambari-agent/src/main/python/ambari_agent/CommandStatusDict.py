@@ -38,7 +38,7 @@ class CommandStatusDict():
     callback_action is called every time when status of some command is
     updated
     """
-    self.current_state = {} # Contains all statuses
+    self.current_state = {}  # Contains all statuses
     self.callback_action = callback_action
     self.lock = threading.RLock()
 
@@ -50,10 +50,10 @@ class CommandStatusDict():
     if 'taskId' in command:
       key = command['taskId']
       status_command = False
-    else: # Status command reports has no task id
+    else:  # Status command reports has no task id
       key = id(command)
       status_command = True
-    with self.lock: # Synchronized
+    with self.lock:  # Synchronized
       self.current_state[key] = (command, new_report)
     if not status_command:
       self.callback_action()
@@ -66,10 +66,10 @@ class CommandStatusDict():
     generation
     """
     from ActionQueue import ActionQueue
-    with self.lock: # Synchronized
+    with self.lock:  # Synchronized
       resultReports = []
       resultComponentStatus = []
-      for key, item in self.current_state.items():
+      for key, item in list(self.current_state.items()):
         command = item[0]
         report = item[1]
         if command ['commandType'] == ActionQueue.EXECUTION_COMMAND:
@@ -100,7 +100,7 @@ class CommandStatusDict():
     try:
       tmpout = open(report['tmpout'], 'r').read()
       tmperr = open(report['tmperr'], 'r').read()
-    except Exception, err:
+    except Exception as err:
       logger.warn(err)
       tmpout = '...'
       tmperr = '...'
@@ -112,7 +112,7 @@ class CommandStatusDict():
     output = grep.tail(tmpout, Grep.OUTPUT_LAST_LINES)
     inprogress = self.generate_report_template(command)
     inprogress.update({
-      'stdout': output,
+      'stdout': grep.filterMarkup(output),
       'stderr': tmperr,
       'structuredOut': tmpstructuredout,
       'exitCode': 777,

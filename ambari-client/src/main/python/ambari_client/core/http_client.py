@@ -22,10 +22,10 @@ try:
   import pycurl
 # pycurl is not necessary for testcases, mock it
 except ImportError:
-  from mock.mock import MagicMock
+  from mock import MagicMock
   pycurl = MagicMock() 
-import cStringIO
-import StringIO
+
+import io
 import pdb
 try:
   import json
@@ -42,7 +42,7 @@ class HttpClient(object):
   """
   Basic HTTP client for rest APIs.
   """
-  def __init__(self, host_url, user_name , password ):
+  def __init__(self, host_url, user_name , password):
     """
     @param host_url: The base url to the API.
 
@@ -56,7 +56,7 @@ class HttpClient(object):
         userpass = user_name + ':'
         if password is not None: 
             userpass += password
-    LOG.debug( "pycurl.USERPWD value = "+str(userpass))
+    LOG.debug("pycurl.USERPWD value = " + str(userpass))
     self.c.setopt(pycurl.USERPWD, userpass)
 
 
@@ -87,8 +87,8 @@ class HttpClient(object):
 
     @return: The result of REST request
     """
-    #pdb.set_trace()
-    LOG.debug ("invoke : http_method = "+str(http_method))
+    # pdb.set_trace()
+    LOG.debug ("invoke : http_method = " + str(http_method))
     # Prepare URL and params
     url = self._normalize(path)
     if http_method in ("GET", "DELETE"):
@@ -98,11 +98,11 @@ class HttpClient(object):
         payload = None
 
 
-    buf = cStringIO.StringIO()
+    buf = io.StringIO()
     self.c.setopt(pycurl.WRITEFUNCTION, buf.write)
     self.c.setopt(pycurl.SSL_VERIFYPEER, 0)
     
-    LOG.debug ("invoke : url = "+str(url))
+    LOG.debug ("invoke : url = " + str(url))
     # set http_method
     if http_method == "GET":
         self.c.setopt(pycurl.HTTPGET, 1)
@@ -116,17 +116,17 @@ class HttpClient(object):
     else:
         self.c.setopt(pycurl.CUSTOMREQUEST, http_method)
         
-    if http_method in ('POST','PUT'):
-      LOG.debug( "data..........."+str(payload))
+    if http_method in ('POST', 'PUT'):
+      LOG.debug("data..........." + str(payload))
       data = json.dumps(payload)
-      data= data.decode('unicode-escape')
-      LOG.debug( data)
+      data = data.decode('unicode-escape')
+      LOG.debug(data)
       data = self._to_bytestring(data)
-      LOG.debug( data)
-      content = StringIO.StringIO(data)
-      LOG.debug( content)
+      LOG.debug(data)
+      content = io.StringIO(data)
+      LOG.debug(content)
       content_length = len(data)
-      LOG.debug( "content_length........."+str(content_length))
+      LOG.debug("content_length........." + str(content_length))
 
       if http_method == 'POST':
         self.c.setopt(pycurl.POSTFIELDSIZE, content_length)
@@ -138,27 +138,27 @@ class HttpClient(object):
     self.c.setopt(self.c.URL, url)
     headers = self._get_headers(headers)
     self.c.setopt(pycurl.HTTPHEADER,
-                        ["%s: %s" % pair for pair in sorted(headers.iteritems())])
+                        ["%s: %s" % pair for pair in sorted(headers.items())])
 
-    LOG.debug ("invoke : pycurl.EFFECTIVE_URL = "+self.c.getinfo(pycurl.EFFECTIVE_URL))
+    LOG.debug ("invoke : pycurl.EFFECTIVE_URL = " + self.c.getinfo(pycurl.EFFECTIVE_URL))
     try:
         self.c.perform()
-    except Exception, ex:
+    except Exception as ex:
         LOG.debug (sys.stderr, str(ex))
         raise ex
-    contents_type= self.c.getinfo(pycurl.CONTENT_TYPE)
-    LOG.debug ("invoke : pycurl.CONTENT_TYPE = "+contents_type)
+    contents_type = self.c.getinfo(pycurl.CONTENT_TYPE)
+    LOG.debug ("invoke : pycurl.CONTENT_TYPE = " + contents_type)
     code = self.c.getinfo(pycurl.RESPONSE_CODE)
-    LOG.debug ("invoke : pycurl.RESPONSE_CODE = "+str(code))
+    LOG.debug ("invoke : pycurl.RESPONSE_CODE = " + str(code))
     response = buf.getvalue()
     buf.close()
     LOG.debug ("invoke : COMPLETED ")
     return response , code , contents_type
 
-  def _to_bytestring(self ,s):
+  def _to_bytestring(self , s):
 #    if not isinstance(s, basestring):
 #      raise TypeError("value should be a str or unicode")
-    if isinstance(s, unicode):
+    if isinstance(s, str):
       return s.encode('utf-8')
     return s
 

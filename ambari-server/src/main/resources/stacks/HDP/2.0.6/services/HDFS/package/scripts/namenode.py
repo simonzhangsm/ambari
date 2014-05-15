@@ -17,9 +17,9 @@ limitations under the License.
 
 """
 
-from resource_management import *
-from hdfs_namenode import namenode
 from hdfs import hdfs
+from hdfs_namenode import namenode
+from resource_management import *
 
 
 class NameNode(Script):
@@ -28,7 +28,7 @@ class NameNode(Script):
 
     self.install_packages(env, params.exclude_packages)
     env.set_params(params)
-    #TODO we need this for HA because of manual steps
+    # TODO we need this for HA because of manual steps
     self.configure(env)
 
   def start(self, env):

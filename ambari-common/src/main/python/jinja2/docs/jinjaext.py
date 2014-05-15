@@ -8,6 +8,7 @@
     :copyright: Copyright 2008 by Armin Ronacher.
     :license: BSD.
 """
+import collections
 import os
 import re
 import inspect
@@ -92,7 +93,8 @@ def format_function(name, aliases, func):
         try:
             argspec = inspect.getargspec(func)
             if getattr(func, 'environmentfilter', False) or \
-               getattr(func, 'contextfilter', False):
+               getattr(func, 'contextfilter', False) or \
+               getattr(func, 'evalcontextfilter', False):
                 del argspec[0][0]
             signature = inspect.formatargspec(*argspec)
         except:
@@ -109,10 +111,10 @@ def dump_functions(mapping):
     def directive(dirname, arguments, options, content, lineno,
                       content_offset, block_text, state, state_machine):
         reverse_mapping = {}
-        for name, func in mapping.iteritems():
+        for name, func in list(mapping.items()):
             reverse_mapping.setdefault(func, []).append(name)
         filters = []
-        for func, names in reverse_mapping.iteritems():
+        for func, names in list(reverse_mapping.items()):
             aliases = sorted(names, key=lambda x: len(x))
             name = aliases.pop()
             filters.append((name, aliases, func))
@@ -144,9 +146,9 @@ def jinja_nodes(dirname, arguments, options, content, lineno,
         doc.append(p + '.. autoclass:: %s(%s)' % (node.__name__, sig), '')
         if node.abstract:
             members = []
-            for key, name in node.__dict__.iteritems():
+            for key, name in list(node.__dict__.items()):
                 if not key.startswith('_') and \
-                   not hasattr(node.__base__, key) and callable(name):
+                   not hasattr(node.__base__, key) and isinstance(name, collections.Callable):
                     members.append(key)
             if members:
                 members.sort()
@@ -168,10 +170,10 @@ def inject_toc(app, doctree, docname):
     titleiter = iter(doctree.traverse(nodes.title))
     try:
         # skip first title, we are not interested in that one
-        titleiter.next()
-        title = titleiter.next()
+        next(titleiter)
+        title = next(titleiter)
         # and check if there is at least another title
-        titleiter.next()
+        next(titleiter)
     except StopIteration:
         return
     tocnode = nodes.section('')

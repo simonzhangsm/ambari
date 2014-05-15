@@ -18,16 +18,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import optparse
-import sys
-import os
-import logging
-import tempfile
-import urllib2
-import socket
-import json
 import base64
+import json
+import logging
+import optparse
+import os
+import socket
+import sys
+import tempfile
 import time
+import urllib.request, urllib.error, urllib.parse
+
 
 AMBARI_HOSTNAME = None
 AMBARI_PORT = 8080
@@ -35,25 +36,25 @@ CLUSTER_NAME = None
 PROTOCOL = "http"
 USERNAME = "admin"
 PASSWORD = "admin"
-DEFAULT_TIMEOUT = 10 # seconds
+DEFAULT_TIMEOUT = 10  # seconds
 START_ON_RELOCATE = False
 
 # Supported Actions
 RELOCATE_ACTION = 'relocate'
 ALLOWED_ACTUAL_STATES_FOR_RELOCATE = [ 'INIT', 'UNKNOWN', 'DISABLED', 'UNINSTALLED' ]
 ALLOWED_HOST_STATUS_FOR_RELOCATE = [ 'HEALTHY' ]
-STATUS_WAIT_TIMEOUT = 120 # seconds
-STATUS_CHECK_INTERVAL = 10 # seconds
+STATUS_WAIT_TIMEOUT = 120  # seconds
+STATUS_CHECK_INTERVAL = 10  # seconds
 
 # API calls
 GET_CLUSTERS_URI = "/api/v1/clusters/"
-GET_HOST_COMPONENTS_URI = "/api/v1/clusters/{0}/services/{1}/components/{2}" +\
+GET_HOST_COMPONENTS_URI = "/api/v1/clusters/{0}/services/{1}/components/{2}" + \
                           "?fields=host_components"
-GET_HOST_COMPONENT_DESIRED_STATE_URI = "/api/v1/clusters/{0}/hosts/{1}" +\
-                                       "/host_components/{2}" +\
+GET_HOST_COMPONENT_DESIRED_STATE_URI = "/api/v1/clusters/{0}/hosts/{1}" + \
+                                       "/host_components/{2}" + \
                                        "?fields=HostRoles/desired_state"
-GET_HOST_COMPONENT_STATE_URI = "/api/v1/clusters/{0}/hosts/{1}" +\
-                               "/host_components/{2}" +\
+GET_HOST_COMPONENT_STATE_URI = "/api/v1/clusters/{0}/hosts/{1}" + \
+                               "/host_components/{2}" + \
                                "?fields=HostRoles/state"
 GET_HOST_STATE_URL = "/api/v1/clusters/{0}/hosts/{1}?fields=Hosts/host_state"
 HOST_COMPONENT_URI = "/api/v1/clusters/{0}/hosts/{1}/host_components/{2}"
@@ -63,10 +64,10 @@ logger = logging.getLogger()
 
 
 
-class PreemptiveBasicAuthHandler(urllib2.BaseHandler):
+class PreemptiveBasicAuthHandler(urllib.request.BaseHandler):
 
   def __init__(self):
-    password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+    password_mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
     password_mgr.add_password(None, getUrl(''), USERNAME, PASSWORD)
     self.passwd = password_mgr
     self.add_password = self.passwd.add_password
@@ -100,9 +101,9 @@ class AmbariResource:
       raise Exception('Component name undefined')
 
     handler = PreemptiveBasicAuthHandler()
-    opener = urllib2.build_opener(handler)
+    opener = urllib.request.build_opener(handler)
     # Install opener for all requests
-    urllib2.install_opener(opener)
+    urllib.request.install_opener(opener)
     self.urlOpener = opener
 
     self.old_hostname = self.getHostname()
@@ -122,7 +123,7 @@ class AmbariResource:
 
     try:
       self.verifyHostComponentStatus(self.old_hostname, new_hostname, self.componentName)
-    except Exception, e:
+    except Exception as e:
       logger.error("Exception caught on verify relocate request.")
       logger.error(e.message)
       sys.exit(3)
@@ -166,7 +167,7 @@ class AmbariResource:
           logger.info("Status update successful. status: %s" % state)
           return
         pass
-      except Exception, e:
+      except Exception as e:
         logger.error("Caught an exception waiting for status update.. "
                      "continuing to wait...")
       pass
@@ -182,7 +183,7 @@ class AmbariResource:
 
   def addHostComponent(self, hostname, componentName):
     data = '{"host_components":[{"HostRoles":{"component_name":"%s"}}]}' % self.componentName
-    req = urllib2.Request(getUrl(ADD_HOST_COMPONENT_URI.format(CLUSTER_NAME,
+    req = urllib.request.Request(getUrl(ADD_HOST_COMPONENT_URI.format(CLUSTER_NAME,
                           hostname)), data)
 
     req.add_header("X-Requested-By", "ambari_probe")
@@ -191,7 +192,7 @@ class AmbariResource:
       logger.info("Adding host component: %s" % req.get_full_url())
       resp = self.urlOpener.open(req)
       self.logResponse('Add host component response: ', resp)
-    except Exception, e:
+    except Exception as e:
       logger.error('Create host component failed, component: {0}, host: {1}'
                     .format(componentName, hostname))
       logger.error(e)
@@ -199,7 +200,7 @@ class AmbariResource:
     pass
 
   def deleteHostComponent(self, hostname, componentName):
-    req = urllib2.Request(getUrl(HOST_COMPONENT_URI.format(CLUSTER_NAME,
+    req = urllib.request.Request(getUrl(HOST_COMPONENT_URI.format(CLUSTER_NAME,
                                 hostname, componentName)))
     req.add_header("X-Requested-By", "ambari_probe")
     req.get_method = lambda: 'DELETE'
@@ -207,7 +208,7 @@ class AmbariResource:
       logger.info("Deleting host component: %s" % req.get_full_url())
       resp = self.urlOpener.open(req)
       self.logResponse('Delete component response: ', resp)
-    except Exception, e:
+    except Exception as e:
       logger.error('Delete {0} failed.'.format(componentName))
       logger.error(e)
       raise e
@@ -216,7 +217,7 @@ class AmbariResource:
   def updateHostComponentStatus(self, hostname, componentName, contextStr, status):
     # Update host component
     data = '{"RequestInfo":{"context":"%s %s"},"Body":{"HostRoles":{"state":"%s"}}}' % (contextStr, self.componentName, status)
-    req = urllib2.Request(getUrl(HOST_COMPONENT_URI.format(CLUSTER_NAME,
+    req = urllib.request.Request(getUrl(HOST_COMPONENT_URI.format(CLUSTER_NAME,
                                 hostname, componentName)), data)
     req.add_header("X-Requested-By", "ambari_probe")
     req.get_method = lambda: 'PUT'
@@ -224,7 +225,7 @@ class AmbariResource:
       logger.info("%s host component: %s" % (contextStr, req.get_full_url()))
       resp = self.urlOpener.open(req)
       self.logResponse('Update host component response: ', resp)
-    except Exception, e:
+    except Exception as e:
       logger.error('Update Status {0} failed.'.format(componentName))
       logger.error(e)
       raise e
@@ -263,7 +264,7 @@ class AmbariResource:
             raise Exception('Cannot find host state for host: {1}'.format(hostname))
 
           state = hostsInfo.get('host_state')
-        except Exception, e:
+        except Exception as e:
           logger.error('Unable to parse json data. %s' % data)
           raise e
         pass
@@ -291,11 +292,11 @@ class AmbariResource:
         try:
           hostRoles = data.get('HostRoles')
           if not hostRoles:
-            raise Exception('Cannot find host component state for component: ' +\
+            raise Exception('Cannot find host component state for component: ' + \
                             '{0}, host: {1}'.format(componentName, hostname))
 
           state = hostRoles.get('state')
-        except Exception, e:
+        except Exception as e:
           logger.error('Unable to parse json data. %s' % data)
           raise e
         pass
@@ -333,7 +334,7 @@ class AmbariResource:
             raise Exception('Multiple clusters found. %s' % clusters)
 
           clusterName = clusters[0].get('Clusters').get('cluster_name')
-        except Exception, e:
+        except Exception as e:
           logger.error('Unable to parse json data. %s' % data)
           raise e
         pass
@@ -359,13 +360,13 @@ class AmbariResource:
         try:
           hostRoles = data.get('host_components')
           if not hostRoles:
-            raise Exception('Cannot find host component data for service: ' +\
+            raise Exception('Cannot find host component data for service: ' + \
                             '{0}, component: {1}'.format(self.serviveName, self.componentName))
           if len(hostRoles) > 1:
             raise Exception('More than one hosts found with the same role')
 
           hostname = hostRoles[0].get('HostRoles').get('host_name')
-        except Exception, e:
+        except Exception as e:
           logger.error('Unable to parse json data. %s' % data)
           raise e
         pass
@@ -400,8 +401,8 @@ def main():
   parser.add_option("-s", "--host", dest="server_hostname",
                   help="Ambari server host name.")
   parser.add_option("-p", "--port", dest="server_port",
-                  default="8080" ,help="Ambari server port. [default: 8080]")
-  parser.add_option("-r", "--protocol", dest="protocol", default = "http",
+                  default="8080" , help="Ambari server port. [default: 8080]")
+  parser.add_option("-r", "--protocol", dest="protocol", default="http",
                   help="Protocol for communicating with Ambari server ("
                        "http/https) [default: http].")
   parser.add_option("-c", "--cluster-name", dest="cluster_name",
@@ -412,15 +413,15 @@ def main():
                   help="Ambari Service Component to operate on.")
   parser.add_option("-n", "--new-host", dest="new_hostname",
                   help="New host to relocate the component to.")
-  parser.add_option("-a", "--action", dest="action", default = "relocate",
+  parser.add_option("-a", "--action", dest="action", default="relocate",
                   help="Script action. [default: relocate]")
   parser.add_option("-o", "--output-file", dest="outputfile",
-                  default = outputFile, metavar="FILE",
+                  default=outputFile, metavar="FILE",
                   help="Output file. [default: %s]" % outputFile)
   parser.add_option("-u", "--username", dest="username",
-                  default="admin" ,help="Ambari server admin user. [default: admin]")
+                  default="admin" , help="Ambari server admin user. [default: admin]")
   parser.add_option("-w", "--password", dest="password",
-                  default="admin" ,help="Ambari server admin password.")
+                  default="admin" , help="Ambari server admin password.")
   parser.add_option("-d", "--start-component", dest="start_component",
                   action="store_false", default=False,
                   help="Should the script start the component after relocate.")

@@ -19,6 +19,7 @@ limitations under the License.
 """
 from resource_management import *
 
+
 config = Script.get_config()
 
 pid_dir = config['configurations']['global']['storm_pid_dir']

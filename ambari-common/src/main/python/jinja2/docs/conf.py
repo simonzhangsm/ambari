@@ -42,9 +42,18 @@ copyright = '2008, Armin Ronacher'
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '2.0'
-# The full version, including alpha/beta/rc tags.
-release = '2.0'
+import pkg_resources
+try:
+    release = pkg_resources.get_distribution('Jinja2').version
+except ImportError:
+    print('To build the documentation, The distribution information of Jinja2')
+    print('Has to be available.  Either install the package into your')
+    print('development environment or run "setup.py develop" to setup the')
+    print('metadata.  A virtualenv is recommended!')
+    sys.exit(1)
+if 'dev' in release:
+    release = release.split('dev')[0] + 'dev'
+version = '.'.join(release.split('.')[:2])
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -73,10 +82,8 @@ pygments_style = 'jinjaext.JinjaStyle'
 # Options for HTML output
 # -----------------------
 
-# The style sheet to use for HTML and HTML Help pages. A file of that name
-# must exist either in Sphinx' static/ path, or in one of the custom paths
-# given in html_static_path.
-html_style = 'style.css'
+html_theme = 'jinja'
+html_theme_path = ['_themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -121,21 +128,33 @@ latex_paper_size = 'a4'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
-  ('index', 'Jinja2.tex', 'Jinja2 Documentation', 'Armin Ronacher', 'manual', 'toctree_only'),
+  ('latexindex', 'Jinja2.tex', 'Jinja2 Documentation', 'Armin Ronacher',
+   'manual'),
 ]
 
-# Additional stuff for the LaTeX preamble.
-latex_preamble = '''
-\usepackage{palatino}
-\definecolor{TitleColor}{rgb}{0.7,0,0}
-\definecolor{InnerLinkColor}{rgb}{0.7,0,0}
-\definecolor{OuterLinkColor}{rgb}{0.8,0,0}
-\definecolor{VerbatimColor}{rgb}{0.985,0.985,0.985}
-\definecolor{VerbatimBorderColor}{rgb}{0.8,0.8,0.8}
-'''
+# Additional stuff for LaTeX
+latex_elements = {
+    'fontpkg':      r'\usepackage{mathpazo}',
+    'papersize':    'a4paper',
+    'pointsize':    '12pt',
+    'preamble':     r'''
+\usepackage{jinjastyle}
 
-# Documents to append as an appendix to all manuals.
-#latex_appendices = []
+% i hate you latex
+\DeclareUnicodeCharacter{14D}{o}
+'''
+}
+
+latex_use_parts = True
+
+latex_additional_files = ['jinjastyle.sty', 'logo.pdf']
 
 # If false, no module index is generated.
 latex_use_modindex = False
+
+html_sidebars = {
+    'index':    ['sidebarlogo.html', 'sidebarintro.html', 'sourcelink.html',
+                 'searchbox.html'],
+    '**':       ['sidebarlogo.html', 'localtoc.html', 'relations.html',
+                 'sourcelink.html', 'searchbox.html']
+}

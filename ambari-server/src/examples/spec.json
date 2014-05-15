@@ -1,26 +1,29 @@
 {
   "stack":{
-    "comment":"Stack Definition defines where the artifacts need to be fetched from.""name":"hdp-1.0.1",
+    "comment":"Stack Definition defines where the artifacts need to be fetched from.",
+    "name":"hdp-1.0.1",
     "services":{
       "hadoop":{
         "version":1.0
-      }
+      },
       "oozie":{
         "version":1.1
       }
-    }
+    },
     "repository":{
-      "comment":"Could be winpkg/tarball/others""type":yum,
+      "comment":"Could be winpkg/tarball/others",
+      "type":"yum",
       "info":{
         "key_1":"value_1",
         "url":"url"
       }
     }
   },
-  "hosts":[
-    "comment":"This can also be thought of as representation of hosts eg. small/medium/large""host_1",
-    "host_2"
-  ],
+  "hosts":{
+    "comment":"This can also be thought of as representation of hosts eg. small/medium/large",
+    "host_1":"",
+    "host_2":""
+  },
   "configuration":{
     "hadoop-env":{
       "HADOOP_CONF_DIR":"/etc/hadoop",
@@ -30,8 +33,7 @@
     "core-site":{
       "fs.default.name":"hdfs://${namenode}:8020/",
       "hadoop.tmp.dir":"/grid/0/hadoop/tmp",
-      "!hadoop.security.authentication":"kerberos",
-      
+      "!hadoop.security.authentication":"kerberos"
     }
   },
   "services":{
@@ -39,7 +41,7 @@
     "hdfs":{
       "enabled":true,
       "user":"hdfs"
-    }
+    },
     "mapred":{
       "user":"mapred",
       "enabled":false
@@ -52,7 +54,7 @@
       "host":"host_1",
       "configuration":{
         "hdfs-site":{
-          "dfs.https.enable":"true"
+          "dfs.https.enable":true
         }
       }
     }

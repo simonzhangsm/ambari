@@ -19,7 +19,7 @@ limitations under the License.
 import os
 import tempfile
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from mock import patch, MagicMock
 
 from resource_management import *
 
@@ -102,15 +102,15 @@ gpgcheck=0""", template)
           Repository('HDP',
                      base_url='http://download.base_url.org/rpm/',
                      repo_file_name='HDP',
-                     components = ['a','b','c']
+                     components=['a', 'b', 'c']
           )
       
       template_item = file_mock.call_args_list[0]
       template_name = template_item[0][0]
       template_content = template_item[1]['content'].get_content()
       
-      self.assertEquals(template_name, '/tmp/1.txt')
-      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c\n')
+      self.assertEqual(template_name, '/tmp/1.txt')
+      self.assertEqual(template_content, 'deb http://download.base_url.org/rpm/ a b c\n')
       
       copy_item = str(file_mock.call_args_list[1])
       self.assertEqual(copy_item, "call('/etc/apt/sources.list.d/HDP.list', content=StaticFile('/tmp/1.txt'))")
@@ -133,15 +133,15 @@ gpgcheck=0""", template)
           Repository('HDP',
                      base_url='http://download.base_url.org/rpm/',
                      repo_file_name='HDP',
-                     components = ['a','b','c']
+                     components=['a', 'b', 'c']
           )
       
       template_item = file_mock.call_args_list[0]
       template_name = template_item[0][0]
       template_content = template_item[1]['content'].get_content()
       
-      self.assertEquals(template_name, '/tmp/1.txt')
-      self.assertEquals(template_content, 'deb http://download.base_url.org/rpm/ a b c\n')
+      self.assertEqual(template_name, '/tmp/1.txt')
+      self.assertEqual(template_content, 'deb http://download.base_url.org/rpm/ a b c\n')
       
       self.assertEqual(file_mock.call_count, 1)
       self.assertEqual(execute_mock.call_count, 0)
@@ -154,7 +154,7 @@ gpgcheck=0""", template)
     def test_remove_repo_debian_repo_exist(self, file_mock, execute_mock):
       with Environment('/') as env:
           Repository('HDP',
-                     action = "remove",
+                     action="remove",
                      repo_file_name='HDP'
           )
           
@@ -168,7 +168,7 @@ gpgcheck=0""", template)
     def test_remove_repo_debian_repo_doenst_exist(self, file_mock, execute_mock):
       with Environment('/') as env:
           Repository('HDP',
-                     action = "remove",
+                     action="remove",
                      repo_file_name='HDP'
           )
           

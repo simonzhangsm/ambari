@@ -17,12 +17,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from mock.mock import MagicMock, call, patch
-from stacks.utils.RMFTestCase import *
 import datetime
+
+from mock import MagicMock, call, patch
+
+from stacks.utils.RMFTestCase import *
 import  resource_management.libraries.functions
 
-@patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new = MagicMock(return_value=''))
+
+@patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new=MagicMock(return_value=''))
 class TestServiceCheck(RMFTestCase):
 
   def test_service_check_default(self):
@@ -32,24 +35,24 @@ class TestServiceCheck(RMFTestCase):
                         config_file="default.json"
     )
     self.assertResourceCalled('File', '/tmp/hbaseSmokeVerify.sh',
-      content = StaticFile('hbaseSmokeVerify.sh'),
-      mode = 0755,
+      content=StaticFile('hbaseSmokeVerify.sh'),
+      mode=0o755,
     )
     self.assertResourceCalled('File', '/tmp/hbase-smoke.sh',
-      content = Template('hbase-smoke.sh.j2'),
-      mode = 0755,
+      content=Template('hbase-smoke.sh.j2'),
+      mode=0o755,
     )
     self.assertResourceCalled('Execute', ' hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh',
-      logoutput = True,
-      tries = 3,
-      user = 'ambari-qa',
-      try_sleep = 5,
+      logoutput=True,
+      tries=3,
+      user='ambari-qa',
+      try_sleep=5,
     )
     self.assertResourceCalled('Execute', ' /tmp/hbaseSmokeVerify.sh /etc/hbase/conf ',
-      logoutput = True,
-      tries = 3,
-      user = 'ambari-qa',
-      try_sleep = 5,
+      logoutput=True,
+      tries=3,
+      user='ambari-qa',
+      try_sleep=5,
     )
     self.assertNoMoreResources()
     
@@ -61,33 +64,33 @@ class TestServiceCheck(RMFTestCase):
                         config_file="secured.json"
     )
     self.assertResourceCalled('File', '/tmp/hbaseSmokeVerify.sh',
-      content = StaticFile('hbaseSmokeVerify.sh'),
-      mode = 0755,
+      content=StaticFile('hbaseSmokeVerify.sh'),
+      mode=0o755,
     )
     self.assertResourceCalled('File', '/tmp/hbase-smoke.sh',
-      content = Template('hbase-smoke.sh.j2'),
-      mode = 0755,
+      content=Template('hbase-smoke.sh.j2'),
+      mode=0o755,
     )
     self.assertResourceCalled('File', '/tmp/hbase_grant_permissions.sh',
-      content = Template('hbase_grant_permissions.j2'),
-      owner = 'hbase',
-      group = 'hadoop',
-      mode = 0644,
+      content=Template('hbase_grant_permissions.j2'),
+      owner='hbase',
+      group='hadoop',
+      mode=0o644,
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hbase.headless.keytab hbase; hbase shell /tmp/hbase_grant_permissions.sh',
-      user = 'hbase',
+      user='hbase',
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh',
-      logoutput = True,
-      tries = 3,
-      user = 'ambari-qa',
-      try_sleep = 5,
+      logoutput=True,
+      tries=3,
+      user='ambari-qa',
+      try_sleep=5,
     )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; /tmp/hbaseSmokeVerify.sh /etc/hbase/conf ',
-      logoutput = True,
-      tries = 3,
-      user = 'ambari-qa',
-      try_sleep = 5,
+      logoutput=True,
+      tries=3,
+      user='ambari-qa',
+      try_sleep=5,
     )
     self.assertNoMoreResources()
     

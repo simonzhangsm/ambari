@@ -17,34 +17,36 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from mock.mock import MagicMock, call, patch
+from mock import MagicMock, call, patch
+
 from stacks.utils.RMFTestCase import *
+
 
 class TestTezClient(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("2.1/services/TEZ/package/scripts/tez_client.py",
-                       classname = "TezClient",
-                       command = "configure",
+                       classname="TezClient",
+                       command="configure",
                        config_file="default.json"
     )
 
     self.assertResourceCalled('Directory', '/etc/tez/conf',
-      owner = 'tez',
-      group = 'hadoop',
-      recursive = True
+      owner='tez',
+      group='hadoop',
+      recursive=True
     )
 
     self.assertResourceCalled('XmlConfig', 'tez-site.xml',
-      owner = 'tez',
-      group = 'hadoop',
-      conf_dir = '/etc/tez/conf',
-      configurations = self.getConfig()['configurations']['tez-site'],
-      mode = 0664
+      owner='tez',
+      group='hadoop',
+      conf_dir='/etc/tez/conf',
+      configurations=self.getConfig()['configurations']['tez-site'],
+      mode=0o664
     )
 
     self.assertResourceCalled('TemplateConfig', '/etc/tez/conf/tez-env.sh',
-      owner = 'tez'
+      owner='tez'
     )
 
     self.assertNoMoreResources()

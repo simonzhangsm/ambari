@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import Queue
+import queue
 
 import logging
 import traceback
@@ -25,11 +25,12 @@ import threading
 import pprint
 import os
 
-from LiveStatus import LiveStatus
-from shell import shellRunner
-from ActualConfigHandler import ActualConfigHandler
-from CommandStatusDict import CommandStatusDict
-from CustomServiceOrchestrator import CustomServiceOrchestrator
+import LiveStatus
+import shellRunner
+import PuppetExecutor
+import ActualConfigHandler
+import CommandStatusDict
+import CustomServiceOrchestrator
 
 
 logger = logging.getLogger()
@@ -45,8 +46,8 @@ class ActionQueue(threading.Thread):
   MAX_CONCURRENT_ACTIONS = 5
 
 
-  #How much time(in seconds) we need wait for new incoming execution command before checking
-  #status command queue
+  # How much time(in seconds) we need wait for new incoming execution command before checking
+  # status command queue
   EXECUTION_COMMAND_WAIT_TIME = 2
 
   STATUS_COMMAND = 'STATUS_COMMAND'
@@ -61,11 +62,12 @@ class ActionQueue(threading.Thread):
   COMPLETED_STATUS = 'COMPLETED'
   FAILED_STATUS = 'FAILED'
 
+
   def __init__(self, config, controller):
     super(ActionQueue, self).__init__()
-    self.commandQueue = Queue.Queue()
-    self.statusCommandQueue = Queue.Queue()
-    self.commandStatuses = CommandStatusDict(callback_action =
+    self.commandQueue = queue.Queue()
+    self.statusCommandQueue = queue.Queue()
+    self.commandStatuses = CommandStatusDict(callback_action=
       self.status_update_callback)
     self.config = config
     self.controller = controller
@@ -84,7 +86,7 @@ class ActionQueue(threading.Thread):
     return self._stop.isSet()
 
   def put_status(self, commands):
-    #Was supposed that we got all set of statuses, we don't need to keep old ones
+    # Was supposed that we got all set of statuses, we don't need to keep old ones
     self.statusCommandQueue.queue.clear()
 
     for command in commands:
@@ -96,7 +98,7 @@ class ActionQueue(threading.Thread):
 
   def put(self, commands):
     for command in commands:
-      if not command.has_key('serviceName'):
+      if 'serviceName' not in command:
         command['serviceName'] = "null"
       logger.info("Adding " + command['commandType'] + " for service " + \
                   command['serviceName'] + " of cluster " + \
@@ -110,12 +112,12 @@ class ActionQueue(threading.Thread):
         try:
           command = self.statusCommandQueue.get(False)
           self.process_command(command)
-        except (Queue.Empty):
+        except (queue.Empty):
           pass
       try:
         command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
         self.process_command(command)
-      except (Queue.Empty):
+      except (queue.Empty):
         pass
 
 
@@ -131,10 +133,13 @@ class ActionQueue(threading.Thread):
         self.execute_status_command(command)
       else:
         logger.error("Unrecognized command " + pprint.pformat(command))
-    except Exception, err:
+    except Exception as err:
       # Should not happen
       traceback.print_exc()
       logger.warn(err)
+
+
+
 
   def execute_command(self, command):
     '''
@@ -145,7 +150,7 @@ class ActionQueue(threading.Thread):
 
     message = "Executing command with id = {commandId} for role = {role} of " \
               "cluster {cluster}.".format(
-              commandId = str(commandId), role=command['role'],
+              commandId=str(commandId), role=command['role'],
               cluster=clusterName)
     logger.info(message)
     logger.debug(pprint.pformat(command))
@@ -161,13 +166,14 @@ class ActionQueue(threading.Thread):
     })
     self.commandStatuses.put_command_status(command, in_progress_status)
     # running command
-    commandresult = self.customServiceOrchestrator.runCommand(command,
-      in_progress_status['tmpout'], in_progress_status['tmperr'])
+      commandresult = self.customServiceOrchestrator.runCommand(command,
+        in_progress_status['tmpout'], in_progress_status['tmperr'])
     # dumping results
     status = self.COMPLETED_STATUS
     if commandresult['exitcode'] != 0:
       status = self.FAILED_STATUS
     roleResult = self.commandStatuses.generate_report_template(command)
+    # assume some puppet plumbing to run these commands
     roleResult.update({
       'stdout': commandresult['stdout'],
       'stderr': commandresult['stderr'],
@@ -180,7 +186,7 @@ class ActionQueue(threading.Thread):
       roleResult['stderr'] = 'None'
 
     # let ambari know name of custom command
-    if command['hostLevelParams'].has_key('custom_command'):
+    if 'custom_command' in command['hostLevelParams']:
       roleResult['customCommand'] = command['hostLevelParams']['custom_command']
 
     if 'structuredOut' in commandresult:
@@ -190,16 +196,16 @@ class ActionQueue(threading.Thread):
     # let ambari know that configuration tags were applied
     if status == self.COMPLETED_STATUS:
       configHandler = ActualConfigHandler(self.config, self.configTags)
-      if command.has_key('configurationTags'):
+      if 'configurationTags' in command:
         configHandler.write_actual(command['configurationTags'])
         roleResult['configurationTags'] = command['configurationTags']
-      component = {'serviceName':command['serviceName'],'componentName':command['role']}
-      if command.has_key('roleCommand') and \
+      component = {'serviceName':command['serviceName'], 'componentName':command['role']}
+      if 'roleCommand' in command and \
         (command['roleCommand'] == self.ROLE_COMMAND_START or \
         (command['roleCommand'] == self.ROLE_COMMAND_INSTALL \
         and component in LiveStatus.CLIENT_COMPONENTS) or \
         (command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND and \
-        command['hostLevelParams'].has_key('custom_command') and \
+        'custom_command' in command['hostLevelParams'] and \
         command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART)):
         configHandler.write_actual_component(command['role'], command['configurationTags'])
         configHandler.write_client_components(command['serviceName'], command['configurationTags'])
@@ -216,29 +222,30 @@ class ActionQueue(threading.Thread):
       service = command['serviceName']
       component = command['componentName']
       configurations = command['configurations']
-      if configurations.has_key('global'):
+      if 'global' in configurations:
         globalConfig = configurations['global']
       else:
         globalConfig = {}
+
 
       livestatus = LiveStatus(cluster, service, component,
                               globalConfig, self.config, self.configTags)
 
       component_extra = None
 
-      # For custom services, responsibility to determine service status is
-      # delegated to python scripts
-      component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
+        # For custom services, responsibility to determine service status is
+        # delegated to python scripts
+        component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
 
-      if component_status_result['exitcode'] == 0:
-        component_status = LiveStatus.LIVE_STATUS
-      else:
-        component_status = LiveStatus.DEAD_STATUS
+        if component_status_result['exitcode'] == 0:
+          component_status = LiveStatus.LIVE_STATUS
+        else:
+          component_status = LiveStatus.DEAD_STATUS
 
-      if component_status_result.has_key('structuredOut'):
-        component_extra = component_status_result['structuredOut']
+        if 'structuredOut' in component_status_result:
+          component_extra = component_status_result['structuredOut']
 
-      result = livestatus.build(forsed_component_status= component_status)
+      result = livestatus.build(forsed_component_status=component_status)
 
       if component_extra is not None and len(component_extra) != 0:
         result['extra'] = component_extra
@@ -250,7 +257,7 @@ class ActionQueue(threading.Thread):
       logger.debug(pprint.pformat(result))
       if result is not None:
         self.commandStatuses.put_command_status(command, result)
-    except Exception, err:
+    except Exception as err:
       traceback.print_exc()
       logger.warn(err)
     pass

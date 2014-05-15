@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,12 +20,12 @@ Ambari Agent
 
 """
 import os
-
-from resource_management import *
 import sys
 
+from resource_management import *
 
-def zookeeper(type = None):
+
+def zookeeper(type=None):
   import params
 
   Directory(params.config_dir,
@@ -59,20 +60,20 @@ def zookeeper(type = None):
     myid = str(sorted(params.zookeeper_hosts).index(params.hostname) + 1)
 
     File(format("{zk_data_dir}/myid"),
-         mode = 0644,
-         content = myid
+         mode=0o644,
+         content=myid
     )
 
   if (params.log4j_props != None):
     File(format("{params.config_dir}/log4j.properties"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.zk_user,
          content=params.log4j_props
     )
   elif (os.path.exists(format("{params.config_dir}/log4j.properties"))):
     File(format("{params.config_dir}/log4j.properties"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.zk_user
     )

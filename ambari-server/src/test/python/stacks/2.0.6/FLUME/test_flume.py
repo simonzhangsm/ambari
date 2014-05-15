@@ -18,17 +18,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from mock.mock import MagicMock, call, patch
+from mock import MagicMock, call, patch
+
 from stacks.utils.RMFTestCase import *
 import resource_management.core.source
 
-@patch.object(resource_management.core.source, "InlineTemplate", new = MagicMock(return_value='InlineTemplateMock'))
+
+@patch.object(resource_management.core.source, "InlineTemplate", new=MagicMock(return_value='InlineTemplateMock'))
 class TestFlumeHandler(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "configure",
+                       classname="FlumeHandler",
+                       command="configure",
                        config_file="default.json")
 
     self.assert_configure_default()
@@ -41,8 +43,8 @@ class TestFlumeHandler(RMFTestCase):
     os_path_isfile_mock.side_effect = [True, False]
 
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "start",
+                       classname="FlumeHandler",
+                       command="start",
                        config_file="default.json")
 
     self.assert_configure_default()
@@ -53,12 +55,12 @@ class TestFlumeHandler(RMFTestCase):
       '--conf-file /etc/flume/conf/a1/flume.conf '
       '-Dflume.monitoring.type=ganglia '
       '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655'),
-      wait_for_finish = False)
+      wait_for_finish=False)
 
     self.assertResourceCalled('Execute', 'pgrep -o -f /etc/flume/conf/a1/flume.conf > /var/run/flume/a1.pid',
-      logoutput = True,
-      tries = 5,
-      try_sleep = 10)
+      logoutput=True,
+      tries=5,
+      try_sleep=10)
 
     self.assertNoMoreResources()
 
@@ -67,16 +69,16 @@ class TestFlumeHandler(RMFTestCase):
     glob_mock.return_value = ['/var/run/flume/a1.pid']
 
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "stop",
+                       classname="FlumeHandler",
+                       command="stop",
                        config_file="default.json")
 
     self.assertTrue(glob_mock.called)
 
     self.assertResourceCalled('Execute', 'kill `cat /var/run/flume/a1.pid` > /dev/null 2>&1',
-      ignore_failures = True)
+      ignore_failures=True)
 
-    self.assertResourceCalled('File', '/var/run/flume/a1.pid', action = ['delete'])
+    self.assertResourceCalled('File', '/var/run/flume/a1.pid', action=['delete'])
 
     self.assertNoMoreResources()
 
@@ -86,8 +88,8 @@ class TestFlumeHandler(RMFTestCase):
     
     try:
       self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "status",
+                       classname="FlumeHandler",
+                       command="status",
                        config_file="default.json")
     except:
       # expected since ComponentIsNotRunning gets raised
@@ -107,8 +109,8 @@ class TestFlumeHandler(RMFTestCase):
 
     try:
       self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "status",
+                       classname="FlumeHandler",
+                       command="status",
                        config_file="default.json")
     except:
       # expected since ComponentIsNotRunning gets raised
@@ -126,60 +128,60 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/etc/flume/conf')
 
-    self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
+    self.assertResourceCalled('Directory', '/var/log/flume', owner='flume')
 
     self.assertResourceCalled('Directory', '/etc/flume/conf/a1')
 
     self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/a1/flume.conf',
-      mode = 0644,
-      properties = build_flume(
+      mode=0o644,
+      properties=build_flume(
         self.getConfig()['configurations']['flume-conf']['content'])['a1'])
 
     self.assertResourceCalled('File',
       '/etc/flume/conf/a1/log4j.properties',
-      content = Template('log4j.properties.j2', agent_name = 'a1'),
-      mode = 0644)
+      content=Template('log4j.properties.j2', agent_name='a1'),
+      mode=0o644)
 
     self.assertResourceCalled('File',
       '/etc/flume/conf/a1/ambari-meta.json',
       content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
-      mode = 0644)
+      mode=0o644)
 
   def assert_configure_many(self):
 
     self.assertResourceCalled('Directory', '/etc/flume/conf')
 
-    self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
+    self.assertResourceCalled('Directory', '/var/log/flume', owner='flume')
 
     top = build_flume(self.getConfig()['configurations']['flume-conf']['content'])
 
     # a1
     self.assertResourceCalled('Directory', '/etc/flume/conf/a1')
     self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/a1/flume.conf',
-      mode = 0644,
-      properties = top['a1'])
+      mode=0o644,
+      properties=top['a1'])
     self.assertResourceCalled('File',
       '/etc/flume/conf/a1/log4j.properties',
-      content = Template('log4j.properties.j2', agent_name = 'a1'),
-      mode = 0644)
+      content=Template('log4j.properties.j2', agent_name='a1'),
+      mode=0o644)
     self.assertResourceCalled('File',
       '/etc/flume/conf/a1/ambari-meta.json',
       content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
-      mode = 0644)
+      mode=0o644)
 
     # b1
     self.assertResourceCalled('Directory', '/etc/flume/conf/b1')
     self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/b1/flume.conf',
-      mode = 0644,
-      properties = top['b1'])
+      mode=0o644,
+      properties=top['b1'])
     self.assertResourceCalled('File',
       '/etc/flume/conf/b1/log4j.properties',
-      content = Template('log4j.properties.j2', agent_name = 'b1'),
-      mode = 0644)
+      content=Template('log4j.properties.j2', agent_name='b1'),
+      mode=0o644)
     self.assertResourceCalled('File',
       '/etc/flume/conf/b1/ambari-meta.json',
       content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
-      mode = 0644)
+      mode=0o644)
 
   @patch("os.path.isfile")
   def test_start_single(self, os_path_isfile_mock):
@@ -188,8 +190,8 @@ class TestFlumeHandler(RMFTestCase):
     os_path_isfile_mock.side_effect = [True, False]
 
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "start",
+                       classname="FlumeHandler",
+                       command="start",
                        config_file="flume_target.json")
 
     self.assert_configure_many()
@@ -200,12 +202,12 @@ class TestFlumeHandler(RMFTestCase):
       '--conf-file /etc/flume/conf/b1/flume.conf '
       '-Dflume.monitoring.type=ganglia '
       '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655'),
-      wait_for_finish = False)
+      wait_for_finish=False)
 
     self.assertResourceCalled('Execute', 'pgrep -o -f /etc/flume/conf/b1/flume.conf > /var/run/flume/b1.pid',
-      logoutput = True,
-      tries = 5,
-      try_sleep = 10)
+      logoutput=True,
+      tries=5,
+      try_sleep=10)
 
     self.assertNoMoreResources()
 
@@ -216,8 +218,8 @@ class TestFlumeHandler(RMFTestCase):
     os_path_isfile_mock.side_effect = [True, False]
 
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "start",
+                       classname="FlumeHandler",
+                       command="start",
                        config_file="flume_target.json")
 
     self.assert_configure_many()
@@ -228,12 +230,12 @@ class TestFlumeHandler(RMFTestCase):
       '--conf-file /etc/flume/conf/b1/flume.conf '
       '-Dflume.monitoring.type=ganglia '
       '-Dflume.monitoring.hosts=c6401.ambari.apache.org:8655'),
-      wait_for_finish = False)
+      wait_for_finish=False)
 
     self.assertResourceCalled('Execute', 'pgrep -o -f /etc/flume/conf/b1/flume.conf > /var/run/flume/b1.pid',
-      logoutput = True,
-      tries = 5,
-      try_sleep = 10)
+      logoutput=True,
+      tries=5,
+      try_sleep=10)
 
     self.assertNoMoreResources()
 
@@ -242,16 +244,16 @@ class TestFlumeHandler(RMFTestCase):
     glob_mock.return_value = ['/var/run/flume/b1.pid']
 
     self.executeScript("2.0.6/services/FLUME/package/scripts/flume_handler.py",
-                       classname = "FlumeHandler",
-                       command = "stop",
+                       classname="FlumeHandler",
+                       command="stop",
                        config_file="flume_target.json")
 
     self.assertTrue(glob_mock.called)
 
     self.assertResourceCalled('Execute', 'kill `cat /var/run/flume/b1.pid` > /dev/null 2>&1',
-      ignore_failures = True)
+      ignore_failures=True)
 
-    self.assertResourceCalled('File', '/var/run/flume/b1.pid', action = ['delete'])
+    self.assertResourceCalled('File', '/var/run/flume/b1.pid', action=['delete'])
 
     self.assertNoMoreResources()
 
@@ -271,13 +273,13 @@ def build_flume(content):
       if lhs.endswith(".sources"):
         agent_names.append(part0)
 
-      if not result.has_key(part0):
+      if part0 not in result:
         result[part0] = {}
 
       result[part0][lhs] = rhs
 
   # trim out non-agents
-  for k in result.keys():
+  for k in list(result.keys()):
     if not k in agent_names:
       del result[k]
 

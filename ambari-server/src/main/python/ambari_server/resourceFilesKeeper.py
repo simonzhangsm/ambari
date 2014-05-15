@@ -17,13 +17,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import hashlib
-
-import os, sys
-import zipfile
-import glob
-import pprint
 from xml.dom import minidom
+import glob
+import hashlib
+import os, sys
+import pprint
+import zipfile
 
 
 class KeeperException(Exception):
@@ -34,24 +33,24 @@ class ResourceFilesKeeper():
   This class incapsulates all utility methods for resource files maintenance.
   """
 
-  HOOKS_DIR="hooks"
-  PACKAGE_DIR="package"
-  STACKS_DIR="stacks"
-  CUSTOM_ACTIONS_DIR="custom_actions"
+  HOOKS_DIR = "hooks"
+  PACKAGE_DIR = "package"
+  STACKS_DIR = "stacks"
+  CUSTOM_ACTIONS_DIR = "custom_actions"
 
   # For these directories archives are created
   ARCHIVABLE_DIRS = [HOOKS_DIR, PACKAGE_DIR]
 
-  HASH_SUM_FILE=".hash"
-  ARCHIVE_NAME="archive.zip"
+  HASH_SUM_FILE = ".hash"
+  ARCHIVE_NAME = "archive.zip"
 
-  PYC_EXT=".pyc"
+  PYC_EXT = ".pyc"
   METAINFO_XML = "metainfo.xml"
 
   BUFFER = 1024 * 32
 
   # Change that to True to see debug output at stderr
-  DEBUG=False
+  DEBUG = False
 
   def __init__(self, resources_dir, verbose=False, nozip=False):
     """
@@ -99,7 +98,7 @@ class ResourceFilesKeeper():
     """
     Builds a list of stack directories
     """
-    valid_stacks = [] # Format: <stack_dir, ignore(True|False)>
+    valid_stacks = []  # Format: <stack_dir, ignore(True|False)>
     glob_pattern = "{0}/*/*".format(stacks_root)
     try:
       stack_dirs = glob.glob(glob_pattern)
@@ -108,7 +107,7 @@ class ResourceFilesKeeper():
         if os.path.exists(metainfo_file):
           valid_stacks.append(directory)
       return valid_stacks
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not list stacks: {0}".format(str(err)))
 
 
@@ -150,7 +149,7 @@ class ResourceFilesKeeper():
               break
             sha1.update(data)
       return sha1.hexdigest()
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not calculate directory "
                             "hash: {0}".format(str(err)))
 
@@ -165,7 +164,7 @@ class ResourceFilesKeeper():
       try:
         with open(hash_file) as fh:
           return fh.readline().strip()
-      except Exception, err:
+      except Exception as err:
         raise KeeperException("Can not read file {0} : {1}".format(hash_file,
                                                                    str(err)))
     else:
@@ -181,7 +180,7 @@ class ResourceFilesKeeper():
     try:
       with open(hash_file, "w") as fh:
         fh.write(new_hash)
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not write to file {0} : {1}".format(hash_file,
                                                                    str(err)))
 
@@ -205,7 +204,7 @@ class ResourceFilesKeeper():
                                         arcname))
             zf.write(absname, arcname)
       zf.close()
-    except Exception, err:
+    except Exception as err:
       raise KeeperException("Can not create zip archive of "
                             "directory {0} : {1}".format(directory, str(err)))
 
@@ -222,7 +221,7 @@ class ResourceFilesKeeper():
     if self.DEBUG:
       sys.stderr.write("{0}\n".format(text))
     if not self.DEBUG and self.verbose:
-      print text
+      print(text)
 
 
 def main(argv=None):

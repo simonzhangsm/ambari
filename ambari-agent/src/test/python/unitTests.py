@@ -25,9 +25,9 @@ import logging.handlers
 import logging
 from random import shuffle
 
-LOG_FILE_NAME='tests.log'
+LOG_FILE_NAME = 'tests.log'
 SELECTED_PREFIX = "_"
-PY_EXT='.py'
+PY_EXT = '.py'
 
 class TestAgent(unittest.TestSuite):
   def run(self, result):
@@ -112,7 +112,7 @@ if __name__ == '__main__':
   if not os.path.exists(target_dir):
     os.mkdir(target_dir)
   path = target_dir + os.sep + LOG_FILE_NAME
-  file=open(path, "w")
+  file = open(path, "w")
   consoleLog = logging.StreamHandler(file)
   consoleLog.setFormatter(formatter)
   logger.addHandler(consoleLog)

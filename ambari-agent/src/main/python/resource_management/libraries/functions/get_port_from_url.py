@@ -22,7 +22,7 @@ Ambari Agent
 
 from resource_management import *
 from resource_management.libraries.functions.is_empty import *
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 def get_port_from_url(address):
   if not is_empty(address):

@@ -19,7 +19,7 @@ limitations under the License.
 from resource_management import *
 
 
-def monitor(action=None):# 'start' or 'stop'
+def monitor(action=None):  # 'start' or 'stop'
   Execute(
     format(
       "service hdp-gmond {action} >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1"),

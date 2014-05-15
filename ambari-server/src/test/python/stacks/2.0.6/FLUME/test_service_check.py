@@ -31,9 +31,9 @@ class TestFlumeCheck(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', 'env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/bin/flume-ng version',
-                              logoutput = True,
-                              tries = 3,
-                              try_sleep = 20)
+                              logoutput=True,
+                              tries=3,
+                              try_sleep=20)
 
     self.assertNoMoreResources()
 

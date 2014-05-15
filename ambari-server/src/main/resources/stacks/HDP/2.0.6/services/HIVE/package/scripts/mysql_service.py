@@ -33,8 +33,8 @@ def mysql_service(daemon_name=None, action='start'):
     Execute(replace_bind_address)
     
     Execute(cmd,
-      logoutput = True,
-      not_if = status_cmd
+      logoutput=True,
+      not_if=status_cmd
     )
 
 

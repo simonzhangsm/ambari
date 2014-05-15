@@ -17,36 +17,38 @@ limitations under the License.
 
 """
 
-from resource_management import *
 import sys
+
+from resource_management import *
+
 
 def sqoop(type=None):
   import params
   Link(params.sqoop_lib + "/mysql-connector-java.jar",
-       to = '/usr/share/java/mysql-connector-java.jar'
+       to='/usr/share/java/mysql-connector-java.jar'
   )
   Directory(params.sqoop_conf_dir,
-            owner = params.sqoop_user,
-            group = params.user_group
+            owner=params.sqoop_user,
+            group=params.user_group
   )
   sqoop_TemplateConfig("sqoop-env.sh")
   File (params.sqoop_conf_dir + "/sqoop-env-template.sh",
-          owner = params.sqoop_user,
-          group = params.user_group
+          owner=params.sqoop_user,
+          group=params.user_group
   )
   File (params.sqoop_conf_dir + "/sqoop-site-template.xml",
-         owner = params.sqoop_user,
-         group = params.user_group
+         owner=params.sqoop_user,
+         group=params.user_group
   )
   File (params.sqoop_conf_dir + "/sqoop-site.xml",
-         owner = params.sqoop_user,
-         group = params.user_group
+         owner=params.sqoop_user,
+         group=params.user_group
   )
   pass
 
 def sqoop_TemplateConfig(name, tag=None):
   import params
-  TemplateConfig( format("{sqoop_conf_dir}/{name}"),
-                  owner = params.sqoop_user,
-                  template_tag = tag
+  TemplateConfig(format("{sqoop_conf_dir}/{name}"),
+                  owner=params.sqoop_user,
+                  template_tag=tag
   )

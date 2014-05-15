@@ -33,7 +33,7 @@ def get_kinit_path(pathes_list):
     if not x:
       continue
     
-    path = os.path.join(x,"kinit")
+    path = os.path.join(x, "kinit")
 
     if os.path.isfile(path):
       kinit_path = path

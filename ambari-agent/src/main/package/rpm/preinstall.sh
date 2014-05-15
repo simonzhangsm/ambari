@@ -1,26 +1,25 @@
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License
+#!/usr/bin/env bash +xv
 
-if [ -d "/etc/ambari-agent/conf.save" ]
-then
-    mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
-fi
-
-BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
-ORIG=/etc/ambari-agent/conf/ambari-agent.ini
-
-[ -f $ORIG ] && mv -f $ORIG $BAK
+case "$1" in
+    install)
+		if [ -d "/etc/ambari-agent/conf.save" ]; then
+		    sudo mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
+		fi
+		if [ -f "/etc/ambari-agent/conf/ambari-agent.ini" ]; then
+			sudo mv -f /etc/ambari-agent/conf/ambari-agent.ini /etc/ambari-agent/conf/ambari-agent.ini.old
+		fi
+		;;
+	upgrade|abort-upgrade)
+		if [ -d "/etc/ambari-agent/conf.upgrade" ]; then
+		    sudo mv /etc/ambari-agent/conf.upgrade /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').upgrade
+		fi
+		if [ -f "/etc/ambari-agent/conf/ambari-agent.ini.upgrade" ]; then
+			sudo mv -f /etc/ambari-agent/conf/ambari-agent.ini.upgrade /etc/ambari-agent/conf/ambari-agent.ini.$(date '+%d_%m_%y_%H_%M').upgrade
+		fi
+        ;;
+	*)
+		echo "preinst called with unknown argument \`$1'" >&2
+        exit 0
+        ;;
 
 exit 0

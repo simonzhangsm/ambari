@@ -19,10 +19,11 @@ limitations under the License.
 """
 
 import sys
+
 from resource_management import *
-from storm import storm
-from service import service
+import service
 from service_check import ServiceCheck
+import storm
 
 
 class UiServer(Script):
@@ -47,10 +48,10 @@ class UiServer(Script):
     import params
     env.set_params(params)
 
-    service("ui", action="stop")
+    service("ui", "stop")
 
   def status(self, env):
-    import status_params
+    from status_params import status_params
     env.set_params(status_params)
     check_process_status(status_params.pid_ui)
 

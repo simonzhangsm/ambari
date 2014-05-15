@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -20,15 +21,17 @@ Ambari Agent
 """
 
 import sys
+
 from resource_management import *
-from yarn import yarn
-from service import service
+import service
+import yarn
+
 
 class ApplicationTimelineServer(Script):
 
   def install(self, env):
     self.install_packages(env)
-    #self.configure(env)
+    # self.configure(env)
 
   def configure(self, env):
     import params
@@ -38,7 +41,7 @@ class ApplicationTimelineServer(Script):
   def start(self, env):
     import params
     env.set_params(params)
-    self.configure(env) # FOR SECURITY
+    self.configure(env)  # FOR SECURITY
     service('historyserver', action='start')
 
   def stop(self, env):

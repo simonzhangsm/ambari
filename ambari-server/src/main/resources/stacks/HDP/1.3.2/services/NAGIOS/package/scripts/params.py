@@ -24,6 +24,7 @@ from functions import is_jdk_greater_6
 from resource_management import *
 import status_params
 
+
 # server configurations
 config = Script.get_config()
 
@@ -62,11 +63,11 @@ hs_port = get_port_from_url(config['configurations']['mapred-site']['mapreduce.h
 journalnode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.journalnode.http-address'])
 datanode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.datanode.http.address'])
 flume_port = "4159"
-hive_metastore_port = config['configurations']['global']['hive_metastore_port'] #"9083"
+hive_metastore_port = config['configurations']['global']['hive_metastore_port']  # "9083"
 hive_server_port = "10000"
-templeton_port = config['configurations']['webhcat-site']['templeton.port'] #"50111"
-hbase_master_port = config['configurations']['hbase-site']['hbase.master.info.port'] #"60010"
-hbase_rs_port = config['configurations']['hbase-site']['hbase.regionserver.info.port'] #"60030"
+templeton_port = config['configurations']['webhcat-site']['templeton.port']  # "50111"
+hbase_master_port = config['configurations']['hbase-site']['hbase.master.info.port']  # "60010"
+hbase_rs_port = config['configurations']['hbase-site']['hbase.regionserver.info.port']  # "60030"
 
 # this 4 is different for HDP2
 jtnode_port = get_port_from_url(config['configurations']['mapred-site']['mapred.job.tracker.http.address'])
@@ -76,16 +77,16 @@ mapred_local_dir = config['configurations']['mapred-site']['mapred.local.dir']
 
 # this is different for HDP2
 nn_metrics_property = "FSNamesystemMetrics"
-clientPort = config['configurations']['global']['clientPort'] #ZK 
+clientPort = config['configurations']['global']['clientPort']  # ZK 
 
 
 java64_home = config['hostLevelParams']['java_home']
 check_cpu_on = is_jdk_greater_6(java64_home)
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = (not is_empty(_authentication) and _authentication == 'kerberos')
 
 nagios_keytab_path = default("nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 ganglia_port = "8651"
 ganglia_collector_slaves_port = "8660"
@@ -126,16 +127,16 @@ _nm_hosts = default("/clusterHostInfo/nm_hosts", None)
 _hs_host = default("/clusterHostInfo/hs_host", None)
 _zookeeper_hosts = default("/clusterHostInfo/zookeeper_hosts", None)
 _flume_hosts = default("/clusterHostInfo/flume_hosts", None)
-_nagios_server_host = default("/clusterHostInfo/nagios_server_host",None)
-_ganglia_server_host = default("/clusterHostInfo/ganglia_server_host",None)
+_nagios_server_host = default("/clusterHostInfo/nagios_server_host", None)
+_ganglia_server_host = default("/clusterHostInfo/ganglia_server_host", None)
 
-hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts",None)
-_hive_server_host = default("/clusterHostInfo/hive_server_host",None)
-_oozie_server = default("/clusterHostInfo/oozie_server",None)
-_webhcat_server_host = default("/clusterHostInfo/webhcat_server_host",None)
+hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", None)
+_hive_server_host = default("/clusterHostInfo/hive_server_host", None)
+_oozie_server = default("/clusterHostInfo/oozie_server", None)
+_webhcat_server_host = default("/clusterHostInfo/webhcat_server_host", None)
 # can differ on HDP2
 _mapred_tt_hosts = _tt_hosts
-#if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
+# if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
 _hbase_rs_hosts = default("/clusterHostInfo/hbase_rs_hosts", _slave_hosts)
 _hue_server_host = default("/clusterHostInfo/hue_server_host", None)
 all_hosts = config['clusterHostInfo']['all_hosts']

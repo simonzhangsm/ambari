@@ -34,7 +34,7 @@ def get_host_component(resource_root, cluster_name , host_name , component_name)
   path = paths.HOSTS_COMPONENT_PATH % (cluster_name, host_name , component_name)
   dic = resource_root.get(path)
   comp_model = utils.ModelUtils.create_model(ComponentModel, dic, resource_root , "HostRoles" , status.StatusModel)
-  #comp_model._setattr('host_name', dic["items"][0]['HostRoles']['host_name'])
+  # comp_model._setattr('host_name', dic["items"][0]['HostRoles']['host_name'])
   return comp_model
 
 

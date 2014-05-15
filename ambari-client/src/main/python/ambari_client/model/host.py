@@ -65,7 +65,7 @@ def _create_hosts(root_resource, host_list):
   @return: An HostList object
   """
   
-  data = [{"Hosts":{"host_name":x.host_name,"ip":x.ip,"rack_info":x.rack_info}} 
+  data = [{"Hosts":{"host_name":x.host_name, "ip":x.ip, "rack_info":x.rack_info}} 
           for x in host_list]
   resp = root_resource.post(paths.HOSTS_PATH, payload=data)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
@@ -91,7 +91,7 @@ def _add_hosts(root_resource, cluster_name , host_list):
   @return: A StatusModel object
   """
   cpath = paths.HOSTS_CREATE_PATH % (cluster_name)
-  data = [{"Hosts":{"host_name":x.host_name,"ip":x.ip,"rack_info":x.rack_info}} 
+  data = [{"Hosts":{"host_name":x.host_name, "ip":x.ip, "rack_info":x.rack_info}} 
           for x in host_list]
   resp = root_resource.post(path=cpath, payload=data)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
@@ -190,14 +190,14 @@ def _bootstrap_resp_to_status_dict(resp):
   """
   
   # if we got other response, like an error 400 happened on higher level
-  if isinstance( resp['status'], int ):
+  if isinstance(resp['status'], int):
     return resp
   
   new_resp = {}
   
   if resp['status'] == "OK":
     new_resp['status'] = 201
-  else: # ERROR
+  else:  # ERROR
     new_resp['status'] = 500
     
   new_resp['message'] = resp['log']

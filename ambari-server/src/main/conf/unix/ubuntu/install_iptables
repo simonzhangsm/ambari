@@ -1,0 +1,7 @@
+#!/bin/bash
+sudo apt-get install iptables
+sudo cp -R init.d/iptables /etc/init.d/
+sudo cp -R sysconfig/* /etc/sysconfig/
+
+sudo touch /etc/init.d/iptables
+sudo chmod +x /etc/init.d/iptables

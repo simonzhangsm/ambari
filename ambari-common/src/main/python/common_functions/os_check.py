@@ -22,19 +22,27 @@ import os
 import sys
 import platform
 
-
-def linux_distribution():
-  PYTHON_VER = sys.version_info[0] * 10 + sys.version_info[1]
-
-  if PYTHON_VER < 26:
-    linux_distribution = platform.dist()
-  else:
-    linux_distribution = platform.linux_distribution()
-
-  return linux_distribution
-
 class OSCheck:
 
+  @staticmethod
+  def linux_distribution():
+    PYTHON_VER = sys.version_info[0] * 10 + sys.version_info[1]
+
+    if PYTHON_VER < 26:
+      linux_distribution = platform.dist()
+    else:
+      linux_distribution = platform.linux_distribution()
+
+    return linux_distribution
+
+  @staticmethod
+  def get_uname():
+    return platform.uname()
+
+  @staticmethod
+  def get_system():
+    return sys.platform
+  
   @staticmethod
   def get_os_type():
     """
@@ -47,8 +55,8 @@ class OSCheck:
     """
     # Read content from /etc/*-release file
     # Full release name
-    dist = linux_distribution()
-    operatingSystem = dist[0].lower()
+    # dist = OSCheck.linux_distribution()
+    operatingSystem = platform.system().lower()  # dist[0].lower()
 
     # special cases
     if os.path.exists('/etc/oracle-release'):
@@ -80,7 +88,9 @@ class OSCheck:
       os_family = 'Debian'
     elif os_family in ['sles', 'sled', 'opensuse', 'suse']:
       os_family = 'Suse'
-    #else:  os_family = OSCheck.get_os_type()
+    elif os_family in ['darwin', 'mac', 'apple']:
+      os_family = 'Darwin'
+    # else:  os_family = OSCheck.get_os_type()
     return os_family.lower()
 
   @staticmethod
@@ -92,8 +102,8 @@ class OSCheck:
     """
     # Read content from /etc/*-release file
     # Full release name
-    dist = linux_distribution()
-    dist = dist[1]
+    # dist = OSCheck.linux_distribution()
+    dist = platform.release()  # dist[1]
 
     if dist:
       return dist
@@ -116,7 +126,7 @@ class OSCheck:
 
     In case cannot detect raises exception.
     """
-    dist = linux_distribution()
+    dist = OSCheck.linux_distribution()
     dist = dist[2].lower()
 
     if dist:
@@ -167,3 +177,19 @@ class OSCheck:
     except Exception:
       pass
     return False
+
+  @staticmethod
+  def get_python_major_version():
+
+    return sys.version_info[0]
+
+  @staticmethod
+  def get_python_minor_version():
+
+    return sys.version_info[1]
+
+  @staticmethod
+  def get_python_version():
+
+    return sys.version_info[:3]
+

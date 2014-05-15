@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -22,45 +23,39 @@ import os
 
 from resource_management import *
 
+
 def pig():
   import params
 
-  Directory( params.pig_conf_dir,
-    owner = params.hdfs_user,
-    group = params.user_group
+  Directory(params.pig_conf_dir,
+    owner=params.hdfs_user,
+    group=params.user_group
   )
 
-  pig_TemplateConfig( ['pig-env.sh'])
-
-  # pig_properties is always set to a default even if it's not in the payload
-  PropertiesFile(format("{params.pig_conf_dir}/pig.properties"),    
-    mode = 0644,
-    group=params.user_group,
-    owner=params.hdfs_user,
-    properties=params.pig_properties)    
+  pig_TemplateConfig(['pig-env.sh', 'pig.properties'])
 
   if (params.log4j_props != None):
     File(format("{params.pig_conf_dir}/log4j.properties"),
-      mode=0644,
+      mode=0o644,
       group=params.user_group,
       owner=params.hdfs_user,
       content=params.log4j_props
     )
   elif (os.path.exists(format("{params.pig_conf_dir}/log4j.properties"))):
     File(format("{params.pig_conf_dir}/log4j.properties"),
-      mode=0644,
+      mode=0o644,
       group=params.user_group,
       owner=params.hdfs_user
     )
 
 def pig_TemplateConfig(name):
   import params
-
+  
   if not isinstance(name, list):
     name = [name]
-
+    
   for x in name:
-    TemplateConfig( format("{pig_conf_dir}/{x}"),
-        owner = params.hdfs_user
+    TemplateConfig(format("{pig_conf_dir}/{x}"),
+        owner=params.hdfs_user
     )
-
+  

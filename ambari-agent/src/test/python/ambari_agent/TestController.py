@@ -19,23 +19,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import StringIO
+import io
 import ssl
 import unittest, threading
 import sys
-from mock.mock import patch, MagicMock, call, Mock
+from mock import patch, MagicMock, call, Mock
 import logging
 import platform
 from threading import Event
 import json
 
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
+with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):
   from ambari_agent import Controller, ActionQueue
   from ambari_agent import hostname
   from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
   from common_functions import OSCheck
 
-@patch.object(platform, "linux_distribution", new = ('Suse','11','Final'))
+@patch.object(platform, "linux_distribution", new=('Suse', '11', 'Final'))
 class TestController(unittest.TestCase):
 
   logger = logging.getLogger()
@@ -68,7 +68,7 @@ class TestController(unittest.TestCase):
   def test_registerWithServer(self, LiveStatus_mock, randintMock, pformatMock, sleepMock,
                               dumpsMock):
 
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     LiveStatus_mock.SERVICES = ["foo"]
@@ -83,7 +83,7 @@ class TestController(unittest.TestCase):
     dumpsMock.return_value = '{"valid_object": true}'
     self.controller.sendRequest.return_value = {"log":"Error text", "exitstatus":"1"}
 
-    self.assertEqual({u'exitstatus': u'1', u'log': u'Error text'}, self.controller.registerWithServer())
+    self.assertEqual({'exitstatus': '1', 'log': 'Error text'}, self.controller.registerWithServer())
     self.assertEqual(LiveStatus_mock.SERVICES, [])
     self.assertEqual(LiveStatus_mock.CLIENT_COMPONENTS, [])
     self.assertEqual(LiveStatus_mock.COMPONENTS, [])
@@ -168,7 +168,7 @@ class TestController(unittest.TestCase):
     get_os_version_mock.return_value = "11"
 
     buildMock.return_value = "opener"
-    registerAndHeartbeat  = MagicMock("registerAndHeartbeat")
+    registerAndHeartbeat = MagicMock("registerAndHeartbeat")
     calls = []
     def side_effect():
       if len(calls) == 0:
@@ -243,9 +243,9 @@ class TestController(unittest.TestCase):
     registerWithServer.assert_called_once_with()
     heartbeatWithServer.assert_called_once_with()
 
-    self.controller.registerWithServer =\
+    self.controller.registerWithServer = \
     Controller.Controller.registerWithServer
-    self.controller.heartbeatWithServer =\
+    self.controller.heartbeatWithServer = \
     Controller.Controller.registerWithServer
 
   @patch("time.sleep")
@@ -341,7 +341,7 @@ class TestController(unittest.TestCase):
   @patch("time.sleep")
   @patch("json.dumps")
   def test_heartbeatWithServer(self, dumpsMock, sleepMock, event_mock):
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
     hearbeat = MagicMock()
@@ -490,15 +490,15 @@ class TestController(unittest.TestCase):
     self.controller.register = register
 
     dumpsMock.return_value = "request"
-    response = {"responseId":1,}
+    response = {"responseId":1, }
     loadsMock.return_value = response
 
     self.controller.sendRequest = Mock(side_effect=ssl.SSLError())
 
-    self.controller.repeatRegistration=True
+    self.controller.repeatRegistration = True
     self.controller.registerWithServer()
 
-    #Conroller thread and the agent stop if the repeatRegistration flag is False
+    # Conroller thread and the agent stop if the repeatRegistration flag is False
     self.assertFalse(self.controller.repeatRegistration)
 
   @patch.object(Controller, "LiveStatus")
@@ -514,21 +514,21 @@ class TestController(unittest.TestCase):
                                                 "stackVersion":"dummy_stack_version",
                                                 "components":{"PIG":{"PIG":"CLIENT"},
                                                 "MAPREDUCE":{"MAPREDUCE_CLIENT":"CLIENT",
-                                                "JOBTRACKER":"MASTER","TASKTRACKER":"SLAVE"}}}
+                                                "JOBTRACKER":"MASTER", "TASKTRACKER":"SLAVE"}}}
     self.controller.updateComponents("dummy_cluster_name")
     sendRequest.assert_called_with('foo_url/dummy_cluster_name', None)
-    services_expected = [u'MAPREDUCE', u'PIG']
+    services_expected = ['MAPREDUCE', 'PIG']
     client_components_expected = [
-      {'serviceName':u'MAPREDUCE','componentName':u'MAPREDUCE_CLIENT'},
-      {'serviceName':u'PIG','componentName':u'PIG'}
+      {'serviceName':'MAPREDUCE', 'componentName':'MAPREDUCE_CLIENT'},
+      {'serviceName':'PIG', 'componentName':'PIG'}
     ]
     components_expected = [
-      {'serviceName':u'MAPREDUCE','componentName':u'TASKTRACKER'},
-      {'serviceName':u'MAPREDUCE','componentName':u'JOBTRACKER'}
+      {'serviceName':'MAPREDUCE', 'componentName':'TASKTRACKER'},
+      {'serviceName':'MAPREDUCE', 'componentName':'JOBTRACKER'}
     ]
-    self.assertEquals(LiveStatus_mock.SERVICES, services_expected)
-    self.assertEquals(LiveStatus_mock.CLIENT_COMPONENTS, client_components_expected)
-    self.assertEquals(LiveStatus_mock.COMPONENTS, components_expected)
+    self.assertEqual(LiveStatus_mock.SERVICES, services_expected)
+    self.assertEqual(LiveStatus_mock.CLIENT_COMPONENTS, client_components_expected)
+    self.assertEqual(LiveStatus_mock.COMPONENTS, components_expected)
 
 
 if __name__ == "__main__":

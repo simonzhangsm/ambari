@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -47,7 +48,7 @@ def service(
     )
   elif action == 'stop':
     daemon_cmd = format("{cmd} stop {name}")
-    rm_pid =  format("rm -f {pid_file}")
+    rm_pid = format("rm -f {pid_file}")
 
     Execute(daemon_cmd,
             user=params.mapred_user

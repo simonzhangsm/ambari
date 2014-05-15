@@ -16,12 +16,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from unittest import TestCase
-from mock.mock import patch, call
 import json
-cluster_blueprint = __import__('cluster_blueprint')
-from cluster_blueprint import AmbariBlueprint
 import logging
 import pprint
+
+from mock import patch, call
+
+from scripts.cluster_blueprint import AmbariBlueprint
+
+
+cluster_blueprint = __import__('scripts.cluster_blueprint')
 
 class TestClusterBlueprint(TestCase):
 
@@ -54,14 +58,14 @@ class TestClusterBlueprint(TestCase):
     pass
 
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(AmbariBlueprint, "performGetOperation")
   @patch.object(cluster_blueprint, "get_server_info")
   def test_exportBlueprint(self, get_server_info_mock,
                            performGetOperationMock, openMock):
     performGetOperationMock.return_value = '200'
 
-    blueprintUrl = 'http://localhost:8080/api/v1/clusters/blueprint' +\
+    blueprintUrl = 'http://localhost:8080/api/v1/clusters/blueprint' + \
                    '-multinode-default?format=blueprint'
 
     AmbariBlueprint.SILENT = True

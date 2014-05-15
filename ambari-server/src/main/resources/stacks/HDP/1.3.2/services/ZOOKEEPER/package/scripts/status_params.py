@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 
+
 config = Script.get_config()
 
 zk_pid_dir = config['configurations']['global']['zk_pid_dir']

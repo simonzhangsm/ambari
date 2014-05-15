@@ -18,10 +18,11 @@ limitations under the License.
 """
 from resource_management import *
 
+
 def glusterfs():
   import params
 
-  Directory( params.glusterfs_conf_dir
+  Directory(params.glusterfs_conf_dir
   )
 
 

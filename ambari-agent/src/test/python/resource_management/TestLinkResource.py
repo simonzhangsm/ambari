@@ -17,7 +17,7 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from mock import patch, MagicMock
 
 from resource_management.core import Environment, Fail
 from resource_management.core.system import System
@@ -25,7 +25,7 @@ from resource_management.core.resources.system import Link
 
 import os
 
-@patch.object(System, "os_family", new = 'redhat')
+@patch.object(System, "os_family", new='redhat')
 class TestLinkResource(TestCase):
 
   @patch.object(os.path, "realpath")
@@ -33,7 +33,7 @@ class TestLinkResource(TestCase):
   @patch.object(os.path, "islink")
   @patch.object(os, "unlink")
   @patch.object(os, "symlink")
-  def test_action_create_relink(self, symlink_mock, unlink_mock, 
+  def test_action_create_relink(self, symlink_mock, unlink_mock,
                          islink_mock, lexists_mock,
                          realmock):
     lexists_mock.return_value = True
@@ -41,7 +41,7 @@ class TestLinkResource(TestCase):
     islink_mock.return_value = True
     with Environment('/') as env:
       Link("/some_path",
-           to = "/a/b/link_to_path"
+           to="/a/b/link_to_path"
       )
       
     unlink_mock.assert_called_with("/some_path")
@@ -50,7 +50,7 @@ class TestLinkResource(TestCase):
   @patch.object(os.path, "realpath")
   @patch.object(os.path, "lexists")
   @patch.object(os.path, "islink")
-  def test_action_create_failed_due_to_file_exists(self, islink_mock, 
+  def test_action_create_failed_due_to_file_exists(self, islink_mock,
                          lexists_mock, realmock):
     lexists_mock.return_value = True
     realmock.return_value = "/old_to_link_path"
@@ -58,7 +58,7 @@ class TestLinkResource(TestCase):
     with Environment('/') as env:
       try:
         Link("/some_path",
-             to = "/a/b/link_to_path"
+             to="/a/b/link_to_path"
         )
         
         self.fail("Must fail when directory or file with name /some_path exist")
@@ -73,7 +73,7 @@ class TestLinkResource(TestCase):
     
     with Environment('/') as env:
       Link("/some_path",
-           to = "/a/b/link_to_path"
+           to="/a/b/link_to_path"
       )
       
     symlink_mock.assert_called_with("/a/b/link_to_path", "/some_path")
@@ -90,8 +90,8 @@ class TestLinkResource(TestCase):
     
     with Environment('/') as env:
       Link("/some_path",
-           hard = True,
-           to = "/a/b/link_to_path"
+           hard=True,
+           to="/a/b/link_to_path"
       )
       
     link_mock.assert_called_with("/a/b/link_to_path", "/some_path")
@@ -106,8 +106,8 @@ class TestLinkResource(TestCase):
     with Environment('/') as env:
       try:
         Link("/some_path",
-             hard = True,
-             to = "/a/b/link_to_path"
+             hard=True,
+             to="/a/b/link_to_path"
         )  
         self.fail("Must fail when target directory do doenst exist")
       except Fail as e:
@@ -126,8 +126,8 @@ class TestLinkResource(TestCase):
     with Environment('/') as env:
       try:
         Link("/some_path",
-             hard = True,
-             to = "/a/b/link_to_path"
+             hard=True,
+             to="/a/b/link_to_path"
         )  
         self.fail("Must fail when hardlinking to directory")
       except Fail as e:
@@ -141,7 +141,7 @@ class TestLinkResource(TestCase):
     
     with Environment('/') as env:
       Link("/some_path",
-           action = "delete"
+           action="delete"
       )    
     unlink_mock.assert_called_with("/some_path")
       

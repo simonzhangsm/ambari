@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,19 +19,23 @@ limitations under the License.
 """
 
 import sys
+
 from resource_management import *
 from shared_initialization import *
 
-#TODO this must be "CONFIGURE" hook when CONFIGURE command will be implemented
+
+# TODO this must be "CONFIGURE" hook when CONFIGURE command will be implemented
 class BeforeConfigureHook(Hook):
 
   def hook(self, env):
     import params
 
     env.set_params(params)
+    setup_java()
     setup_hadoop()
     setup_configs()
     create_javahome_symlink()
+    init_services()
 
 if __name__ == "__main__":
   BeforeConfigureHook().execute()

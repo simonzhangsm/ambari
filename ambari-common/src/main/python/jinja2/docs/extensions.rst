@@ -34,7 +34,7 @@ translatable and calls `gettext`.
 
 After enabling dummy `_` function that forwards calls to `gettext` is added
 to the environment globals.  An internationalized application then has to
-provide at least an `gettext` and optoinally a `ngettext` function into the
+provide at least an `gettext` and optionally a `ngettext` function into the
 namespace.  Either globally or for each rendering.
 
 Environment Methods
@@ -219,7 +219,7 @@ common use cases.  The i18n extension is a good example of why extensions are
 useful, another one would be fragment caching.
 
 When writing extensions you have to keep in mind that you are working with the
-Jinja2 template compiler which does not validate the node tree you are possing
+Jinja2 template compiler which does not validate the node tree you are passing
 to it.  If the AST is malformed you will get all kinds of compiler or runtime
 errors that are horrible to debug.  Always make sure you are using the nodes
 you create correctly.  The API documentation below shows which nodes exist and

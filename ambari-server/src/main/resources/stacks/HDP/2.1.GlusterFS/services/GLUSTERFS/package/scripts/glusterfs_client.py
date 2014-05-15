@@ -17,8 +17,10 @@ limitations under the License.
 
 """
 import sys
-from resource_management import *
+
 from glusterfs import glusterfs
+from resource_management import *
+
 
 class GlusterFSClient(Script):
 

@@ -19,10 +19,11 @@ limitations under the License.
 from resource_management import *
 from resource_management.core.system import System
 
+
 config = Script.get_config()
 
 user_group = config['configurations']['global']["user_group"]
-ganglia_conf_dir = default("/configurations/global/ganglia_conf_dir","/etc/ganglia/hdp")
+ganglia_conf_dir = default("/configurations/global/ganglia_conf_dir", "/etc/ganglia/hdp")
 ganglia_dir = "/etc/ganglia"
 ganglia_runtime_dir = config['configurations']['global']["ganglia_runtime_dir"]
 ganglia_shell_cmds_dir = "/usr/libexec/hdp/ganglia"

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,6 +20,7 @@ Ambari Agent
 
 """
 from resource_management import *
+
 
 def webhcat_service(action='start'):
   import params

@@ -10,7 +10,7 @@ Why is it called Jinja?
 
 The name Jinja was chosen because it's the name of a Japanese temple and
 temple and template share a similar pronunciation.  It is not named after
-the capital city of Uganda.
+the city in Uganda.
 
 How fast is it?
 ---------------
@@ -125,24 +125,6 @@ instead that one can assign to a variable by using set::
 
     {% set comments = get_latest_comments() %}
 
-What is the speedups module and why is it missing?
---------------------------------------------------
-
-To achieve a good performance with automatic escaping enabled, the escaping
-function was also implemented in pure C in older Jinja2 releases and used if
-Jinja2 was installed with the speedups module.
-
-Because this feature itself is very useful for non-template engines as
-well it was moved into a separate project on PyPI called `MarkupSafe`_.
-
-Jinja2 no longer ships with a C implementation of it but only the pure
-Python implementation.  It will however check if MarkupSafe is available
-and installed, and if it is, use the Markup class from MarkupSafe.
-
-So if you want the speedups, just import MarkupSafe.
-
-.. _MarkupSafe: http://pypi.python.org/pypi/MarkupSafe
-
 My tracebacks look weird.  What's happening?
 --------------------------------------------
 
@@ -153,6 +135,18 @@ the traceback may be incomplete.  There is currently no good workaround
 for Jython or the AppEngine as ctypes is unavailable there and it's not
 possible to use the debugsupport extension.
 
+If you are working in the Google Appengine development server you can
+whitelist the ctypes module to restore the tracebacks.  This however won't
+work in production environments::
+
+    import os
+    if os.environ.get('SERVER_SOFTWARE', '').startswith('Dev'):
+        from google.appengine.tools.dev_appserver import HardenedModulesHook
+        HardenedModulesHook._WHITE_LIST_C_MODULES += ['_ctypes', 'gestalt']
+
+Credit for this snippet goes to `Thomas Johansson
+<http://stackoverflow.com/questions/3086091/debug-jinja2-in-google-app-engine/3694434#3694434>`_
+
 Why is there no Python 2.3 support?
 -----------------------------------
 
@@ -162,8 +156,8 @@ harder to maintain the code for older Python versions.  If you really need
 Python 2.3 support you either have to use `Jinja 1`_ or other templating
 engines that still support 2.3.
 
-My Macros are overriden by something
-------------------------------------
+My Macros are overridden by something
+-------------------------------------
 
 In some situations the Jinja scoping appears arbitrary:
 

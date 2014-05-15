@@ -22,7 +22,7 @@ limitations under the License.
 import os
 import unittest
 import tempfile
-from mock.mock import patch, MagicMock, call
+from mock import patch, MagicMock, call
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent import shell
 from shell import shellRunner
@@ -43,23 +43,23 @@ class TestShell(unittest.TestCase):
   def test_shellRunner_run(self, getpwnamMock):
     sh = shellRunner()
     result = sh.run(['echo'])
-    self.assertEquals(result['exitCode'], 0)
-    self.assertEquals(result['error'], '')
+    self.assertEqual(result['exitCode'], 0)
+    self.assertEqual(result['error'], '')
 
     getpwnamMock.return_value = [os.getuid(), os.getuid(), os.getuid()]
     result = sh.run(['echo'], 'non_exist_user_name')
-    self.assertEquals(result['exitCode'], 0)
-    self.assertEquals(result['error'], '')
+    self.assertEqual(result['exitCode'], 0)
+    self.assertEqual(result['error'], '')
 
   def test_kill_process_with_children(self):
-    if _platform == "linux" or _platform == "linux2": # Test is Linux-specific
+    if _platform == "linux" or _platform == "linux2":  # Test is Linux-specific
       gracefull_kill_delay_old = shell.gracefull_kill_delay
       shell.gracefull_kill_delay = 0.1
       sleep_cmd = "sleep 314159265"
       test_cmd = """ (({0}) & ({0} & {0})) """.format(sleep_cmd)
       # Starting process tree (multiple process groups)
       test_process = subprocess.Popen(test_cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-      time.sleep(0.3) # Delay to allow subprocess to start
+      time.sleep(0.3)  # Delay to allow subprocess to start
       # Check if processes are running
       ps_cmd = """ps aux """
       ps_process = subprocess.Popen(ps_cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)

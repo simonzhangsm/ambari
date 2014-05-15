@@ -17,9 +17,9 @@ limitations under the License.
 
 """
 
-from resource_management import *
-from hdfs_datanode import datanode
 from hdfs import hdfs
+from hdfs_datanode import datanode
+from resource_management import *
 
 
 class DataNode(Script):

@@ -20,19 +20,19 @@ limitations under the License.
 
 from unittest import TestCase
 import unittest
-import StringIO
+import io
 import socket
 import os, sys
-from mock.mock import patch
-from mock.mock import MagicMock
-from mock.mock import create_autospec
+from mock import patch
+from mock import MagicMock
+from mock import create_autospec
 import os, errno, tempfile
 from ambari_agent import StackVersionsFileHandler
 import logging
 
 stackVersionsFileHandler = \
       StackVersionsFileHandler.StackVersionsFileHandler("/tmp")
-dummyVersionsFile = os.path.dirname(os.path.abspath(__file__))+ os.sep +'dummy_files' + os.sep + 'dummy_current_stack'
+dummyVersionsFile = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'dummy_files' + os.sep + 'dummy_current_stack'
 
 class TestStackVersionsFileHandler(TestCase):
 
@@ -42,11 +42,11 @@ class TestStackVersionsFileHandler(TestCase):
   def test_read_stack_version(self, touch_method):
     stackVersionsFileHandler.versionsFilePath = dummyVersionsFile
     result = stackVersionsFileHandler.read_stack_version("NAGIOS_SERVER")
-    self.assertEquals(result, '{"stackName":"HDP","stackVersion":"1.2.1"}')
+    self.assertEqual(result, '{"stackName":"HDP","stackVersion":"1.2.1"}')
     result = stackVersionsFileHandler.read_stack_version("GANGLIA_SERVER")
-    self.assertEquals(result, '{"stackName":"HDP","stackVersion":"1.2.2"}')
+    self.assertEqual(result, '{"stackName":"HDP","stackVersion":"1.2.2"}')
     result = stackVersionsFileHandler.read_stack_version("NOTEXISTING")
-    self.assertEquals(result, stackVersionsFileHandler.DEFAULT_VER)
+    self.assertEqual(result, stackVersionsFileHandler.DEFAULT_VER)
     self.assertTrue(touch_method.called)
 
 
@@ -54,10 +54,10 @@ class TestStackVersionsFileHandler(TestCase):
   def test_read_all_stack_versions(self, touch_method):
     stackVersionsFileHandler.versionsFilePath = dummyVersionsFile
     result = stackVersionsFileHandler.read_all_stack_versions()
-    self.assertEquals(len(result.keys()), 4)
-    self.assertEquals(result["NAGIOS_SERVER"],
+    self.assertEqual(len(list(result.keys())), 4)
+    self.assertEqual(result["NAGIOS_SERVER"],
           '{"stackName":"HDP","stackVersion":"1.2.1"}')
-    self.assertEquals(result["HCATALOG"],
+    self.assertEqual(result["HCATALOG"],
           '{"stackName":"HDP","stackVersion":"1.2.2"}')
     self.assertTrue(touch_method.called)
 
@@ -83,11 +83,11 @@ class TestStackVersionsFileHandler(TestCase):
 
 
   def test_write_stack_version(self):
-    #saving old values
+    # saving old values
     oldFilePathValue = stackVersionsFileHandler.versionsFilePath
     oldversionsFileDir = stackVersionsFileHandler.versionsFileDir
     oldVerFile = stackVersionsFileHandler.VER_FILE
-    #preparations and invocation
+    # preparations and invocation
     tmpfile = tempfile.mktemp()
     stackVersionsFileHandler.versionsFilePath = tmpfile
     stackVersionsFileHandler.VER_FILE = \
@@ -103,7 +103,7 @@ class TestStackVersionsFileHandler(TestCase):
     os.remove(expectedBackupFile)
     # Checking content of created file
     content = stackVersionsFileHandler.read_all_stack_versions()
-    self.assertEquals(len(content), 1)
+    self.assertEqual(len(content), 1)
     self.assertEqual(content['NAGIOS_SERVER'], '"stackVersion":"1.3.0"')
     self.assertTrue(os.path.isfile(tmpfile))
     os.remove(tmpfile)

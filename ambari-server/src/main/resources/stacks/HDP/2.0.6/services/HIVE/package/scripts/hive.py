@@ -18,9 +18,10 @@ limitations under the License.
 
 """
 
-from resource_management import *
-import sys
 import os
+import sys
+
+from resource_management import *
 
 
 def hive(name=None):
@@ -31,7 +32,7 @@ def hive(name=None):
     params.HdfsDirectory(params.hive_apps_whs_dir,
                          action="create_delayed",
                          owner=params.hive_user,
-                         mode=0777
+                         mode=0o777
     )
     params.HdfsDirectory(params.hive_hdfs_user_dir,
                          action="create_delayed",
@@ -41,11 +42,11 @@ def hive(name=None):
     params.HdfsDirectory(None, action="create")
   if name == 'metastore' or name == 'hiveserver2':
     hive_config_dir = params.hive_server_conf_dir
-    config_file_mode = 0600
+    config_file_mode = 0o600
     jdbc_connector()
   else:
     hive_config_dir = params.hive_conf_dir
-    config_file_mode = 0644
+    config_file_mode = 0o644
 
   Directory(hive_config_dir,
             owner=params.hive_user,
@@ -67,18 +68,12 @@ def hive(name=None):
             group=params.user_group,
             mode=config_file_mode)
 
-  environment = {
-    "no_proxy": format("{ambari_server_hostname}")
-  }
-
-  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf "
-               "--retry 5 "
-               "{jdk_location}{check_db_connection_jar_name} "
-               "-o {check_db_connection_jar_name}'")
+  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && "
+               "curl --noproxy {ambari_server_hostname} -kf --retry 5 "
+               "{jdk_location}{check_db_connection_jar_name} -o {check_db_connection_jar_name}'")
 
   Execute(cmd,
-          not_if=format("[ -f {check_db_connection_jar_name}]"),
-          environment = environment)
+          not_if=format("[ -f {check_db_connection_jar_name}]"))
 
   File(format("{hive_config_dir}/hive-env.sh"),
        owner=params.hive_user,
@@ -88,7 +83,7 @@ def hive(name=None):
 
   if name == 'metastore':
     File(params.start_metastore_path,
-         mode=0755,
+         mode=0o755,
          content=StaticFile('startMetastore.sh')
     )
     if params.init_metastore_schema:
@@ -105,11 +100,11 @@ def hive(name=None):
                                         "-passWord {hive_metastore_user_passwd}")
 
       Execute(create_schema_cmd,
-              not_if = check_schema_created_cmd
+              not_if=check_schema_created_cmd
       )
   elif name == 'hiveserver2':
     File(params.start_hiveserver2_path,
-         mode=0755,
+         mode=0o755,
          content=Template(format('{start_hiveserver2_script}'))
     )
 
@@ -124,14 +119,14 @@ def hive(name=None):
   log4j_exec_filename = 'hive-exec-log4j.properties'
   if (params.log4j_exec_props != None):
     File(format("{params.hive_conf_dir}/{log4j_exec_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hive_user,
          content=params.log4j_exec_props
     )
   elif (os.path.exists("{params.hive_conf_dir}/{log4j_exec_filename}.template")):
     File(format("{params.hive_conf_dir}/{log4j_exec_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hive_user,
          content=StaticFile(format("{params.hive_conf_dir}/{log4j_exec_filename}.template"))
@@ -140,14 +135,14 @@ def hive(name=None):
   log4j_filename = 'hive-log4j.properties'
   if (params.log4j_props != None):
     File(format("{params.hive_conf_dir}/{log4j_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hive_user,
          content=params.log4j_props
     )
   elif (os.path.exists("{params.hive_conf_dir}/{log4j_filename}.template")):
     File(format("{params.hive_conf_dir}/{log4j_filename}"),
-         mode=0644,
+         mode=0o644,
          group=params.user_group,
          owner=params.hive_user,
          content=StaticFile(format("{params.hive_conf_dir}/{log4j_filename}.template"))
@@ -161,7 +156,7 @@ def crt_directory(name):
             recursive=True,
             owner=params.hive_user,
             group=params.user_group,
-            mode=0755)
+            mode=0o755)
 
 
 def crt_file(name):
@@ -192,16 +187,11 @@ def jdbc_connector():
             path=["/bin", "usr/bin/"])
 
   elif params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
-    environment = {
-      "no_proxy": format("{ambari_server_hostname}")
-    }
-
     cmd = format(
-      "mkdir -p {artifact_dir} ; "
-      "curl -kf --retry 10 {driver_curl_source} -o {driver_curl_target} &&  "
+      "mkdir -p {artifact_dir} ; curl --noproxy {ambari_server_hostname} "
+      "-kf --retry 10 {driver_curl_source} -o {driver_curl_target} &&  "
       "cp {driver_curl_target} {target}")
 
     Execute(cmd,
             not_if=format("test -f {target}"),
-            path=["/bin", "/usr/bin/"],
-            environment=environment)
+            path=["/bin", "/usr/bin/"])

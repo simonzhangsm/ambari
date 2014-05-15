@@ -20,16 +20,16 @@ limitations under the License.
 
 import cgi
 import os
-import rrdtool
+import re
 import sys
 import time
-import re
-import urlparse
+import urllib.parse
+
+import rrdtool
+
 
 # place this script in /var/www/cgi-bin of the Ganglia collector
 # requires 'yum install rrdtool-python' on the Ganglia collector
-
-
 def printMetric(clusterName, hostName, metricName, file, cf, start, end,
                 resolution, pointInTime):
   if clusterName.endswith("rrds"):
@@ -39,8 +39,6 @@ def printMetric(clusterName, hostName, metricName, file, cf, start, end,
 
   if start is not None:
     args.extend(["-s", start])
-  else:
-    args.extend(["-s", "now-10m"])
 
   if end is not None:
     args.extend(["-e", end])
@@ -124,7 +122,7 @@ requestMethod = os.environ['REQUEST_METHOD']
 if requestMethod == 'POST':
   postData = sys.stdin.readline()
   queryString = cgi.parse_qs(postData)
-  queryString = dict((k, v[0]) for k, v in queryString.items())
+  queryString = dict((k, v[0]) for k, v in list(queryString.items()))
 elif requestMethod == 'GET':
   queryString = dict(cgi.parse_qsl(os.environ['QUERY_STRING']));
 
@@ -186,22 +184,22 @@ def _walk(*args, **kwargs):
 for cluster in clusterParts:
   for path, dirs, files in _walk(rrdPath + cluster):
     pathParts = path.split("/")
-    #Process only path which contains files. If no host parameter passed - process all hosts folders and summary info
-    #If host parameter passed - process only this host folder
+    # Process only path which contains files. If no host parameter passed - process all hosts folders and summary info
+    # If host parameter passed - process only this host folder
     if len(files) > 0 and (len(hostParts) == 0 or pathParts[-1] in hostParts):
       for metric in metricParts:
         file = metric + ".rrd"
         fileFullPath = os.path.join(path, file)
         if os.path.exists(fileFullPath):
-          #Exact name of metric
+          # Exact name of metric
           printMetric(pathParts[-2], pathParts[-1], file[:-4],
                       os.path.join(path, file), cf, start, end, resolution,
                       pointInTime)
         else:
-          #Regex as metric name
+          # Regex as metric name
           metricRegex = metric + '\.rrd$'
           p = re.compile(metricRegex)
-          matchedFiles = filter(p.match, files)
+          matchedFiles = list(filter(p.match, files))
           for matchedFile in matchedFiles:
             printMetric(pathParts[-2], pathParts[-1], matchedFile[:-4],
                         os.path.join(path, matchedFile), cf, start, end,

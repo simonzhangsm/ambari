@@ -17,10 +17,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from mock.mock import MagicMock, call, patch
+from mock import MagicMock, call, patch
+
 from stacks.utils.RMFTestCase import *
 
-@patch("sys.executable", new = '/usr/bin/python2.6')
+
+@patch("sys.executable", new='/usr/bin/env python')
 class TestServiceCheck(RMFTestCase):
 
   def test_service_check_default(self):
@@ -31,18 +33,18 @@ class TestServiceCheck(RMFTestCase):
                           config_file="default.json"
     )
     self.assertResourceCalled('File', '/tmp/validateYarnComponentStatus.py',
-                          content = StaticFile('validateYarnComponentStatus.py'),
-                          mode = 0755,
+                          content=StaticFile('validateYarnComponentStatus.py'),
+                          mode=0o755,
     )
-    self.assertResourceCalled('Execute', '/usr/bin/python2.6 /tmp/validateYarnComponentStatus.py rm -p c6402.ambari.apache.org:8088 -s False',
-                          logoutput = True,
-                          path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                          tries = 3,
-                          user = 'ambari-qa',
-                          try_sleep = 5,
+    self.assertResourceCalled('Execute', '/usr/bin/python /tmp/validateYarnComponentStatus.py rm -p c6402.ambari.apache.org:8088 -s False',
+                          logoutput=True,
+                          path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                          tries=3,
+                          user='ambari-qa',
+                          try_sleep=5,
     )
     self.assertResourceCalled('Execute', '/usr/bin/yarn node -list',
-                          user = 'ambari-qa',
+                          user='ambari-qa',
     )
     self.assertNoMoreResources()
 
@@ -53,17 +55,17 @@ class TestServiceCheck(RMFTestCase):
                           config_file="secured.json"
     )
     self.assertResourceCalled('File', '/tmp/validateYarnComponentStatus.py',
-                          content = StaticFile('validateYarnComponentStatus.py'),
-                          mode = 0755,
+                          content=StaticFile('validateYarnComponentStatus.py'),
+                          mode=0o755,
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; /usr/bin/python2.6 /tmp/validateYarnComponentStatus.py rm -p c6402.ambari.apache.org:8088 -s False',
-                          logoutput = True,
-                          path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-                          tries = 3,
-                          user = 'ambari-qa',
-                          try_sleep = 5,
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa; /usr/bin/env python /tmp/validateYarnComponentStatus.py rm -p c6402.ambari.apache.org:8088 -s False',
+                          logoutput=True,
+                          path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                          tries=3,
+                          user='ambari-qa',
+                          try_sleep=5,
     )
     self.assertResourceCalled('Execute', '/usr/bin/yarn node -list',
-                          user = 'ambari-qa',
+                          user='ambari-qa',
     )
     self.assertNoMoreResources()

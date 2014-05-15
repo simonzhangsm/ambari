@@ -17,15 +17,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from mock.mock import MagicMock, call, patch
+from mock import MagicMock, call, patch
+
 from stacks.utils.RMFTestCase import *
+
 
 class TestMySqlServer(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
-                       classname = "MysqlServer",
-                       command = "configure",
+                       classname="MysqlServer",
+                       command="configure",
                        config_file="default.json"
     )
     self.assert_configure_default()
@@ -33,39 +35,39 @@ class TestMySqlServer(RMFTestCase):
 
   def test_start_default(self):
     self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
-                       classname = "MysqlServer",
-                       command = "start",
+                       classname="MysqlServer",
+                       command="start",
                        config_file="default.json"
     )
 
     self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
     )
     self.assertResourceCalled('Execute', 'service mysql start',
-                       logoutput = True,
-                       not_if = 'service mysql status | grep running'
+                       logoutput=True,
+                       not_if='service mysql status | grep running'
     )
     self.assertNoMoreResources()
 
   def test_stop_default(self):
     self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
-                       classname = "MysqlServer",
-                       command = "stop",
+                       classname="MysqlServer",
+                       command="stop",
                        config_file="default.json"
     )
 
     self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
     )
     self.assertResourceCalled('Execute', 'service mysql stop',
-                              logoutput = True,
-                              not_if = 'service mysql status | grep running',
+                              logoutput=True,
+                              not_if='service mysql status | grep running',
     )
     self.assertNoMoreResources()
 
 
   def test_configure_secured(self):
     self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
-                       classname = "MysqlServer",
-                       command = "configure",
+                       classname="MysqlServer",
+                       command="configure",
                        config_file="secured.json"
     )
     self.assert_configure_secured()
@@ -73,31 +75,31 @@ class TestMySqlServer(RMFTestCase):
 
   def test_start_secured(self):
     self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
-                       classname = "MysqlServer",
-                       command = "start",
+                       classname="MysqlServer",
+                       command="start",
                        config_file="secured.json"
     )
 
     self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
     )
     self.assertResourceCalled('Execute', 'service mysql start',
-                              logoutput = True,
-                              not_if = 'service mysql status | grep running'
+                              logoutput=True,
+                              not_if='service mysql status | grep running'
                               )
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
     self.executeScript("2.0.6/services/HIVE/package/scripts/mysql_server.py",
-                       classname = "MysqlServer",
-                       command = "stop",
+                       classname="MysqlServer",
+                       command="stop",
                        config_file="secured.json"
     )
     
     self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
     )
     self.assertResourceCalled('Execute', 'service mysql stop',
-                              logoutput = True,
-                              not_if = 'service mysql status | grep running'
+                              logoutput=True,
+                              not_if='service mysql status | grep running'
                               )
     self.assertNoMoreResources()
 
@@ -105,32 +107,32 @@ class TestMySqlServer(RMFTestCase):
     self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
     )
     self.assertResourceCalled('Execute', 'service mysql start',
-      logoutput = True,
-      not_if = 'service mysql status | grep running'
+      logoutput=True,
+      not_if='service mysql status | grep running'
     )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
-      content = StaticFile('addMysqlUser.sh'),
-      mode = 0755,
+      content=StaticFile('addMysqlUser.sh'),
+      mode=0o755,
     )
     self.assertResourceCalled('Execute', 'bash -x /tmp/addMysqlUser.sh mysql hive \'!`"\'"\'"\' 1\' c6402.ambari.apache.org',
-      path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-      tries = 3,
-      try_sleep = 5,
+      path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+      tries=3,
+      try_sleep=5,
     )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Execute', "sed -i 's|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|' /etc/my.cnf",
     )
     self.assertResourceCalled('Execute', 'service mysql start',
-      logoutput = True,
-      not_if = 'service mysql status | grep running'
+      logoutput=True,
+      not_if='service mysql status | grep running'
     )
     self.assertResourceCalled('File', '/tmp/addMysqlUser.sh',
-      content = StaticFile('addMysqlUser.sh'),
-      mode = 0755,
+      content=StaticFile('addMysqlUser.sh'),
+      mode=0o755,
     )
     self.assertResourceCalled('Execute', 'bash -x /tmp/addMysqlUser.sh mysql hive \'!`"\'"\'"\' 1\' c6402.ambari.apache.org',
-      path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-      tries = 3,
-      try_sleep = 5,
+      path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+      tries=3,
+      try_sleep=5,
     )

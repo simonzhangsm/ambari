@@ -17,13 +17,15 @@ limitations under the License.
 
 """
 
+import os
+
 from resource_management import *
 from resource_management.core.system import System
-import os
+
 
 config = Script.get_config()
 
-#users and groups
+# users and groups
 yarn_user = config['configurations']['global']['yarn_user']
 hbase_user = config['configurations']['global']['hbase_user']
 nagios_user = config['configurations']['global']['nagios_user']
@@ -31,7 +33,7 @@ oozie_user = config['configurations']['global']['oozie_user']
 webhcat_user = config['configurations']['global']['hcat_user']
 hcat_user = config['configurations']['global']['hcat_user']
 hive_user = config['configurations']['global']['hive_user']
-smoke_user =  config['configurations']['global']['smokeuser']
+smoke_user = config['configurations']['global']['smokeuser']
 mapred_user = config['configurations']['global']['mapred_user']
 hdfs_user = config['configurations']['global']['hdfs_user']
 zk_user = config['configurations']['global']['zk_user']
@@ -42,20 +44,19 @@ tez_user = config['configurations']['global']['tez_user']
 falcon_user = config['configurations']['global']['falcon_user']
 
 user_group = config['configurations']['global']['user_group']
-proxyuser_group =  config['configurations']['global']['proxyuser_group']
+proxyuser_group = config['configurations']['global']['proxyuser_group']
 nagios_group = config['configurations']['global']['nagios_group']
-smoke_user_group =  "users"
+smoke_user_group = "users"
 mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
 
-#hosts
+# hosts
 hostname = config["hostname"]
-ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 rm_host = default("/clusterHostInfo/rm_host", [])
 slave_hosts = default("/clusterHostInfo/slave_hosts", [])
 hagios_server_hosts = default("/clusterHostInfo/nagios_server_host", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 hcat_server_hosts = default("/clusterHostInfo/webhcat_server_host", [])
-hive_server_host =  default("/clusterHostInfo/hive_server_host", [])
+hive_server_host = default("/clusterHostInfo/hive_server_host", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 hs_host = default("/clusterHostInfo/hs_host", [])
 jtnode_host = default("/clusterHostInfo/jtnode_host", [])
@@ -63,14 +64,14 @@ namenode_host = default("/clusterHostInfo/namenode_host", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
 ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 storm_server_hosts = default("/clusterHostInfo/nimbus_hosts", [])
-falcon_host =  default('/clusterHostInfo/falcon_server_hosts', [])
+falcon_host = default('/clusterHostInfo/falcon_server_hosts', [])
 
 has_resourcemanager = not len(rm_host) == 0
 has_slaves = not len(slave_hosts) == 0
 has_nagios = not len(hagios_server_hosts) == 0
-has_oozie_server = not len(oozie_servers)  == 0
-has_hcat_server_host = not len(hcat_server_hosts)  == 0
-has_hive_server_host = not len(hive_server_host)  == 0
+has_oozie_server = not len(oozie_servers) == 0
+has_hcat_server_host = not len(hcat_server_hosts) == 0
+has_hive_server_host = not len(hive_server_host) == 0
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_zk_host = not len(zk_hosts) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
@@ -89,15 +90,14 @@ if has_ganglia_server:
 
 hbase_tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 
-#security params
+# security params
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = (not is_empty(_authentication) and _authentication == 'kerberos')
 
-#java params
+# java params
 java_home = config['hostLevelParams']['java_home']
 artifact_dir = "/tmp/HDP-artifacts/"
-jdk_name = default("/hostLevelParams/jdk_name", None) # None when jdk is already installed by user
-jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is already installed by user
+jdk_name = default("/hostLevelParams/jdk_name", None)  # None when jdk is already installed by user
+jce_policy_zip = default("/hostLevelParams/jce_name", None)  # None when jdk is already installed by user
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_location = config['hostLevelParams']['jdk_location']
-ignore_groupsusers_create = default("ignore_groupsusers_create", False)

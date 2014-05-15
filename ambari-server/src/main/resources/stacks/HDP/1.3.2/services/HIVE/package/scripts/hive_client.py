@@ -18,9 +18,10 @@ limitations under the License.
 
 """
 import sys
-from resource_management import *
 
 from hive import hive
+from resource_management import *
+
 
 class HiveClient(Script):
   def install(self, env):

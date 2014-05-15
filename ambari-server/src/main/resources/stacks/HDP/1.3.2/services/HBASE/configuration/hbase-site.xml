@@ -340,6 +340,12 @@
   </property>
 
   <property>
+    <name>dfs.client.read.shortcircuit.skip.checksum</name>
+    <value></value>
+    <description>Enable/disbale skipping the checksum check</description>
+  </property>
+  
+  <property>
     <name>hbase.zookeeper.useMulti</name>
     <value>true</value>
     <description>Instructs HBase to make use of ZooKeeper's multi-update functionality.

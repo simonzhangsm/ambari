@@ -19,10 +19,11 @@ limitations under the License.
 
 from resource_management import *
 
+
 config = Script.get_config()
 
 user_group = config['configurations']['global']['user_group']
-proxyuser_group =  config['configurations']['global']['proxyuser_group']
+proxyuser_group = config['configurations']['global']['proxyuser_group']
 
 security_enabled = False
 
@@ -46,8 +47,7 @@ else:
 
 targets = default('/commandParams/flume_handler', None)
 flume_command_targets = [] if targets is None else targets.split(',')
-
-ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', [])
+ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 ganglia_server_host = None
 if 0 != len(ganglia_server_hosts):
   ganglia_server_host = ganglia_server_hosts[0]

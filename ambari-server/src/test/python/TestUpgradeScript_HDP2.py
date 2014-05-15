@@ -15,21 +15,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import subprocess
-from mock.mock import MagicMock, call, patch
 from unittest import TestCase
-from mock.mock import create_autospec
+import io
+import logging
+import subprocess
 import sys
 import unittest
+
+from mock import MagicMock, call, patch
+from mock import create_autospec
+
 import UpgradeHelper_HDP2
-import StringIO
-import logging
 
 
 class TestUpgradeHDP2Script(TestCase):
   def setUp(self):
     UpgradeHelper_HDP2.logger = MagicMock()
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 
@@ -53,7 +55,7 @@ class TestUpgradeHDP2Script(TestCase):
     opm.parse_args.return_value = (options, args)
     get_config_mock.return_value = {"a1": "va1", "a2": "va2", "b1": "vb1", "b2": "vb2", "c1": "vc1", "d1": "d1"}
     site_template = {"y1": "vy1", "a1": "REPLACE_WITH_", "a2": "REPLACE_WITH_", "nb1": "REPLACE_WITH_b1",
-                     "nb2": "REPLACE_WITH_b2", "d1": "DELETE_OLD", "b1" : "DELETE_OLD","c1": "vc2"}
+                     "nb2": "REPLACE_WITH_b2", "d1": "DELETE_OLD", "b1" : "DELETE_OLD", "c1": "vc2"}
     expected_site = {"y1": "vy1", "a1": "va1", "a2": "va2", "nb1": "vb1", "nb2": "vb2", "c1": "vc2"}
     UpgradeHelper_HDP2.update_config_using_existing(opm, "global", site_template)
     get_config_mock.assert_called_once_with(opm, "global")
@@ -73,7 +75,7 @@ class TestUpgradeHDP2Script(TestCase):
                                     "X1": "X1"}
     site_template = {"y1": "vy1", "a1": "REPLACE_WITH_", "a2": "REPLACE_WITH_", "nb1": "REPLACE_WITH_b1",
                      "nb2": "REPLACE_WITH_b2", "x1": "DELETE_OLD", "X1": "DELETE"}
-    expected_site = {"y1": "vy1", "a1": "va1", "a2": "va2", "nb1": "vb1", "nb2": "vb2", "c1": "vc1","X1": "DELETE"}
+    expected_site = {"y1": "vy1", "a1": "va1", "a2": "va2", "nb1": "vb1", "nb2": "vb2", "c1": "vc1", "X1": "DELETE"}
     UpgradeHelper_HDP2.update_config_using_existing(opm, "global", site_template)
     get_config_mock.assert_called_once_with(opm, "global")
     update_config_mock.assert_called_once_with(opm, expected_site, "global")
@@ -90,7 +92,7 @@ class TestUpgradeHDP2Script(TestCase):
   @patch('optparse.OptionParser')
   def test_save_configs(self, option_parser_mock, path_exists_mock, shutil_copy_mock, os_remove_mock,
                         get_config_resp_mock, write_config_mock, file_handler_mock, logging_mock, set_formatter_mock):
-    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    file_handler_mock.return_value = logging.FileHandler('')  # disable creating real file
     opm = option_parser_mock.return_value
     path_exists_mock.return_value = True
     shutil_copy_mock = MagicMock()
@@ -136,7 +138,7 @@ class TestUpgradeHDP2Script(TestCase):
   @patch('optparse.OptionParser')
   def test_save_mr_mapping(self, option_parser_mock, curl_mock, json_loads_mock, write_mapping_mock,
                            backup_file_mock, file_handler_mock):
-    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    file_handler_mock.return_value = logging.FileHandler('')  # disable creating real file
     opm = option_parser_mock.return_value
     options = self.get_mock_options()
     args = ["save-mr-mapping"]
@@ -155,10 +157,10 @@ class TestUpgradeHDP2Script(TestCase):
     self.assertTrue(write_mapping_mock.called)
     write_call = write_mapping_mock.call_args
     args, kargs = write_call
-    self.assertTrue('MAPREDUCE_CLIENT' in args[0].keys())
+    self.assertTrue('MAPREDUCE_CLIENT' in list(args[0].keys()))
     self.assertTrue(["host1"] == args[0]['MAPREDUCE_CLIENT'])
-    self.assertTrue('TASKTRACKER' in args[0].keys())
-    self.assertTrue('TASKTRACKER' in args[0].keys())
+    self.assertTrue('TASKTRACKER' in list(args[0].keys()))
+    self.assertTrue('TASKTRACKER' in list(args[0].keys()))
     pass
 
 
@@ -170,7 +172,7 @@ class TestUpgradeHDP2Script(TestCase):
   @patch('optparse.OptionParser')
   def test_delete_mr(self, option_parser_mock, curl_mock,
                      backup_file_mock, file_handler_mock, read_mapping_mock, get_yn_mock):
-    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    file_handler_mock.return_value = logging.FileHandler('')  # disable creating real file
     opm = option_parser_mock.return_value
     options = self.get_mock_options()
     args = ["delete-mr"]
@@ -203,8 +205,8 @@ class TestUpgradeHDP2Script(TestCase):
   @patch.object(UpgradeHelper_HDP2, 'curl')
   @patch('optparse.OptionParser')
   def test_add_yarn_mr_with_ATS(self, option_parser_mock, curl_mock,
-                       backup_file_mock, file_handler_mock, read_mapping_mock, get_stack_mock,  has_comp_mock):
-    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+                       backup_file_mock, file_handler_mock, read_mapping_mock, get_stack_mock, has_comp_mock):
+    file_handler_mock.return_value = logging.FileHandler('')  # disable creating real file
     opm = option_parser_mock.return_value
     options = self.get_mock_options()
     args = ["add-yarn-mr2"]
@@ -259,8 +261,8 @@ class TestUpgradeHDP2Script(TestCase):
   @patch.object(UpgradeHelper_HDP2, 'curl')
   @patch('optparse.OptionParser')
   def test_add_yarn_mr_without_ATS(self, option_parser_mock, curl_mock,
-                       backup_file_mock, file_handler_mock, read_mapping_mock, get_stack_mock,  has_comp_mock):
-    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+                       backup_file_mock, file_handler_mock, read_mapping_mock, get_stack_mock, has_comp_mock):
+    file_handler_mock.return_value = logging.FileHandler('')  # disable creating real file
     opm = option_parser_mock.return_value
     options = self.get_mock_options()
     args = ["add-yarn-mr2"]
@@ -317,7 +319,7 @@ class TestUpgradeHDP2Script(TestCase):
   @patch('optparse.OptionParser')
   def test_install_yarn_mr2(self, option_parser_mock, curl_mock,
                             backup_file_mock, file_handler_mock):
-    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    file_handler_mock.return_value = logging.FileHandler('')  # disable creating real file
     opm = option_parser_mock.return_value
     options = self.get_mock_options()
     args = ["install-yarn-mr2"]
@@ -346,7 +348,7 @@ class TestUpgradeHDP2Script(TestCase):
   def test_update_single_configs(self, option_parser_mock, curl_mock,
                                  backup_file_mock, file_handler_mock, read_mapping_mock,
                                  update_config_mock, rename_all_prop_mock, get_config_mock):
-    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    file_handler_mock.return_value = logging.FileHandler('')  # disable creating real file
     opm = option_parser_mock.return_value
     options = MagicMock()
     args = ["update-configs", "hdfs-site"]
@@ -365,7 +367,7 @@ class TestUpgradeHDP2Script(TestCase):
     self.assertTrue(update_config_mock.call_count == 1)
     args, kargs = update_config_mock.call_args_list[0]
     self.assertEqual("hdfs-site", args[1])
-    for key in prop_to_move.keys():
+    for key in list(prop_to_move.keys()):
       self.assertEqual(prop_to_move[key], args[3][key])
     pass
 
@@ -380,7 +382,7 @@ class TestUpgradeHDP2Script(TestCase):
   def test_no_hbase(self, option_parser_mock, curl_mock,
                           backup_file_mock, file_handler_mock, read_mapping_mock,
                           get_config_mock, get_config_resp_mock):
-    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    file_handler_mock.return_value = logging.FileHandler('')  # disable creating real file
     opm = option_parser_mock.return_value
     options = MagicMock()
     args = ["update-configs"]
@@ -419,7 +421,7 @@ class TestUpgradeHDP2Script(TestCase):
   def test_update_configs(self, option_parser_mock, curl_mock,
                           backup_file_mock, file_handler_mock, read_mapping_mock,
                           get_config_mock, get_config_resp_mock):
-    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    file_handler_mock.return_value = logging.FileHandler('')  # disable creating real file
     opm = option_parser_mock.return_value
     options = MagicMock()
     args = ["update-configs"]
@@ -487,7 +489,7 @@ class TestUpgradeHDP2Script(TestCase):
   @patch('optparse.OptionParser')
   def test_print_only(self, option_parser_mock, curl_mock,
                       backup_file_mock, file_handler_mock, get_yn_mock, popen_mock, read_mapping_mock):
-    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    file_handler_mock.return_value = logging.FileHandler('')  # disable creating real file
     options = self.get_mock_options(True)
     get_yn_mock.return_value = True
     read_mapping_mock.return_value = {
@@ -501,7 +503,7 @@ class TestUpgradeHDP2Script(TestCase):
   @patch.object(UpgradeHelper_HDP2, 'curl')
   def test_get_and_parse_properties(self, curl_mock,
                                     backup_file_mock, file_handler_mock):
-    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    file_handler_mock.return_value = logging.FileHandler('')  # disable creating real file
     options = self.get_mock_options()
     curl_mock.side_effect = [
       """{ "href" : "http://localhost:8080/api/v1/clusters/c1",
@@ -541,13 +543,13 @@ class TestUpgradeHDP2Script(TestCase):
                   "tag" : "version137"
                 }}}}"""]
     properties = UpgradeHelper_HDP2.get_config(options, "core-site")
-    self.assertTrue(len(properties.keys()) == 3)
+    self.assertTrue(len(list(properties.keys())) == 3)
     self.assertTrue(properties["name1"] == "value1")
     self.assertTrue(properties["name2"] == "value2")
     self.assertTrue(properties["name3"] == "value3")
     try:
       UpgradeHelper_HDP2.get_config(options, "hdfs-site")
-    except Exception, e:
+    except Exception as e:
       self.assertTrue('Unable to get the current version for config type hdfs-site' in e.reason)
       pass
     pass
@@ -561,7 +563,7 @@ class TestUpgradeHDP2Script(TestCase):
     }
     site_properties = \
       UpgradeHelper_HDP2.rename_all_properties(site_properties, UpgradeHelper_HDP2.PROPERTY_MAPPING)
-    for key in site_properties.keys():
+    for key in list(site_properties.keys()):
       self.assertEqual(key, site_properties[key])
     self.assertEqual(4, len(site_properties))
     pass
@@ -570,7 +572,7 @@ class TestUpgradeHDP2Script(TestCase):
     def count_tags(template):
       deleted = 0
       replaced = 0
-      for key in template.keys():
+      for key in list(template.keys()):
         value = template[key]
         if value == UpgradeHelper_HDP2.DELETE_OLD_TAG:
           deleted += 1

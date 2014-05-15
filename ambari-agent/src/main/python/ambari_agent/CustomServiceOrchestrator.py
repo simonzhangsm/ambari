@@ -26,7 +26,10 @@ import sys
 from FileCache import FileCache
 from AgentException import AgentException
 from PythonExecutor import PythonExecutor
+from AmbariConfig import AmbariConfig
 import hostname
+from LiveStatus import LiveStatus
+import manifestGenerator
 
 
 logger = logging.getLogger()
@@ -42,8 +45,8 @@ class CustomServiceOrchestrator():
   CUSTOM_ACTION_COMMAND = 'ACTIONEXECUTE'
   CUSTOM_COMMAND_COMMAND = 'CUSTOM_COMMAND'
 
-  PRE_HOOK_PREFIX="before"
-  POST_HOOK_PREFIX="after"
+  PRE_HOOK_PREFIX = "before"
+  POST_HOOK_PREFIX = "after"
 
   HOSTS_LIST_KEY = "all_hosts"
   PING_PORTS_KEY = "all_ping_ports"
@@ -66,11 +69,11 @@ class CustomServiceOrchestrator():
       os.unlink(self.status_commands_stdout)
       os.unlink(self.status_commands_stderr)
     except OSError:
-      pass # Ignore fail
+      pass  # Ignore fail
 
 
-  def runCommand(self, command, tmpoutfile, tmperrfile, forsed_command_name = None,
-                 override_output_files = True):
+  def runCommand(self, command, tmpoutfile, tmperrfile, forsed_command_name=None,
+                 override_output_files=True):
     """
     forsed_command_name may be specified manually. In this case, value, defined at
     command json, is ignored.
@@ -85,9 +88,9 @@ class CustomServiceOrchestrator():
         task_id = command['taskId']
         command_name = command['roleCommand']
       except KeyError:
-        pass # Status commands have no taskId
+        pass  # Status commands have no taskId
 
-      if forsed_command_name is not None: # If not supplied as an argument
+      if forsed_command_name is not None:  # If not supplied as an argument
         command_name = forsed_command_name
 
       if command_name == self.CUSTOM_ACTION_COMMAND:
@@ -102,9 +105,9 @@ class CustomServiceOrchestrator():
         script_path = self.resolve_script_path(base_dir, script, script_type)
         script_tuple = (script_path, base_dir)
 
+
       tmpstrucoutfile = os.path.join(self.tmp_dir,
                                     "structured-out-{0}.json".format(task_id))
-
       if script_type.upper() != self.SCRIPT_TYPE_PYTHON:
       # We don't support anything else yet
         message = "Unknown script type {0}".format(script_type)
@@ -118,12 +121,10 @@ class CustomServiceOrchestrator():
       py_file_list = [pre_hook_tuple, script_tuple, post_hook_tuple]
       # filter None values
       filtered_py_file_list = [i for i in py_file_list if i]
-      
-      logger_level = logging.getLevelName(logger.level)
 
+      logger_level = logging.getLevelName(logger.level)
       # Executing hooks and script
       ret = None
-      
       for py_file, current_base_dir in filtered_py_file_list:
         script_params = [command_name, json_path, current_base_dir]
         ret = self.python_executor.run_file(py_file, script_params,
@@ -134,10 +135,10 @@ class CustomServiceOrchestrator():
         if ret['exitcode'] != 0:
           break
 
-      if not ret: # Something went wrong
+      if not ret:  # Something went wrong
         raise AgentException("No script has been executed")
 
-    except Exception: # We do not want to let agent fail completely
+    except Exception:  # We do not want to let agent fail completely
       exc_type, exc_obj, exc_tb = sys.exc_info()
       message = "Catched an exception while executing "\
         "custom service command: {0}: {1}".format(exc_type, exc_obj)
@@ -157,13 +158,14 @@ class CustomServiceOrchestrator():
      Exit code 0 means that component is running and any other exit code means that
      component is not running
     """
-    override_output_files=True # by default, we override status command output
+    override_output_files = True  # by default, we override status command output
     if logger.level == logging.DEBUG:
       override_output_files = False
     res = self.runCommand(command, self.status_commands_stdout,
                           self.status_commands_stderr, self.COMMAND_NAME_STATUS,
                           override_output_files=override_output_files)
     return res
+
 
   def resolve_script_path(self, base_dir, script, script_type):
     """
@@ -214,101 +216,69 @@ class CustomServiceOrchestrator():
     if os.path.isfile(file_path):
       os.unlink(file_path)
     with os.fdopen(os.open(file_path, os.O_WRONLY | os.O_CREAT,
-                           0600), 'w') as f:
-      content = json.dumps(command, sort_keys = False, indent = 4)
+                           0o600), 'w') as f:
+      content = json.dumps(command, sort_keys=False, indent=4)
       f.write(content)
     return file_path
-
   def decompressClusterHostInfo(self, clusterHostInfo):
     info = clusterHostInfo.copy()
     #Pop info not related to host roles
     hostsList = info.pop(self.HOSTS_LIST_KEY)
     pingPorts = info.pop(self.PING_PORTS_KEY)
     ambariServerHost = info.pop(self.AMBARI_SERVER_HOST)
-
     decompressedMap = {}
-
     for k,v in info.items():
       # Convert from 1-3,5,6-8 to [1,2,3,5,6,7,8]
       indexes = self.convertRangeToList(v)
       # Convert from [1,2,3,5,6,7,8] to [host1,host2,host3...]
       decompressedMap[k] = [hostsList[i] for i in indexes]
-
     #Convert from ['1:0-2,4', '42:3,5-7'] to [1,1,1,42,1,42,42,42]
     pingPorts = self.convertMappedRangeToList(pingPorts)
-
     #Convert all elements to str
     pingPorts = map(str, pingPorts)
-
     #Add ping ports to result
     decompressedMap[self.PING_PORTS_KEY] = pingPorts
     #Add hosts list to result
     decompressedMap[self.HOSTS_LIST_KEY] = hostsList
     #Add ambari-server host to result
     decompressedMap[self.AMBARI_SERVER_HOST] = ambariServerHost
-
     return decompressedMap
-
   # Converts from 1-3,5,6-8 to [1,2,3,5,6,7,8]
   def convertRangeToList(self, list):
-
     resultList = []
-
     for i in list:
-
       ranges = i.split(',')
-
       for r in ranges:
         rangeBounds = r.split('-')
         if len(rangeBounds) == 2:
-
           if not rangeBounds[0] or not rangeBounds[1]:
             raise AgentException.AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got : " + str(r))
-
-
           resultList.extend(range(int(rangeBounds[0]), int(rangeBounds[1]) + 1))
         elif len(rangeBounds) == 1:
           resultList.append((int(rangeBounds[0])))
         else:
           raise AgentException.AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got : " + str(r))
-
     return resultList
-
   #Converts from ['1:0-2,4', '42:3,5-7'] to [1,1,1,42,1,42,42,42]
   def convertMappedRangeToList(self, list):
-
     resultDict = {}
-
     for i in list:
       valueToRanges = i.split(":")
       if len(valueToRanges) <> 2:
         raise AgentException.AgentException("Broken data in given value to range, expected format - ""value:m-n"", got - " + str(i))
       value = valueToRanges[0]
       rangesToken = valueToRanges[1]
-
       for r in rangesToken.split(','):
-
         rangeIndexes = r.split('-')
-
         if len(rangeIndexes) == 2:
-
           if not rangeIndexes[0] or not rangeIndexes[1]:
             raise AgentException.AgentException("Broken data in given value to range, expected format - ""value:m-n"", got - " + str(r))
-
           start = int(rangeIndexes[0])
           end = int(rangeIndexes[1])
-
           for k in range(start, end + 1):
             resultDict[k] = int(value)
-
-
         elif len(rangeIndexes) == 1:
           index = int(rangeIndexes[0])
-
           resultDict[index] = int(value)
-
-
     resultList = dict(sorted(resultDict.items())).values()
-
     return resultList
-

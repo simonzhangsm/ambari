@@ -30,7 +30,7 @@ logger = logging.getLogger()
 
 class StatusCheck:
     
-  USER_PATTERN='{USER}'
+  USER_PATTERN = '{USER}'
   firstInit = True
 
   def listFiles(self, dir):
@@ -57,7 +57,7 @@ class StatusCheck:
       for pidVar in self.pidPathesVars:
         pidVarName = pidVar['var']
         pidDefaultvalue = pidVar['defaultValue']
-        if self.globalConfig.has_key(pidVarName):
+        if pidVarName in self.globalConfig:
           self.pidPathes.append(self.globalConfig[pidVarName])
         else:
           self.pidPathes.append(pidDefaultvalue)
@@ -80,10 +80,10 @@ class StatusCheck:
     for pidPath in self.pidPathes:
       self.listFiles(pidPath)
 
-    for service, pid in self.serToPidDict.items():
-      if self.servicesToLinuxUser.has_key(service):
+    for service, pid in list(self.serToPidDict.items()):
+      if service in self.servicesToLinuxUser:
         linuxUserKey = self.servicesToLinuxUser[service]
-        if self.globalConfig.has_key(linuxUserKey):
+        if linuxUserKey in self.globalConfig:
           self.serToPidDict[service] = string.replace(pid, self.USER_PATTERN,
             self.globalConfig[linuxUserKey])
       else:
@@ -106,7 +106,7 @@ class StatusCheck:
     try:
       pidFile = open(pidPath, 'r')
       pid = int(pidFile.readline())
-    except IOError, e:
+    except IOError as e:
       logger.warn("Can not open file " + str(pidPath) + " due to " + str(e))
       return isLive
     res = self.sh.run(['ps -p', str(pid), '-f'])
@@ -127,7 +127,7 @@ class StatusCheck:
       logger.warn('There is no mapping for ' + serviceCode)
       return None
     try:
-      for pidFile in self.pidFilesDict.keys():
+      for pidFile in list(self.pidFilesDict.keys()):
         if re.match(pidPattern, pidFile):
           pidPath = self.pidFilesDict[pidFile]          
       logger.debug('pidPath: ' + str(pidPath))

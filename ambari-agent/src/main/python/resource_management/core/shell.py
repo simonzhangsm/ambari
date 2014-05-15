@@ -26,19 +26,17 @@ import string
 import subprocess
 import threading
 from multiprocessing import Queue
-from exceptions import Fail
-from exceptions import ExecuteTimeoutException
 from resource_management.core.logger import Logger
 
-def checked_call(command, logoutput=False, 
+def checked_call(command, logoutput=False,
          cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None):
   return _call(command, logoutput, True, cwd, env, preexec_fn, user, wait_for_finish, timeout)
 
-def call(command, logoutput=False, 
+def call(command, logoutput=False,
          cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None):
   return _call(command, logoutput, False, cwd, env, preexec_fn, user, wait_for_finish, timeout)
             
-def _call(command, logoutput=False, throw_on_failure=True, 
+def _call(command, logoutput=False, throw_on_failure=True,
          cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None):
   """
   Execute shell command
@@ -57,7 +55,7 @@ def _call(command, logoutput=False, throw_on_failure=True,
   if user:
     command = ["su", "-", user, "-c", command]
   else:
-    command = ["/bin/bash","--login","-c", command]
+    command = ["/bin/bash", "--login", "-c", command]
 
   proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           cwd=cwd, env=env, shell=False,
@@ -68,10 +66,10 @@ def _call(command, logoutput=False, throw_on_failure=True,
   
   if timeout:
     q = Queue()
-    t = threading.Timer( timeout, on_timeout, [proc, q] )
+    t = threading.Timer(timeout, on_timeout, [proc, q])
     t.start()
     
-  out = proc.communicate()[0].strip('\n')
+  out = proc.communicate()[0].decode().strip('\n')
   
   if timeout:
     if q.empty():

@@ -35,7 +35,7 @@ class PingPortListener(threading.Thread):
     self.running = True
     self.config = config
     self.host = '0.0.0.0'
-    self.port = int(self.config.get('agent','ping_port'))
+    self.port = int(self.config.get('agent', 'ping_port'))
     try:
       self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       self.socket.bind((self.host, self.port))
@@ -44,7 +44,7 @@ class PingPortListener(threading.Thread):
       logger.error("Failed to start ping port listener of:" + str(ex));
       sys.exit(1)
     else:
-      config.set('agent','current_ping_port',str(self.socket.getsockname()[1]))
+      config.set('agent', 'current_ping_port', str(self.socket.getsockname()[1]))
       logger.info("Ping port listener started on port: " + str(self.socket.getsockname()[1]))
 
 

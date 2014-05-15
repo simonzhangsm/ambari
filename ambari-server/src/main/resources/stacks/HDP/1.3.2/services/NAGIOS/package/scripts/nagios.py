@@ -20,58 +20,64 @@ Ambari Agent
 
 """
 
-from resource_management import *
 from nagios_server_config import nagios_server_config
+from resource_management import *
+
 
 def nagios():
   import params
 
-  File( params.nagios_httpd_config_file,
-    owner = params.nagios_user,
-    group = params.nagios_group,
-    content = Template("nagios.conf.j2"),
-    mode   = 0644
+  File(params.nagios_httpd_config_file,
+    owner=params.nagios_user,
+    group=params.nagios_group,
+    content=Template("nagios.conf.j2"),
+    mode=0o644
+  )
+
+  # enable snmpd
+  Execute("service snmpd start; chkconfig snmpd on",
+    path="/usr/local/bin/:/bin/:/sbin/"
   )
   
-  Directory( params.conf_dir,
-    owner = params.nagios_user,
-    group = params.nagios_group
+  Directory(params.conf_dir,
+    owner=params.nagios_user,
+    group=params.nagios_group
   )
 
-  Directory( [params.plugins_dir, params.nagios_obj_dir])
+  Directory([params.plugins_dir, params.nagios_obj_dir])
 
-  Directory( params.nagios_pid_dir,
-    owner = params.nagios_user,
-    group = params.nagios_group,
-    mode = 0755,
-    recursive = True
+  Directory(params.nagios_pid_dir,
+    owner=params.nagios_user,
+    group=params.nagios_group,
+    mode=0o755,
+    recursive=True
   )
 
-  Directory( [params.nagios_var_dir, params.check_result_path, params.nagios_rw_dir],
-    owner = params.nagios_user,
-    group = params.nagios_group,
-    recursive = True
+  Directory([params.nagios_var_dir, params.check_result_path, params.nagios_rw_dir],
+    owner=params.nagios_user,
+    group=params.nagios_group,
+    recursive=True
   )
   
-  Directory( [params.nagios_log_dir, params.nagios_log_archives_dir],
-    owner = params.nagios_user,
-    group = params.nagios_group,
-    mode = 0755
+  Directory([params.nagios_log_dir, params.nagios_log_archives_dir],
+    owner=params.nagios_user,
+    group=params.nagios_group,
+    mode=0o755
   )
 
   nagios_server_config()
 
   set_web_permisssions()
 
-  File( format("{conf_dir}/command.cfg"),
-    owner = params.nagios_user,
-    group = params.nagios_group
+  File(format("{conf_dir}/command.cfg"),
+    owner=params.nagios_user,
+    group=params.nagios_group
   )
 
   File(format("{nagios_var_dir}/ignore.dat"),
-    owner = params.nagios_user,
-    group = params.nagios_group,
-    mode = 0664)
+    owner=params.nagios_user,
+    group=params.nagios_group,
+    mode=0o664)
   
   
 def set_web_permisssions():
@@ -79,14 +85,14 @@ def set_web_permisssions():
 
   cmd = format("{htpasswd_cmd} -c -b  /etc/nagios/htpasswd.users {nagios_web_login} {nagios_web_password!p}")
   test = format("grep {nagios_web_login} /etc/nagios/htpasswd.users")
-  Execute( cmd,
-    not_if = test
+  Execute(cmd,
+    not_if=test
   )
 
-  File( "/etc/nagios/htpasswd.users",
-    owner = params.nagios_user,
-    group = params.nagios_group,
-    mode  = 0640
+  File("/etc/nagios/htpasswd.users",
+    owner=params.nagios_user,
+    group=params.nagios_group,
+    mode=0o640
   )
 
   if System.get_instance().os_family == "suse":
@@ -94,4 +100,4 @@ def set_web_permisssions():
   else:
     command = format("usermod -a -G {nagios_group} apache")
   
-  Execute( command)
+  Execute(command)

@@ -29,8 +29,8 @@ class GlusterFSServiceCheck(Script):
                    "GLUSTERFS_PID_DIR=/var/run/glusterfs "
                    "glusterd --version"),
             logoutput=True,
-            tries = 3,
-            try_sleep = 20
+            tries=3,
+            try_sleep=20
     )
 
 if __name__ == "__main__":

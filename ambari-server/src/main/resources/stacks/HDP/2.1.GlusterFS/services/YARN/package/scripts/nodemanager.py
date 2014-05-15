@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -20,10 +21,11 @@ Ambari Agent
 """
 
 import sys
-from resource_management import *
 
-from yarn import yarn
-from service import service
+from resource_management import *
+import service
+import yarn
+
 
 class Nodemanager(Script):
   def install(self, env):
@@ -37,7 +39,7 @@ class Nodemanager(Script):
   def start(self, env):
     import params
     env.set_params(params)
-    self.configure(env) # FOR SECURITY
+    self.configure(env)  # FOR SECURITY
     service('nodemanager',
             action='start'
     )

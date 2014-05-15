@@ -28,8 +28,8 @@ __all__ = ["Source", "Template", "InlineTemplate", "StaticFile", "DownloadSource
 
 import hashlib
 import os
-import urllib2
-import urlparse
+import urllib.request, urllib.error, urllib.parse
+import urllib.parse
 
 
 class Source(object):
@@ -47,7 +47,7 @@ class Source(object):
     return self.get_content()
   
   def __repr__(self):
-    return self.__class__.__name__+"('"+self.name+"')"
+    return self.__class__.__name__ + "('" + self.name + "')"
   
   def __eq__(self, other):
     return (isinstance(other, self.__class__)
@@ -147,11 +147,11 @@ class DownloadSource(Source):
       os.makedirs(self.env.config.download_path)
 
   def get_content(self):
-    filepath = os.path.basename(urlparse.urlparse(self.url).path)
+    filepath = os.path.basename(urllib.parse.urlparse(self.url).path)
     content = None
     if not self.cache or not os.path.exists(
       os.path.join(self.env.config.download_path, filepath)):
-      web_file = urllib2.urlopen(self.url)
+      web_file = urllib.request.urlopen(self.url)
       content = web_file.read()
     else:
       update = False
@@ -161,7 +161,7 @@ class DownloadSource(Source):
         m = hashlib.md5(content)
         md5 = m.hexdigest()
         if md5 != self.md5sum:
-          web_file = urllib2.urlopen(self.url)
+          web_file = urllib.request.urlopen(self.url)
           content = web_file.read()
           update = True
       if self.cache and update:

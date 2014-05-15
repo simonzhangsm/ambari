@@ -28,7 +28,7 @@ class ConfigDictionary(dict):
     """
     Recursively turn dict to ConfigDictionary
     """
-    for k, v in dictionary.iteritems():
+    for k, v in list(dictionary.items()):
       if isinstance(v, dict):
         dictionary[k] = ConfigDictionary(v)
         
@@ -57,7 +57,7 @@ class ConfigDictionary(dict):
         value = int(value)
       except (ValueError, TypeError):
         try:
-          value =  float(value)
+          value = float(value)
         except (ValueError, TypeError):
           pass
     
@@ -72,7 +72,7 @@ class UnknownConfiguration():
     self.name = name
    
   def __getattr__(self, name):
-    raise Fail("Configuration parameter '"+self.name+"' was not found in configurations dictionary!")
+    raise Fail("Configuration parameter '" + self.name + "' was not found in configurations dictionary!")
   
   def __getitem__(self, name):
     """

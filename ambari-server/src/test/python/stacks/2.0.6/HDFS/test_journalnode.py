@@ -17,7 +17,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from mock.mock import MagicMock, patch
+from mock import MagicMock, patch
+
 from stacks.utils.RMFTestCase import *
 
 
@@ -25,8 +26,8 @@ class TestJournalnode(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("2.0.6/services/HDFS/package/scripts/journalnode.py",
-                       classname = "JournalNode",
-                       command = "configure",
+                       classname="JournalNode",
+                       command="configure",
                        config_file="default.json"
     )
     self.assert_configure_default()
@@ -34,63 +35,63 @@ class TestJournalnode(RMFTestCase):
 
   def test_start_default(self):
     self.executeScript("2.0.6/services/HDFS/package/scripts/journalnode.py",
-                       classname = "JournalNode",
-                       command = "start",
+                       classname="JournalNode",
+                       command="start",
                        config_file="default.json"
     )
     self.assert_configure_default()
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
-                              owner = 'hdfs',
-                              recursive = True,
+                              owner='hdfs',
+                              recursive=True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
-                              owner = 'hdfs',
-                              recursive = True,
+                              owner='hdfs',
+                              recursive=True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid',
-                              action = ['delete'],
-                              ignore_failures = True,
+                              action=['delete'],
+                              ignore_failures=True,
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid` >/dev/null 2>&1',
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start journalnode',
-                              not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid` >/dev/null 2>&1',
-                              user = 'hdfs',
+                              not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid` >/dev/null 2>&1',
+                              user='hdfs',
                               )
     self.assertNoMoreResources()
 
   def test_stop_default(self):
     self.executeScript("2.0.6/services/HDFS/package/scripts/journalnode.py",
-                       classname = "JournalNode",
-                       command = "stop",
+                       classname="JournalNode",
+                       command="stop",
                        config_file="default.json"
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
-                              owner = 'hdfs',
-                              recursive = True,
+                              owner='hdfs',
+                              recursive=True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
-                              owner = 'hdfs',
-                              recursive = True,
+                              owner='hdfs',
+                              recursive=True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid',
-                              action = ['delete'],
-                              ignore_failures = True,
+                              action=['delete'],
+                              ignore_failures=True,
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid` >/dev/null 2>&1',
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop journalnode',
-                              not_if = None,
-                              user = 'hdfs',
+                              not_if=None,
+                              user='hdfs',
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid',
-                              action = ['delete'],
-                              ignore_failures = True,
+                              action=['delete'],
+                              ignore_failures=True,
                               )
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
     self.executeScript("2.0.6/services/HDFS/package/scripts/journalnode.py",
-                       classname = "JournalNode",
-                       command = "configure",
+                       classname="JournalNode",
+                       command="configure",
                        config_file="secured.json"
     )
     self.assert_configure_secured()
@@ -98,101 +99,101 @@ class TestJournalnode(RMFTestCase):
 
   def test_start_secured(self):
     self.executeScript("2.0.6/services/HDFS/package/scripts/journalnode.py",
-                       classname = "JournalNode",
-                       command = "start",
+                       classname="JournalNode",
+                       command="start",
                        config_file="secured.json"
     )
     self.assert_configure_secured()
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
-                              owner = 'hdfs',
-                              recursive = True,
+                              owner='hdfs',
+                              recursive=True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
-                              owner = 'hdfs',
-                              recursive = True,
+                              owner='hdfs',
+                              recursive=True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid',
-                              action = ['delete'],
-                              ignore_failures = True,
+                              action=['delete'],
+                              ignore_failures=True,
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid` >/dev/null 2>&1',
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start journalnode',
-                              not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid` >/dev/null 2>&1',
-                              user = 'hdfs',
+                              not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid` >/dev/null 2>&1',
+                              user='hdfs',
                               )
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
     self.executeScript("2.0.6/services/HDFS/package/scripts/journalnode.py",
-                       classname = "JournalNode",
-                       command = "stop",
+                       classname="JournalNode",
+                       command="stop",
                        config_file="secured.json"
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
-                              owner = 'hdfs',
-                              recursive = True,
+                              owner='hdfs',
+                              recursive=True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
-                              owner = 'hdfs',
-                              recursive = True,
+                              owner='hdfs',
+                              recursive=True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid',
-                              action = ['delete'],
-                              ignore_failures = True,
+                              action=['delete'],
+                              ignore_failures=True,
                               not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid` >/dev/null 2>&1',
                               )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited;  export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop journalnode',
-                              not_if = None,
-                              user = 'hdfs',
+                              not_if=None,
+                              user='hdfs',
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-journalnode.pid',
-                              action = ['delete'],
-                              ignore_failures = True,
+                              action=['delete'],
+                              ignore_failures=True,
                               )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/grid/0/hdfs/journal',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              recursive = True,
+                              owner='hdfs',
+                              group='hadoop',
+                              recursive=True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
-                              content = Template('hdfs.conf.j2'),
-                              owner = 'root',
-                              group = 'root',
-                              mode = 0644,
+                              content=Template('hdfs.conf.j2'),
+                              owner='root',
+                              group='root',
+                              mode=0o644,
                               )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hadoop/conf',
-                              configurations = self.getConfig()['configurations']['hdfs-site'],
+                              owner='hdfs',
+                              group='hadoop',
+                              conf_dir='/etc/hadoop/conf',
+                              configurations=self.getConfig()['configurations']['hdfs-site'],
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
-                              content = Template('slaves.j2'),
-                              owner = 'hdfs',
+                              content=Template('slaves.j2'),
+                              owner='hdfs',
                               )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/grid/0/hdfs/journal',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              recursive = True,
+                              owner='hdfs',
+                              group='hadoop',
+                              recursive=True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
-                              content = Template('hdfs.conf.j2'),
-                              owner = 'root',
-                              group = 'root',
-                              mode = 0644,
+                              content=Template('hdfs.conf.j2'),
+                              owner='root',
+                              group='root',
+                              mode=0o644,
                               )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hadoop/conf',
-                              configurations = self.getConfig()['configurations']['hdfs-site'],
+                              owner='hdfs',
+                              group='hadoop',
+                              conf_dir='/etc/hadoop/conf',
+                              configurations=self.getConfig()['configurations']['hdfs-site'],
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/slaves',
-                              content = Template('slaves.j2'),
-                              owner = 'root',
+                              content=Template('slaves.j2'),
+                              owner='root',
                               )

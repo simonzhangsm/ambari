@@ -18,12 +18,13 @@ limitations under the License.
 
 """
 
+import datetime
+import math
 import os
 import re
-import math
-import datetime
 
 from resource_management.core.shell import checked_call
+
 
 def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):
   """
@@ -31,9 +32,9 @@ def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):
   @param xmn_percent: float (e.g 0.2)
   @param xmn_max: integer (e.g 512)
   """
-  heapsize = int(re.search('\d+',heapsize_str).group(0))
-  heapsize_unit = re.search('\D+',heapsize_str).group(0)
-  xmn_val = int(math.floor(heapsize*xmn_percent))
+  heapsize = int(re.search('\d+', heapsize_str).group(0))
+  heapsize_unit = re.search('\D+', heapsize_str).group(0)
+  xmn_val = int(math.floor(heapsize * xmn_percent))
   xmn_val -= xmn_val % 8
   
   result_xmn_val = xmn_max if xmn_val > xmn_max else xmn_val

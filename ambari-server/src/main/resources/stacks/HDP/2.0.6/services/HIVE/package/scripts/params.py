@@ -18,6 +18,8 @@ limitations under the License.
 
 """
 
+import functools
+
 from resource_management import *
 import status_params
 
@@ -31,10 +33,10 @@ hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.opti
 hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
 hive_metastore_db_type = config['configurations']['global']['hive_database_type']
 
-#users
+# users
 hive_user = config['configurations']['global']['hive_user']
 hive_lib = '/usr/lib/hive/lib/'
-#JDBC driver jar name
+# JDBC driver jar name
 hive_jdbc_driver = config['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName']
 if hive_jdbc_driver == "com.mysql.jdbc.Driver":
   jdbc_jar_name = "mysql-connector-java.jar"
@@ -46,7 +48,7 @@ elif hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
 check_db_connection_jar_name = "DBConnectionVerification.jar"
 check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
 
-#common
+# common
 hdp_stack_version = config['hostLevelParams']['stack_version']
 hive_metastore_port = config['configurations']['global']['hive_metastore_port']
 hive_var_lib = '/var/lib/hive'
@@ -62,33 +64,33 @@ smoke_test_path = "/tmp/hiveserver2Smoke.sh"
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = (not is_empty(_authentication) and _authentication == 'kerberos')
 
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-hive_metastore_keytab_path =  config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file']
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+hive_metastore_keytab_path = config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file']
 
-#hive_env
+# hive_env
 hive_conf_dir = "/etc/hive/conf"
 hive_dbroot = config['configurations']['global']['hive_dbroot']
 hive_log_dir = config['configurations']['global']['hive_log_dir']
 hive_pid_dir = status_params.hive_pid_dir
 hive_pid = status_params.hive_pid
 
-#hive-site
+# hive-site
 hive_database_name = config['configurations']['global']['hive_database_name']
 
-#Starting hiveserver2
+# Starting hiveserver2
 start_hiveserver2_script = 'startHiveserver2.sh.j2'
 
 hadoop_home = '/usr'
 
-##Starting metastore
+# #Starting metastore
 start_metastore_script = 'startMetastore.sh'
 hive_metastore_pid = status_params.hive_metastore_pid
 java_share_dir = '/usr/share/java'
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
-hdfs_user =  config['configurations']['global']['hdfs_user']
+hdfs_user = config['configurations']['global']['hdfs_user']
 user_group = config['configurations']['global']['user_group']
 artifact_dir = "/tmp/HDP-artifacts/"
 
@@ -143,13 +145,13 @@ hcat_log_dir = config['configurations']['global']['hcat_log_dir']
 
 hadoop_conf_dir = '/etc/hadoop/conf'
 
-#hive-log4j.properties.template
+# hive-log4j.properties.template
 if (('hive-log4j' in config['configurations']) and ('content' in config['configurations']['hive-log4j'])):
   log4j_props = config['configurations']['hive-log4j']['content']
 else:
   log4j_props = None
 
-#hive-exec-log4j.properties.template
+# hive-exec-log4j.properties.template
 if (('hive-exec-log4j' in config['configurations']) and ('content' in config['configurations']['hive-exec-log4j'])):
   log4j_exec_props = config['configurations']['hive-exec-log4j']['content']
 else:
@@ -158,14 +160,14 @@ else:
 daemon_name = status_params.daemon_name
 
 hive_hdfs_user_dir = format("/user/{hive_user}")
-hive_hdfs_user_mode = 0700
+hive_hdfs_user_mode = 0o700
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
-#for create_hdfs_directory
+# for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
 hdfs_user = config['configurations']['global']['hdfs_user']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 # Tez libraries
 tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
@@ -182,16 +184,15 @@ else:
 # Hive security
 hive_authorization_enabled = config['configurations']['hive-site']['hive.security.authorization.enabled']
 
-import functools
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
+# create partial functions with common arguments for every HdfsDirectory call
+# to create hdfs directory we need to call params.HdfsDirectory in code
+# create partial functions with common arguments for every HdfsDirectory call
+# to create hdfs directory we need to call params.HdfsDirectory in code
 HdfsDirectory = functools.partial(
   HdfsDirectory,
   conf_dir=hadoop_conf_dir,
   hdfs_user=hdfs_user,
-  security_enabled = security_enabled,
-  keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  security_enabled=security_enabled,
+  keytab=hdfs_user_keytab,
+  kinit_path_local=kinit_path_local
 )

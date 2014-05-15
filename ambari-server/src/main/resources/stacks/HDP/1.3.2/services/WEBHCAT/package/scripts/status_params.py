@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 
+
 config = Script.get_config()
 
 templeton_pid_dir = config['configurations']['global']['hcat_pid_dir']

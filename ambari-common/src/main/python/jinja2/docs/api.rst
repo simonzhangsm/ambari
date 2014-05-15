@@ -116,7 +116,8 @@ useful if you want to dig deeper into Jinja2 or :ref:`develop extensions
 
 .. autoclass:: Environment([options])
     :members: from_string, get_template, select_template,
-              get_or_select_template, join_path, extend, compile_expression
+              get_or_select_template, join_path, extend, compile_expression,
+              compile_templates, list_templates, add_extension
 
     .. attribute:: shared
 
@@ -433,6 +434,8 @@ Here a list of the builtin loaders Jinja2 provides:
 
 .. autoclass:: jinja2.ChoiceLoader
 
+.. autoclass:: jinja2.ModuleLoader
+
 
 .. _bytecode-cache:
 
@@ -593,7 +596,7 @@ paragraphs and marks the return value as safe HTML string if autoescaping is
 enabled::
 
     import re
-    from jinja2 import environmentfilter, Markup, escape
+    from jinja2 import evalcontextfilter, Markup, escape
 
     _paragraph_re = re.compile(r'(?:\r\n|\r|\n){2,}')
 

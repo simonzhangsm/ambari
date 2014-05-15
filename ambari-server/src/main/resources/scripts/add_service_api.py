@@ -20,7 +20,9 @@ limitations under the License.
 # MUST be run on ambari-server host
 import json
 import time
+
 from resource_management.core.shell import checked_call, call
+
 
 # Change this to hostname of your ambari-server
 HOSTNAME = checked_call("hostname -f")[1].strip()
@@ -37,8 +39,8 @@ COMPONENTS = [
 COMPONENTS_TO_HOSTS = [
   {"NIMBUS": HOSTNAME},
   {"SUPERVISOR": HOSTNAME},
-  #{"SUPERVISOR": "c6402.ambari.apache.org"},
-  #{"SUPERVISOR": "c6403.ambari.apache.org"}
+  # {"SUPERVISOR": "c6402.ambari.apache.org"},
+  # {"SUPERVISOR": "c6403.ambari.apache.org"}
 ]
 
 PROTOCOL = "http"
@@ -49,12 +51,12 @@ STACK_VERSION = "2.0.8"
 
 CONFIGS_TO_CHANGE = {
   "storm-site":{
-    #"storm.zookeeper.servers":"['c6401.amabri.apache.org','c6402.amabri.apache.org','c6403.amabri.apache.org']",
-    #"nimbus.host": "c6401.ambari.apache.org"
+    # "storm.zookeeper.servers":"['c6401.amabri.apache.org','c6402.amabri.apache.org','c6403.amabri.apache.org']",
+    # "nimbus.host": "c6401.ambari.apache.org"
   },
-  #"global":{
+  # "global":{
   #  "clientPort":"2182"
-  #}
+  # }
 }
 
 #################################################################
@@ -72,7 +74,7 @@ def main():
     
   # assign components to hosts
   for x in COMPONENTS_TO_HOSTS: 
-    for component, host in x.iteritems():
+    for component, host in list(x.items()):
       checked_call('curl -H \'X-Requested-By:anything\' -i -X POST -d \'{{"host_components":[{{"HostRoles":{{"component_name":"{component}"}}}}]}}\' -u admin:admin {server_url}/api/v1/clusters/{cluster_name}/hosts?Hosts/host_name={host}'.
                format(host=host, component=component, server_url=SERVER_URL, cluster_name=CLUSTER_NAME))
     
@@ -90,29 +92,29 @@ def main():
     config = configs[site_name]
     config[x['StackConfigurations']['property_name']] = x['StackConfigurations']['property_value']
 
-  for site_name, site_content in configs.iteritems():
+  for site_name, site_content in list(configs.items()):
     code = call('/var/lib/ambari-server/resources/scripts/configs.sh get {hostname} {cluster_name} {site_name}'.format(hostname=HOSTNAME, cluster_name=CLUSTER_NAME, site_name=site_name))[0]
 
     if code:
-      print "Adding new site: "+site_name
+      print("Adding new site: " + site_name)
       checked_call('curl -i -H \'X-Requested-By:anything\' -X PUT -d \'{{"Clusters":{{"desired_configs":{{"type":"{site_name}","tag":"version1","properties":{site_content}}}}}}}\' -u admin:admin {server_url}/api/v1/clusters/{cluster_name}'.format(site_name=site_name, site_content=json.dumps(site_content), server_url=SERVER_URL, cluster_name=CLUSTER_NAME))
     else:
       timestamp = int(time.time())
-      print "Modifiying site: "+site_name+" version"+str(timestamp)
+      print("Modifiying site: " + site_name + " version" + str(timestamp))
       checked_call('/var/lib/ambari-server/resources/scripts/configs.sh get {hostname} {cluster_name} {site_name} /tmp/current_site.json'.format(hostname=HOSTNAME, cluster_name=CLUSTER_NAME, site_name=site_name))
       
       with open('/tmp/current_site.json', "r") as f:
         fcontent = f.read()
-        d = json.loads("{"+fcontent+"}")
+        d = json.loads("{" + fcontent + "}")
       
-      for k,v in site_content.iteritems():
+      for k, v in list(site_content.items()):
         d['properties'][k] = v
         
       checked_call('curl -i -H \'X-Requested-By:anything\' -X PUT -d \'{{"Clusters":{{"desired_configs":{{"type":"{site_name}","tag":"version{timestamp}","properties":{site_content}}}}}}}\' -u admin:admin {server_url}/api/v1/clusters/{cluster_name}'.format(site_name=site_name, timestamp=timestamp, site_content=json.dumps(d['properties']), server_url=SERVER_URL, cluster_name=CLUSTER_NAME))
 
-  for site_name, site_configs in CONFIGS_TO_CHANGE.iteritems():
-    for config_name, config_value in site_configs.iteritems():
-      print "Adding config "+config_name+"="+config_value+" to "+site_name
+  for site_name, site_configs in list(CONFIGS_TO_CHANGE.items()):
+    for config_name, config_value in list(site_configs.items()):
+      print("Adding config " + config_name + "=" + config_value + " to " + site_name)
       checked_call('/var/lib/ambari-server/resources/scripts/configs.sh set {hostname} {cluster_name} {site_name} {config_name} {config_value}'.format(config_name=config_name, config_value=config_value, hostname=HOSTNAME, cluster_name=CLUSTER_NAME, site_name=site_name))
       
         

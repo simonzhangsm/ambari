@@ -1,0 +1,6 @@
+#/bin/bash
+
+sudo rm -rf /private/var/folders/b2/kb6jqtws6hvc_zrxsq6kk20w0000gn/T/UltraCompareX_dbgrpt-*
+sudo rm -rf /Users/Simon/Library/Application\ Support/CrashReporter/*
+sudo rm -rf /Users/Simon/Library/Logs/DiagnosticReports/Ultra*
+sudo rm -rf /Users/Simon/Library/Logs/DiagnosticReports/.Ultra*

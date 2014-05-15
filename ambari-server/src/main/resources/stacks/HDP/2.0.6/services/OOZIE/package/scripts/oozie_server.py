@@ -19,12 +19,12 @@ limitations under the License.
 """
 
 import sys
-from resource_management import *
 
 from oozie import oozie
 from oozie_service import oozie_service
+from resource_management import *
 
-         
+
 class OozieServer(Script):
   def install(self, env):
     self.install_packages(env)
@@ -38,7 +38,7 @@ class OozieServer(Script):
   def start(self, env):
     import params
     env.set_params(params)
-    #TODO remove this when config command will be implemented
+    # TODO remove this when config command will be implemented
     self.configure(env)
     oozie_service(action='start')
     

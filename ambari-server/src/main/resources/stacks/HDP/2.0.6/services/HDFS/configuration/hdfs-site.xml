@@ -467,6 +467,12 @@
   </property>
 
   <property>
+    <name>dfs.client.read.shortcircuit.skip.checksum</name>
+    <value></value>
+    <description>Enable/disbale skipping the checksum check</description>
+  </property>
+
+  <property>
     <name>dfs.domain.socket.path</name>
     <value>/var/lib/hadoop-hdfs/dn_socket</value>
     <description>

@@ -10,8 +10,8 @@ from mock import MagicMock, Mock, patch, sentinel, mock_open, call
 
 from tests.support_with import catch_warnings, nested
 
-something  = sentinel.Something
-something_else  = sentinel.SomethingElse
+something = sentinel.Something
+something_else = sentinel.SomethingElse
 
 
 

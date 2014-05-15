@@ -55,9 +55,9 @@ class RepoInstaller():
         repo['mirrorsList'] = None
       
       Repository(repo['repoId'],
-                 action = action,
-                 base_url = repo['baseUrl'],
-                 mirror_list = repo['mirrorsList'],
-                 repo_file_name = repo['repoName'],
-                 components = UBUNTU_REPO_COMPONENTS, # ubuntu specific
+                 action=action,
+                 base_url=repo['baseUrl'],
+                 mirror_list=repo['mirrorsList'],
+                 repo_file_name=repo['repoName'],
+                 components=UBUNTU_REPO_COMPONENTS,  # ubuntu specific
       )

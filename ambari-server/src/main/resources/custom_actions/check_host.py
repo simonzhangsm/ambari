@@ -21,6 +21,7 @@ Ambari Agent
 """
 
 import os, sys
+
 from resource_management import *
 
 
@@ -31,10 +32,10 @@ class CheckHost(Script):
     java_home = config['hostLevelParams']['java_home']
 
     if not os.path.isfile(os.path.join(java_home, "bin", "java")):
-      print "Java home not exists"
+      print("Java home not exists")
       sys.exit(1)
 
-    print "Java home exists"
+    print("Java home exists")
     structured_output_example = {
         'result': 'Host check completed.'
     }

@@ -1,4 +1,4 @@
-#!/usr/bin/env ambari-python-wrap
+#!/usr/bin/env python
 
 '''
 Licensed to the Apache Software Foundation (ASF) under one
@@ -30,7 +30,7 @@ class Hook(Script):
   tmpoutfile and to tmperrfile respectively.
   """
 
-  HOOK_METHOD_NAME = "hook" # This method is always executed at hooks
+  HOOK_METHOD_NAME = "hook"  # This method is always executed at hooks
 
 
   def choose_method_to_execute(self, command_name):
@@ -45,22 +45,19 @@ class Hook(Script):
     Runs custom hook
     """
     args = sys.argv
-    
-    #Hook script to run
-    args[0] = args[0].replace('before-'+args[1], command)
-    args[0] = args[0].replace('after-'+args[1], command)
-    
-    #Hook script base directory
-    args[3] = args[3].replace('before-'+args[1], command)
-    args[3] = args[3].replace('after-'+args[1], command)
-    
-    args[1] = command.split("-")[1]
+    # Hook script to run
+    args[0] = args[0].replace('before-' + args[1], command)
+    args[0] = args[0].replace('after-' + args[1], command)
+    # Hook script base directory
+    args[3] = args[3].replace('before-' + args[1], command)
+    args[3] = args[3].replace('after-' + args[1], command)
 
+    args[1] = command.split("-")[1]
 
     cmd = [sys.executable]
     cmd.extend(args)
 
     if subprocess.call(cmd) != 0:
-      self.fail_with_error("Error: Unable to run the custom hook script " +
+      self.fail_with_error("Error: Unable to run the custom hook script " + 
                            cmd.__str__())
 

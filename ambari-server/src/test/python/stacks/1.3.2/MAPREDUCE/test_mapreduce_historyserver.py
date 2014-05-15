@@ -17,9 +17,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from mock.mock import MagicMock, call, patch
-from stacks.utils.RMFTestCase import *
 import os
+
+from mock import MagicMock, call, patch
+
+from stacks.utils.RMFTestCase import *
+
 
 origin_exists = os.path.exists
 @patch.object(os.path, "exists", new=MagicMock(
@@ -29,8 +32,8 @@ class TestHistoryServer(RMFTestCase):
 
   def test_configure_default(self):
     self.executeScript("1.3.2/services/MAPREDUCE/package/scripts/historyserver.py",
-                       classname = "Historyserver",
-                       command = "configure",
+                       classname="Historyserver",
+                       command="configure",
                        config_file="default.json"
     )
     self.assert_configure_default()
@@ -38,32 +41,32 @@ class TestHistoryServer(RMFTestCase):
 
   def test_start_default(self):
     self.executeScript("1.3.2/services/MAPREDUCE/package/scripts/historyserver.py",
-                         classname = "Historyserver",
-                         command = "start",
+                         classname="Historyserver",
+                         command="start",
                          config_file="default.json"
       )
 
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf start historyserver',
-                              user = 'mapred',
-                              not_if = 'ls /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid` >/dev/null 2>&1'
+                              user='mapred',
+                              not_if='ls /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid` >/dev/null 2>&1'
     )
     self.assertResourceCalled('Execute', 'ls /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid` >/dev/null 2>&1',
-                              user = 'mapred',
-                              initial_wait = 5,
-                              not_if= 'ls /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid` >/dev/null 2>&1'
+                              user='mapred',
+                              initial_wait=5,
+                              not_if='ls /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid` >/dev/null 2>&1'
     )
     self.assertNoMoreResources()
 
   def test_stop_default(self):
     self.executeScript("1.3.2/services/MAPREDUCE/package/scripts/historyserver.py",
-                       classname = "Historyserver",
-                       command = "stop",
+                       classname="Historyserver",
+                       command="stop",
                        config_file="default.json"
     )
 
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf stop historyserver',
-                              user = 'mapred'
+                              user='mapred'
     )
     self.assertResourceCalled('Execute', 'rm -f /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid')
     self.assertNoMoreResources()
@@ -72,8 +75,8 @@ class TestHistoryServer(RMFTestCase):
   def test_configure_secured(self):
 
     self.executeScript("1.3.2/services/MAPREDUCE/package/scripts/historyserver.py",
-                       classname = "Historyserver",
-                       command = "configure",
+                       classname="Historyserver",
+                       command="configure",
                        config_file="secured.json"
     )
     self.assert_configure_secured()
@@ -81,271 +84,271 @@ class TestHistoryServer(RMFTestCase):
 
   def test_start_secured(self):
     self.executeScript("1.3.2/services/MAPREDUCE/package/scripts/historyserver.py",
-                         classname = "Historyserver",
-                         command = "start",
+                         classname="Historyserver",
+                         command="start",
                          config_file="secured.json"
     )
 
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf start historyserver',
-                              user = 'mapred',
-                              not_if = 'ls /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid` >/dev/null 2>&1'
+                              user='mapred',
+                              not_if='ls /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid` >/dev/null 2>&1'
     )
     self.assertResourceCalled('Execute', 'ls /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid` >/dev/null 2>&1',
-                              user = 'mapred',
-                              initial_wait = 5,
-                              not_if= 'ls /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid` >/dev/null 2>&1'
+                              user='mapred',
+                              initial_wait=5,
+                              not_if='ls /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid >/dev/null 2>&1 && ps `cat /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid` >/dev/null 2>&1'
     )
     self.assertNoMoreResources()
 
   def test_stop_secured(self):
     self.executeScript("1.3.2/services/MAPREDUCE/package/scripts/historyserver.py",
-                       classname = "Historyserver",
-                       command = "stop",
+                       classname="Historyserver",
+                       command="stop",
                        config_file="secured.json"
     )
 
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop/bin/hadoop-daemon.sh --config /etc/hadoop/conf stop historyserver',
-                              user = 'mapred'
+                              user='mapred'
     )
     self.assertResourceCalled('Execute', 'rm -f /var/run/hadoop/mapred/hadoop-mapred-historyserver.pid')
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
     self.assertResourceCalled('HdfsDirectory', '/mapred',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              owner = 'mapred',
-                              action = ['create_delayed'],
+                              security_enabled=False,
+                              keytab=UnknownConfigurationMock(),
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local="/usr/bin/kinit",
+                              owner='mapred',
+                              action=['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred/system',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              owner = 'mapred',
-                              action = ['create_delayed'],
+                              security_enabled=False,
+                              keytab=UnknownConfigurationMock(),
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local="/usr/bin/kinit",
+                              owner='mapred',
+                              action=['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred/history',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              owner = 'mapred',
-                              action = ['create_delayed'],
+                              security_enabled=False,
+                              keytab=UnknownConfigurationMock(),
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local="/usr/bin/kinit",
+                              owner='mapred',
+                              action=['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mr-history/tmp',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              mode = 0777,
-                              owner = 'mapred',
-                              group = 'hadoop',
-                              action = ['create_delayed'],
+                              security_enabled=False,
+                              keytab=UnknownConfigurationMock(),
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local="/usr/bin/kinit",
+                              mode=0o777,
+                              owner='mapred',
+                              group='hadoop',
+                              action=['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred/history/done',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              mode = 0777,
-                              owner = 'mapred',
-                              group = 'hadoop',
-                              action = ['create_delayed'],
+                              security_enabled=False,
+                              keytab=UnknownConfigurationMock(),
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local="/usr/bin/kinit",
+                              mode=0o777,
+                              owner='mapred',
+                              group='hadoop',
+                              action=['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              action = ['create'],
+                              security_enabled=False,
+                              keytab=UnknownConfigurationMock(),
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local="/usr/bin/kinit",
+                              action=['create'],
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/mapred',
-      owner = 'mapred',
-      group = 'hadoop',
-      recursive = True,
+      owner='mapred',
+      group='hadoop',
+      recursive=True,
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop/mapred',
-      owner = 'mapred',
-      group = 'hadoop',
-      recursive = True,
+      owner='mapred',
+      group='hadoop',
+      recursive=True,
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop/mapred/userlogs',
-      mode = 01777,
-      recursive = True,
+      mode=0o1777,
+      recursive=True,
     )
     self.assertResourceCalled('Directory', '/hadoop/mapred',
-      owner = 'mapred',
-      recursive = True,
-      mode = 0755,
+      owner='mapred',
+      recursive=True,
+      mode=0o755,
       ignore_failures=True,
     )
     self.assertResourceCalled('Directory', '/hadoop/mapred1',
-      owner = 'mapred',
-      recursive = True,
-      mode = 0755,
+      owner='mapred',
+      recursive=True,
+      mode=0o755,
       ignore_failures=True,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred.exclude',
-      owner = 'mapred',
-      group = 'hadoop',
+      owner='mapred',
+      group='hadoop',
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred.include',
-      owner = 'mapred',
-      group = 'hadoop',
+      owner='mapred',
+      group='hadoop',
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
-                              content = Template('taskcontroller.cfg.j2'),
-                              owner = 'hdfs',
+                              content=Template('taskcontroller.cfg.j2'),
+                              owner='hdfs',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-queue-acls.xml',
-                              owner = 'mapred',
-                              group = 'hadoop',
+                              owner='mapred',
+                              group='hadoop',
                               )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
-                              owner = 'mapred',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hadoop/conf',
-                              configurations = self.getConfig()['configurations']['mapred-site'],
+                              owner='mapred',
+                              group='hadoop',
+                              conf_dir='/etc/hadoop/conf',
+                              configurations=self.getConfig()['configurations']['mapred-site'],
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',
-                              owner = 'mapred',
-                              group = 'hadoop',
+                              owner='mapred',
+                              group='hadoop',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/ssl-client.xml.example',
-                              owner = 'mapred',
-                              group = 'hadoop',
+                              owner='mapred',
+                              group='hadoop',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/ssl-server.xml.example',
-                              owner = 'mapred',
-                              group = 'hadoop',
+                              owner='mapred',
+                              group='hadoop',
                               )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('HdfsDirectory', '/mapred',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              owner = 'mapred',
-                              action = ['create_delayed'],
+                              security_enabled=True,
+                              keytab='/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              owner='mapred',
+                              action=['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred/system',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              owner = 'mapred',
-                              action = ['create_delayed'],
+                              security_enabled=True,
+                              keytab='/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              owner='mapred',
+                              action=['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred/history',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              owner = 'mapred',
-                              action = ['create_delayed'],
+                              security_enabled=True,
+                              keytab='/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              owner='mapred',
+                              action=['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mr-history/tmp',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              mode = 0777,
-                              owner = 'mapred',
-                              group = 'hadoop',
-                              action = ['create_delayed'],
+                              security_enabled=True,
+                              keytab='/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              mode=0o777,
+                              owner='mapred',
+                              group='hadoop',
+                              action=['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', '/mapred/history/done',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              mode = 0777,
-                              owner = 'mapred',
-                              group = 'hadoop',
-                              action = ['create_delayed'],
+                              security_enabled=True,
+                              keytab='/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              mode=0o777,
+                              owner='mapred',
+                              group='hadoop',
+                              action=['create_delayed'],
                               )
     self.assertResourceCalled('HdfsDirectory', None,
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              action = ['create'],
+                              security_enabled=True,
+                              keytab='/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              action=['create'],
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/mapred',
-      owner = 'mapred',
-      group = 'hadoop',
-      recursive = True,
+      owner='mapred',
+      group='hadoop',
+      recursive=True,
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop/mapred',
-      owner = 'mapred',
-      group = 'hadoop',
-      recursive = True,
+      owner='mapred',
+      group='hadoop',
+      recursive=True,
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop/mapred/userlogs',
-      mode = 01777,
-      recursive = True,
+      mode=0o1777,
+      recursive=True,
     )
     self.assertResourceCalled('Directory', '/hadoop/mapred',
-      owner = 'mapred',
-      recursive = True,
-      mode = 0755,
+      owner='mapred',
+      recursive=True,
+      mode=0o755,
       ignore_failures=True,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred.exclude',
-      owner = 'mapred',
-      group = 'hadoop',
+      owner='mapred',
+      group='hadoop',
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred.include',
-      owner = 'mapred',
-      group = 'hadoop',
+      owner='mapred',
+      group='hadoop',
     )
     self.assertResourceCalled('File', '/usr/lib/hadoop/bin/task-controller',
-                              owner = 'root',
-                              group = 'hadoop',
-                              mode = 06050,
+                              owner='root',
+                              group='hadoop',
+                              mode=0o6050,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
-                              content = Template('taskcontroller.cfg.j2'),
-                              owner = 'root',
-                              group = 'hadoop',
-                              mode = 0644,
+                              content=Template('taskcontroller.cfg.j2'),
+                              owner='root',
+                              group='hadoop',
+                              mode=0o644,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-queue-acls.xml',
-                              owner = 'mapred',
-                              group = 'hadoop',
+                              owner='mapred',
+                              group='hadoop',
                               )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
-                              owner = 'mapred',
-                              group = 'hadoop',
-                              conf_dir = '/etc/hadoop/conf',
-                              configurations = self.getConfig()['configurations']['mapred-site'],
+                              owner='mapred',
+                              group='hadoop',
+                              conf_dir='/etc/hadoop/conf',
+                              configurations=self.getConfig()['configurations']['mapred-site'],
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/fair-scheduler.xml',
-                              owner = 'mapred',
-                              group = 'hadoop',
+                              owner='mapred',
+                              group='hadoop',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/ssl-client.xml.example',
-                              owner = 'mapred',
-                              group = 'hadoop',
+                              owner='mapred',
+                              group='hadoop',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/ssl-server.xml.example',
-                              owner = 'mapred',
-                              group = 'hadoop',
+                              owner='mapred',
+                              group='hadoop',
                               )

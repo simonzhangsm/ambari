@@ -52,14 +52,14 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
   daemon_cmd = format("{cmd} {action} {name}")
 
   service_is_up = check_process if action == "start" else None
-  #remove pid file from dead process
+  # remove pid file from dead process
   File(pid_file,
        action="delete",
        not_if=check_process,
        ignore_failures=True
   )
   Execute(daemon_cmd,
-          user = user,
+          user=user,
           not_if=service_is_up
   )
   if action == "stop":

@@ -64,7 +64,7 @@ class Hardware:
     and any mounts with spaces. """
     mounts = []
     df = subprocess.Popen(["df", "-kPT"], stdout=subprocess.PIPE)
-    dfdata = df.communicate()[0]
+    dfdata = df.communicate()[0].decode() 
     lines = dfdata.splitlines()
     for l in lines:
       mountinfo = Hardware.extractMountInfo(l)
@@ -79,7 +79,7 @@ class Hardware:
 
 def main(argv=None):
   hardware = Hardware()
-  print hardware.get()
+  print(hardware.get())
 
 if __name__ == '__main__':
   main()

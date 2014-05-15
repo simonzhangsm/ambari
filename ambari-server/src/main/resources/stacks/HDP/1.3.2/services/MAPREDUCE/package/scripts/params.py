@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,8 +19,11 @@ limitations under the License.
 Ambari Agent
 
 """
+import functools
+
 from resource_management import *
 import status_params
+
 
 # server configurations
 config = Script.get_config()
@@ -38,43 +42,41 @@ hadoop_libexec_dir = '/usr/lib/hadoop/libexec'
 hadoop_bin = "/usr/lib/hadoop/bin"
 user_group = config['configurations']['global']['user_group']
 hdfs_log_dir_prefix = config['configurations']['global']['hdfs_log_dir_prefix']
-mapred_log_dir_prefix = default("mapred_log_dir_prefix",hdfs_log_dir_prefix)
+mapred_log_dir_prefix = default("mapred_log_dir_prefix", hdfs_log_dir_prefix)
 mapred_local_dir = config['configurations']['mapred-site']['mapred.local.dir']
 update_exclude_file_only = config['commandParams']['update_exclude_file_only']
 
 hadoop_jar_location = "/usr/lib/hadoop/"
 smokeuser = config['configurations']['global']['smokeuser']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
-security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+security_enabled = (not is_empty(_authentication) and _authentication == 'kerberos')
 smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
-#exclude file
+# exclude file
 mr_exclude_hosts = default("/clusterHostInfo/decom_tt_hosts", [])
 exclude_file_path = config['configurations']['mapred-site']['mapred.hosts.exclude']
 mapred_hosts_file_path = config['configurations']['mapred-site']['mapred.hosts']
 
-#hdfs directories
+# hdfs directories
 mapreduce_jobhistory_intermediate_done_dir = default('/configurations/mapred-site/mapreduce.jobhistory.intermediate-done-dir', '/mr-history/tmp')
 mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapred.job.tracker.history.completed.location']
-#for create_hdfs_directory
+# for create_hdfs_directory
 hostname = config["hostname"]
 hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']
 hdfs_user_keytab = config['configurations']['global']['hdfs_user_keytab']
 hdfs_user = config['configurations']['global']['hdfs_user']
-import functools
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
+kinit_path_local = functions.get_kinit_path([default("kinit_path_local", None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+# create partial functions with common arguments for every HdfsDirectory call
+# to create hdfs directory we need to call params.HdfsDirectory in code
 HdfsDirectory = functools.partial(
   HdfsDirectory,
   conf_dir=hadoop_conf_dir,
   hdfs_user=hdfs_user,
-  security_enabled = security_enabled,
-  keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local
+  security_enabled=security_enabled,
+  keytab=hdfs_user_keytab,
+  kinit_path_local=kinit_path_local
 )
-
 mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
-
 slave_hosts = default("/clusterHostInfo/slave_hosts", [])

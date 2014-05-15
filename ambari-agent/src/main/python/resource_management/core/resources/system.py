@@ -45,7 +45,7 @@ class Directory(Resource):
   mode = ResourceArgument()
   owner = ResourceArgument()
   group = ResourceArgument()
-  recursive = BooleanArgument(default=False) # this work for 'create', 'delete' is anyway recursive
+  recursive = BooleanArgument(default=False)  # this work for 'create', 'delete' is anyway recursive
 
   actions = Resource.actions + ["create", "delete"]
 
@@ -80,7 +80,7 @@ class Execute(Resource):
   group = ResourceArgument()
   returns = ForcedListArgument(default=0)
   tries = ResourceArgument(default=1)
-  try_sleep = ResourceArgument(default=0) # seconds
+  try_sleep = ResourceArgument(default=0)  # seconds
   path = ForcedListArgument(default=[])
   actions = Resource.actions + ["run"]
   logoutput = BooleanArgument(default=False)
@@ -88,7 +88,7 @@ class Execute(Resource):
   if on_timeout is not set leads to failing after x seconds,
   otherwise calls on_timeout
   """
-  timeout = ResourceArgument() # seconds
+  timeout = ResourceArgument()  # seconds
   on_timeout = ResourceArgument()
   """
   Wait for command to finish or not. 

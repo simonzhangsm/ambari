@@ -18,8 +18,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import http.client
 import optparse
-import httplib
+
 
 #
 # Main.
@@ -36,7 +37,7 @@ def main():
 
   for host in hosts:
     try:
-      conn = httplib.HTTPConnection(host, port)
+      conn = http.client.HTTPConnection(host, port)
       # This can be modified to get a partial url part to be sent with request
       conn.request("GET", "/")
       httpCode = conn.getresponse().status
@@ -45,7 +46,7 @@ def main():
       httpCode = 404
 
     if httpCode != 200:
-      print "Cannot access WEB UI on: http://" + host + ":" + port
+      print("Cannot access WEB UI on: http://" + host + ":" + port)
       exit(1)
       
 

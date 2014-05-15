@@ -31,7 +31,7 @@ class CopyFromLocalProvider(Provider):
     owner = self.resource.owner
     group = self.resource.group
     mode = self.resource.mode
-    hdfs_usr=self.resource.hdfs_user
+    hdfs_usr = self.resource.hdfs_user
     hadoop_conf_path = self.resource.hadoop_conf_dir
 
     copy_cmd = format("fs -copyFromLocal {path} {dest_dir}")

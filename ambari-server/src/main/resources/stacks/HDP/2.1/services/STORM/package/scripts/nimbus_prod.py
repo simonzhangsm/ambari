@@ -19,8 +19,9 @@ limitations under the License.
 """
 
 import sys
+
 from resource_management import *
-from storm import storm
+import storm
 from supervisord_service import supervisord_service, supervisord_check_status
 
 
@@ -32,8 +33,7 @@ class Nimbus(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-
-    storm()
+    storm.storm()
 
   def start(self, env):
     import params

@@ -187,9 +187,10 @@ class HostInfo:
       svcCheckResult['status'] = "UNKNOWN"
       svcCheckResult['desc'] = ""
       try:
-        osStat = subprocess.Popen(service_check_live, stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE)
+        osStat = subprocess.Popen(service_check_live, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = osStat.communicate()
+        out = out.decode() 
+        err = err.decode() 
         if 0 != osStat.returncode:
           svcCheckResult['status'] = "Unhealthy"
           svcCheckResult['desc'] = out
@@ -197,7 +198,7 @@ class HostInfo:
             svcCheckResult['desc'] = err
         else:
           svcCheckResult['status'] = "Healthy"
-      except Exception, e:
+      except Exception as e:
         svcCheckResult['status'] = "Unhealthy"
         svcCheckResult['desc'] = repr(e)
       result.append(svcCheckResult)
@@ -220,7 +221,7 @@ class HostInfo:
     diskInfo = {}
     try:
       df = subprocess.Popen(["df", "-kPT", path], stdout=subprocess.PIPE)
-      dfdata = df.communicate()[0]
+      dfdata = df.communicate()[0].decode() 
       return Hardware.extractMountInfo(dfdata.splitlines()[-1])
     except:
       pass
@@ -324,7 +325,7 @@ class HostInfo:
     dict['umask'] = str(self.getUMask())
 
     # detailed host check is not available for Suse
-    isSuse =  'suse' == OSCheck.get_os_family()
+    isSuse = 'suse' == OSCheck.get_os_family()
 
     dict['iptablesIsRunning'] = self.checkIptables()
 
@@ -451,7 +452,7 @@ def main(argv=None):
   h = HostInfo()
   struct = {}
   h.register(struct)
-  print struct
+  print(struct)
 
 
 if __name__ == '__main__':

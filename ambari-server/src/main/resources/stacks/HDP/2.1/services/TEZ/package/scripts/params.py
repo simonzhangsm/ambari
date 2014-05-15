@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 
+
 # server configurations
 config = Script.get_config()
 

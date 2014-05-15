@@ -39,6 +39,6 @@ class HdfsDirectory(Resource):
   kinit_path_local = ResourceArgument()
   hdfs_user = ResourceArgument()
 
-  #action 'create' immediately creates all pending directory in efficient manner
-  #action 'create_delayed' add directory to list of pending directories
-  actions = Resource.actions + ["create","create_delayed"]
+  # action 'create' immediately creates all pending directory in efficient manner
+  # action 'create_delayed' add directory to list of pending directories
+  actions = Resource.actions + ["create", "create_delayed"]

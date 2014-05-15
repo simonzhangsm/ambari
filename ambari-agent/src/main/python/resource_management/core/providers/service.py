@@ -65,7 +65,7 @@ class ServiceProvider(Provider):
         else:
           ret = 1
       else:
-        ret,out = shell.call(custom_cmd)
+        ret, out = shell.call(custom_cmd)
     else:
       ret = self._init_cmd(command)
 
@@ -77,13 +77,13 @@ class ServiceProvider(Provider):
   def _init_cmd(self, command):
     if self._upstart:
       if command == "status":
-        ret,out = shell.call(["/sbin/" + command, self.resource.service_name])
+        ret, out = shell.call(["/sbin/" + command, self.resource.service_name])
         _proc, state = out.strip().split(' ', 1)
         ret = 0 if state != "stop/waiting" else 1
       else:
-        ret,out = shell.call(["/sbin/" + command, self.resource.service_name])
+        ret, out = shell.call(["/sbin/" + command, self.resource.service_name])
     else:
-      ret,out = shell.call(["/etc/init.d/%s" % self.resource.service_name, command])
+      ret, out = shell.call(["/etc/init.d/%s" % self.resource.service_name, command])
     return ret
 
   @property

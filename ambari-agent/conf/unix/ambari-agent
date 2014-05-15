@@ -36,33 +36,45 @@ esac
 export PATH=/usr/lib/ambari-server/*:$PATH
 export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 
-# Because Ambari rpm unpacks modules here on all systems
-export PYTHONPATH=/usr/lib/python2.6/site-packages:$PYTHONPATH
-
-AMBARI_AGENT=ambari-agent
-PIDFILE=/var/run/ambari-agent/$AMBARI_AGENT.pid
-OUTFILE=/var/log/ambari-agent/ambari-agent.out
-LOGFILE=/var/log/ambari-agent/ambari-agent.log
-AGENT_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/main.py
-AMBARI_AGENT_PY_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/AmbariAgent.py
 OK=1
 NOTOK=0
 
 
-if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.7
-fi
-
-if [ -a /usr/bin/python2.6 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.6
+if [ -a /usr/bin/env python ]; then
+  PYTHON=/usr/bin/env python
 fi
 
 if [ "x$PYTHON" == "x" ]; then
-  PYTHON=/usr/bin/python
+  PYTHON=`which python`
 fi
 
 export PYTHON=$PYTHON
 
+# check for version
+echo "Verifying Python version compatibility..."
+majversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f1`
+minversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f2`
+check_python_version ()
+{
+  echo "Verifying Python version compatibility..."
+#  majversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f1`
+#  minversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f2`
+  numversion=$(( 10 * $majversion + $minversion))
+  if (( $numversion < 26 )); then
+    echo "ERROR: Found Python version $majversion.$minversion. Ambari Agent requires Python version >= 2.6"
+    return $NOTOK
+  fi
+  echo "Using python: " $PYTHON
+  return $OK
+}
+# Because Ambari rpm unpacks modules here on all systems
+export PYTHONPATH=/usr/lib/python$majversion.$minversion/site-packages:$PYTHONPATH
+AMBARI_AGENT=ambari-agent
+PIDFILE=/var/run/ambari-agent/$AMBARI_AGENT.pid
+OUTFILE=/var/log/ambari-agent/ambari-agent.out
+LOGFILE=/var/log/ambari-agent/ambari-agent.log
+AGENT_SCRIPT=/usr/lib/python$majversion.$minversion/site-packages/ambari_agent/main.py
+AMBARI_AGENT_PY_SCRIPT=/usr/lib/python$majversion.$minversion/site-packages/ambari_agent/AmbariAgent.py
 # Trying to read the passphrase from an environment
 if [ ! -z $AMBARI_PASSPHRASE ]; then
   RESOLVED_AMBARI_PASSPHRASE=$AMBARI_PASSPHRASE
@@ -88,21 +100,6 @@ fi
 export AMBARI_PASSPHRASE=$RESOLVED_AMBARI_PASSPHRASE
 
 #echo $AMBARI_PASSPHRASE
-
-# check for version
-check_python_version ()
-{
-  echo "Verifying Python version compatibility..."
-  majversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f1`
-  minversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f2`
-  numversion=$(( 10 * $majversion + $minversion))
-  if (( $numversion < 26 )); then
-    echo "ERROR: Found Python version $majversion.$minversion. Ambari Agent requires Python version > 2.6"
-    return $NOTOK
-  fi
-  echo "Using python " $PYTHON
-  return $OK
-}
 
 retcode=0
 
@@ -211,7 +208,7 @@ case "$1" in
         $0 stop
         $0 start "$@"
         retcode=$?
-        ;;
+        ;;     
   *)
         tput bold
         echo "Usage: /usr/sbin/ambari-agent {start|stop|restart|status}"

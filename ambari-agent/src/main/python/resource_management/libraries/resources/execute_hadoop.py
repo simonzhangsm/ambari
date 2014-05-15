@@ -28,7 +28,7 @@ class ExecuteHadoop(Resource):
   command = ResourceArgument(default=lambda obj: obj.name)
   kinit_override = BooleanArgument(default=False)
   tries = ResourceArgument(default=1)
-  try_sleep = ResourceArgument(default=0) # seconds
+  try_sleep = ResourceArgument(default=0)  # seconds
   user = ResourceArgument()
   logoutput = BooleanArgument(default=False)
   principal = ResourceArgument(default=lambda obj: obj.user)

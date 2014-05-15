@@ -23,7 +23,7 @@ Ambari Agent
 import os
 import time
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from mock import patch, MagicMock
 from resource_management.core import Environment
 from resource_management.core.system import System
 from resource_management.libraries import XmlConfig
@@ -37,7 +37,7 @@ class TestXmlConfigResource(TestCase):
   """
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
   @patch.object(time, "asctime")
@@ -65,11 +65,11 @@ class TestXmlConfigResource(TestCase):
       )
 
     open_mock.assert_called_with('/dir/conf/file.xml', 'wb')
-    result_file.__enter__().write.assert_called_with(u'<!--Wed 2014-02-->\n    <configuration>\n    \n  </configuration>\n')
+    result_file.__enter__().write.assert_called_with('<!--Wed 2014-02-->\n    <configuration>\n    \n  </configuration>\n')
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
   @patch.object(time, "asctime")
@@ -97,11 +97,11 @@ class TestXmlConfigResource(TestCase):
       )
 
     open_mock.assert_called_with('/dir/conf/file.xml', 'wb')
-    result_file.__enter__().write.assert_called_with(u'<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name>property1</name>\n      <value>value1</value>\n    </property>\n    \n  </configuration>\n')
+    result_file.__enter__().write.assert_called_with('<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name>property1</name>\n      <value>value1</value>\n    </property>\n    \n  </configuration>\n')
 
 
   @patch("resource_management.core.providers.system._ensure_metadata")
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   @patch.object(os.path, "exists")
   @patch.object(os.path, "isdir")
   @patch.object(time, "asctime")
@@ -135,4 +135,4 @@ class TestXmlConfigResource(TestCase):
       )
 
     open_mock.assert_called_with('/dir/conf/file.xml', 'wb')
-    result_file.__enter__().write.assert_called_with(u'<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>prop.empty</name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>prop.3</name>\n      <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>\n    </property>\n    \n    <property>\n      <name>prop.2</name>\n      <value>INFO, openjpa</value>\n    </property>\n    \n    <property>\n      <name>prop.1</name>\n      <value>&#39;.&#39;yyyy-MM-dd-HH</value>\n    </property>\n    \n    <property>\n      <name>prop.4</name>\n      <value>${oozie.log.dir}/oozie.log</value>\n    </property>\n    \n  </configuration>\n')
+    result_file.__enter__().write.assert_called_with('<!--Wed 2014-02-->\n    <configuration>\n    \n    <property>\n      <name></name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>prop.empty</name>\n      <value></value>\n    </property>\n    \n    <property>\n      <name>prop.3</name>\n      <value>%d{ISO8601} %5p %c{1}:%L - %m%n</value>\n    </property>\n    \n    <property>\n      <name>prop.2</name>\n      <value>INFO, openjpa</value>\n    </property>\n    \n    <property>\n      <name>prop.1</name>\n      <value>&#39;.&#39;yyyy-MM-dd-HH</value>\n    </property>\n    \n    <property>\n      <name>prop.4</name>\n      <value>${oozie.log.dir}/oozie.log</value>\n    </property>\n    \n  </configuration>\n')

@@ -569,7 +569,7 @@ Example for mock only (so far):
 
     >>> # mock
     >>> my_mock = mock.MagicMock()
-    >>> with mock.patch('__builtin__.open', my_mock):
+    >>> with mock.patch('builtins.open', my_mock):
     ...     manager = my_mock.return_value.__enter__.return_value
     ...     manager.read.return_value = 'some data'
     ...     with open('foo') as h:
@@ -584,7 +584,7 @@ Example for mock only (so far):
 .. doctest::
 
     >>> # mock
-    >>> with mock.patch('__builtin__.open') as my_mock:
+    >>> with mock.patch('builtins.open') as my_mock:
     ...     my_mock.return_value.__enter__ = lambda s: s
     ...     my_mock.return_value.__exit__ = mock.Mock()
     ...     my_mock.return_value.read.return_value = 'some data'
@@ -599,7 +599,7 @@ Example for mock only (so far):
 
     >>> # Dingus
     >>> my_dingus = dingus.Dingus()
-    >>> with dingus.patch('__builtin__.open', my_dingus):
+    >>> with dingus.patch('builtins.open', my_dingus):
     ...     file_ = open.return_value.__enter__.return_value
     ...     file_.read.return_value = 'some data'
     ...     with open('foo') as h:
@@ -618,11 +618,11 @@ Example for mock only (so far):
     ... def fake_file(filename):
     ...     yield StringIO('sekrets')
     ...
-    >>> with fudge.patch('__builtin__.open') as fake_open:
+    >>> with fudge.patch('builtins.open') as fake_open:
     ...     fake_open.is_callable().calls(fake_file)
     ...     with open('/etc/password') as f:
     ...         data = f.read()
     ...
-    fake:__builtin__.open
+    fake:builtins.open
     >>> data
     'sekrets'

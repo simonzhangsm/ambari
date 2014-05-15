@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 
+
 config = Script.get_config()
 
 nagios_pid_dir = "/var/run/nagios"

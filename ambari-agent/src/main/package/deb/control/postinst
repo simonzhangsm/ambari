@@ -21,6 +21,8 @@ if [ "$1" == "configure" ]; then  # Action is install
   update-rc.d ambari-agent defaults
 fi
 
+
+
 BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
 ORIG=/etc/ambari-agent/conf/ambari-agent.ini
 

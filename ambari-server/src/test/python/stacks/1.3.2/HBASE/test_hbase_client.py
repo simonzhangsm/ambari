@@ -17,63 +17,65 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from mock.mock import MagicMock, call, patch
+from mock import MagicMock, call, patch
+
 from stacks.utils.RMFTestCase import *
 
-@patch("os.path.exists", new = MagicMock(return_value=True))
+
+@patch("os.path.exists", new=MagicMock(return_value=True))
 class TestHBaseClient(RMFTestCase):
   
   def test_configure_secured(self):
     self.executeScript("1.3.2/services/HBASE/package/scripts/hbase_client.py",
-                   classname = "HbaseClient",
-                   command = "configure",
+                   classname="HbaseClient",
+                   command="configure",
                    config_file="secured.json"
     )
     
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
-      owner = 'hbase',
-      group = 'hadoop',
-      recursive = True,
+      owner='hbase',
+      group='hadoop',
+      recursive=True,
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase',
-      owner = 'hbase',
-      recursive = True,
+      owner='hbase',
+      recursive=True,
     )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
-      owner = 'hbase',
-      group = 'hadoop',
-      conf_dir = '/etc/hbase/conf',
-      configurations = self.getConfig()['configurations']['hbase-site'], # don't hardcode all the properties
+      owner='hbase',
+      group='hadoop',
+      conf_dir='/etc/hbase/conf',
+      configurations=self.getConfig()['configurations']['hbase-site'],  # don't hardcode all the properties
     )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-      owner = 'hbase',
-      group = 'hadoop',
-      conf_dir = '/etc/hbase/conf',
-      configurations = self.getConfig()['configurations']['hdfs-site'], # don't hardcode all the properties
+      owner='hbase',
+      group='hadoop',
+      conf_dir='/etc/hbase/conf',
+      configurations=self.getConfig()['configurations']['hdfs-site'],  # don't hardcode all the properties
     )
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-policy.xml',
-      owner = 'hbase',
-      group = 'hadoop',
+      owner='hbase',
+      group='hadoop',
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hbase-env.sh',
-      owner = 'hbase',
-      template_tag = None,
+      owner='hbase',
+      template_tag=None,
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics.properties',
-      owner = 'hbase',
-      template_tag = 'GANGLIA-RS',
+      owner='hbase',
+      template_tag='GANGLIA-RS',
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/regionservers',
-      owner = 'hbase',
-      template_tag = None,
+      owner='hbase',
+      template_tag=None,
     )
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hbase_client_jaas.conf',
-      owner = 'hbase',
-      template_tag = None,
+      owner='hbase',
+      template_tag=None,
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hbase',
                               content='log4jproperties\nline2'
@@ -82,51 +84,51 @@ class TestHBaseClient(RMFTestCase):
     
   def test_configure_default(self):
     self.executeScript("1.3.2/services/HBASE/package/scripts/hbase_client.py",
-                   classname = "HbaseClient",
-                   command = "configure",
+                   classname="HbaseClient",
+                   command="configure",
                    config_file="default.json"
     )
     
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
-      owner = 'hbase',
-      group = 'hadoop',
-      recursive = True,
+      owner='hbase',
+      group='hadoop',
+      recursive=True,
     )
     self.assertResourceCalled('Directory', '/hadoop/hbase',
-      owner = 'hbase',
-      recursive = True,
+      owner='hbase',
+      recursive=True,
     )
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
-      owner = 'hbase',
-      group = 'hadoop',
-      conf_dir = '/etc/hbase/conf',
-      configurations = self.getConfig()['configurations']['hbase-site'], # don't hardcode all the properties
+      owner='hbase',
+      group='hadoop',
+      conf_dir='/etc/hbase/conf',
+      configurations=self.getConfig()['configurations']['hbase-site'],  # don't hardcode all the properties
     )    
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-      owner = 'hbase',
-      group = 'hadoop',
-      conf_dir = '/etc/hbase/conf',
-      configurations = self.getConfig()['configurations']['hdfs-site'], # don't hardcode all the properties
+      owner='hbase',
+      group='hadoop',
+      conf_dir='/etc/hbase/conf',
+      configurations=self.getConfig()['configurations']['hdfs-site'],  # don't hardcode all the properties
     )    
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-policy.xml',
-      owner = 'hbase',
-      group = 'hadoop',
+      owner='hbase',
+      group='hadoop',
     )    
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hbase-env.sh',
-      owner = 'hbase',
-      template_tag = None,
+      owner='hbase',
+      template_tag=None,
     )    
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/hadoop-metrics.properties',
-      owner = 'hbase',
-      template_tag = 'GANGLIA-RS',
+      owner='hbase',
+      template_tag='GANGLIA-RS',
     )    
     self.assertResourceCalled('TemplateConfig', '/etc/hbase/conf/regionservers',
-      owner = 'hbase',
-      template_tag = None,
+      owner='hbase',
+      template_tag=None,
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
-                              mode=0644,
+                              mode=0o644,
                               group='hadoop',
                               owner='hbase',
                               content='log4jproperties\nline2'

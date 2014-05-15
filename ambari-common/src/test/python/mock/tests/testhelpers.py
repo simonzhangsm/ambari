@@ -118,7 +118,7 @@ class CallTest(unittest2.TestCase):
         self.assertEqual(args, ('foo',))
         self.assertEqual(args, ((),))
         self.assertEqual(args, ('foo', ()))
-        self.assertEqual(args, ('foo',(), {}))
+        self.assertEqual(args, ('foo', (), {}))
         self.assertEqual(args, ('foo', {}))
         self.assertEqual(args, ({},))
 
@@ -128,7 +128,7 @@ class CallTest(unittest2.TestCase):
 
         self.assertEqual(args, ('foo',))
         self.assertEqual(args, ('foo', ()))
-        self.assertEqual(args, ('foo',(), {}))
+        self.assertEqual(args, ('foo', (), {}))
         self.assertEqual(args, ('foo', {}))
 
         self.assertNotEqual(args, ((),))
@@ -245,7 +245,7 @@ class CallTest(unittest2.TestCase):
                          ('bar.baz', (), {'fish': 'eggs'}))
 
         mock = Mock()
-        mock.foo(1, 2 ,3)
+        mock.foo(1, 2 , 3)
         mock.bar.baz(a=3, b=6)
         self.assertEqual(mock.method_calls,
                          [call.foo(1, 2, 3), call.bar.baz(a=3, b=6)])

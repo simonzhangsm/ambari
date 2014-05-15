@@ -36,14 +36,14 @@ class Register:
 
   def build(self, id='-1'):
     global clusterId, clusterDefinitionRevision, firstContact
-    timestamp = int(time.time()*1000)
+    timestamp = int(time.time() * 1000)
    
     hostInfo = HostInfo(self.config)
     agentEnv = { }
     hostInfo.register(agentEnv, False, False)
 
     version = self.read_agent_version()
-    current_ping_port = self.config.get('agent','current_ping_port')
+    current_ping_port = self.config.get('agent', 'current_ping_port')
     
     register = { 'responseId'        : int(id),
                  'timestamp'         : timestamp,

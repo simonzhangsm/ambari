@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import ConfigParser
+import configparser
 import os
 
 import pprint
@@ -29,18 +29,18 @@ import time
 from threading import Thread
 
 
-import StringIO
+import io
 import sys, logging, pprint
 from ambari_agent import AgentException
 from resource_management.libraries.script import Script
 from resource_management.core.environment import Environment
-from mock.mock import MagicMock, patch
+from mock import MagicMock, patch
 
 class TestScript(TestCase):
 
   def setUp(self):
     # disable stdout
-    out = StringIO.StringIO()
+    out = io.StringIO()
     sys.stdout = out
 
 
@@ -73,7 +73,7 @@ class TestScript(TestCase):
       Script.config = no_packages_config
       script.install_packages(env)
     resource_dump = pprint.pformat(env.resource_list)
-    self.assertEquals(resource_dump, "[Repository['HDP-2.0._']]")
+    self.assertEqual(resource_dump, "[Repository['HDP-2.0._']]")
 
     # Testing empty package list
     with Environment(".", test_mode=True) as env:
@@ -81,7 +81,7 @@ class TestScript(TestCase):
       Script.config = empty_config
       script.install_packages(env)
     resource_dump = pprint.pformat(env.resource_list)
-    self.assertEquals(resource_dump, "[Repository['HDP-2.0._']]")
+    self.assertEqual(resource_dump, "[Repository['HDP-2.0._']]")
 
     # Testing installing of a list of packages
     with Environment(".", test_mode=True) as env:
@@ -90,7 +90,7 @@ class TestScript(TestCase):
     resource_dump = pprint.pformat(env.resource_list)
     self.assertEqual(resource_dump, "[Repository['HDP-2.0._'],\n Repository['HDP-2.0._'],\n Package['hbase'],\n Package['yet-another-package']]")
 
-  @patch("__builtin__.open")
+  @patch("builtins.open")
   def test_structured_out(self, open_mock):
     script = Script()
     script.stroutfile = ''
@@ -105,7 +105,7 @@ class TestScript(TestCase):
     self.assertEqual(open_mock.call_count, 2)
     self.assertEqual(Script.structuredOut, {"1": "1", "2": "2"})
 
-    #Overriding
+    # Overriding
     script.put_structured_out({"1": "3"})
     self.assertEqual(open_mock.call_count, 3)
     self.assertEqual(Script.structuredOut, {"1": "3", "2": "2"})

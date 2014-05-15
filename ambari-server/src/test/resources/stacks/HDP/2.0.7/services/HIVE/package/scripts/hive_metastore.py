@@ -19,10 +19,11 @@ limitations under the License.
 """
 
 import sys
-from resource_management import *
 
 from hive import hive
 from hive_service import hive_service
+from resource_management import *
+
 
 class HiveMetastore(Script):
 
@@ -39,17 +40,17 @@ class HiveMetastore(Script):
   def start(self, env):
     import params
     env.set_params(params)
-    self.configure(env) # FOR SECURITY
-    hive_service( 'metastore',
-                   action = 'start'
+    self.configure(env)  # FOR SECURITY
+    hive_service('metastore',
+                   action='start'
     )
 
   def stop(self, env):
     import params
     env.set_params(params)
 
-    hive_service( 'metastore',
-                   action = 'stop'
+    hive_service('metastore',
+                   action='stop'
     )
 
   def status(self, env):

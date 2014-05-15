@@ -17,9 +17,9 @@ limitations under the License.
 
 """
 
+from hdfs import hdfs
 from resource_management import *
 from utils import service
-from hdfs import hdfs
 
 
 class ZkfcSlave(Script):

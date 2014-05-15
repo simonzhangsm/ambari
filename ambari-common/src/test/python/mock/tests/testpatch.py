@@ -13,11 +13,12 @@ from mock import (
     MagicMock, Mock, NonCallableMagicMock, patch, _patch,
     DEFAULT, call, _get_target
 )
+import collections
 
-builtin_string = '__builtin__'
+builtin_string = 'builtins'
 if inPy3k:
     builtin_string = 'builtins'
-    unicode = str
+    str = str
 
 PTModule = sys.modules[__name__]
 MODNAME = '%s.PTModule' % __name__
@@ -38,8 +39,8 @@ def _get_proxy(obj, get_only=True):
 
 
 # for use in the test
-something  = sentinel.Something
-something_else  = sentinel.SomethingElse
+something = sentinel.Something
+something_else = sentinel.SomethingElse
 
 
 class Foo(object):
@@ -526,7 +527,7 @@ class PatchTest(unittest2.TestCase):
     def test_patch_dict_with_container_object(self):
         foo = Container()
         foo['initial'] = object()
-        foo['other'] =  'something'
+        foo['other'] = 'something'
 
         original = foo.values.copy()
 
@@ -584,7 +585,7 @@ class PatchTest(unittest2.TestCase):
     def test_patch_dict_with_container_object_and_clear(self):
         foo = Container()
         foo['initial'] = object()
-        foo['other'] =  'something'
+        foo['other'] = 'something'
 
         original = foo.values.copy()
 
@@ -965,7 +966,7 @@ class PatchTest(unittest2.TestCase):
         @patch('%s.function' % __name__, autospec=True,
                return_value=3)
         def test(mock_function):
-            #self.assertEqual(function.abc, 'foo')
+            # self.assertEqual(function.abc, 'foo')
             return function(1, 2)
 
         result = test()
@@ -1528,7 +1529,7 @@ class PatchTest(unittest2.TestCase):
 
 
     def test_patch_multiple_string_subclasses(self):
-        for base in (str, unicode):
+        for base in (str, str):
             Foo = type('Foo', (base,), {'fish': 'tasty'})
             foo = Foo()
             @patch.multiple(foo, fish='nearly gone')
@@ -1577,7 +1578,7 @@ class PatchTest(unittest2.TestCase):
         the_dict = {'key': 'original'}
         Foo = patch.dict(the_dict, key='changed')(Foo)
 
-        foo =Foo()
+        foo = Foo()
         self.assertEqual(foo.bar_one(), {'key': 'changed'})
         self.assertEqual(foo.bar_two(), {'key': 'changed'})
         self.assertEqual(foo.test_one(), {'key': 'original'})
@@ -1752,7 +1753,7 @@ class PatchTest(unittest2.TestCase):
         p = patch(MODNAME, spec=spec)
         m = p.start()
         try:
-            self.assertTrue(callable(m))
+            self.assertTrue(isinstance(m, collections.Callable))
         finally:
             p.stop()
 
@@ -1762,7 +1763,7 @@ class PatchTest(unittest2.TestCase):
         p = patch(MODNAME, spec=spec)
         m = p.start()
         try:
-            self.assertFalse(callable(m))
+            self.assertFalse(isinstance(m, collections.Callable))
         finally:
             p.stop()
 

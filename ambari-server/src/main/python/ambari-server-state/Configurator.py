@@ -1,6 +1,8 @@
-from Entities import *
 from os.path import exists
 import xml.dom.minidom
+
+from Entities import *
+
 
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -12,13 +14,11 @@ import xml.dom.minidom
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
-#* Unless required by applicable law or agreed to in writing, software
+# * Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
 class Configurator:
 
   servicesPath = {"Core": "core-site.xml",
@@ -35,12 +35,12 @@ class Configurator:
   RESULT_FILE_PATH = "ambari-server-state.xml"
   configurationType = 0;
 
-  configurations = Configurations()#root xml element for the resulting file
+  configurations = Configurations()  # root xml element for the resulting file
 
   def __init__(self):
     "Init class with all required information about resources"
     self.configurationType = self.chooseConfInitType()
-    self.initPaths()##TODO uncomment
+    self.initPaths()  # #TODO uncomment
     self.isFilesExist()
     self.getServicesFromUserInputConfigFile()
     self.createResultFile()
@@ -133,19 +133,19 @@ class Configurator:
   def chooseConfInitType(self):
     "Type of how to get paths to configuration files"
     "Configuration types are base on Configuration.CONFIG_INIT_TYPE tuple"
-    return int(raw_input("\tInput configuration type:\n" +
-                         "0)Current path contains all required configuration files.\n" +
-                         "1)Enter path for each conf file manually.\n" +
+    return int(eval(input("\tInput configuration type:\n" + 
+                         "0)Current path contains all required configuration files.\n" + 
+                         "1)Enter path for each conf file manually.\n" + 
                          "Choose:"
-    )
+    ))
     ).numerator
 
 
   def initPaths(self):
     "Input alternative file paths for resources"
     if self.configurationType != 0:
-      for service in self.servicesPath.keys():
-        path = raw_input("Please enter path for " + service + "(if there is no such service type \"no\") :")
+      for service in list(self.servicesPath.keys()):
+        path = input("Please enter path for " + service + "(if there is no such service type \"no\") :")
         if len(path) > 0 and not path == "no":
           self.servicesPath[service] = path
         elif path == "no":
@@ -153,15 +153,15 @@ class Configurator:
           print(self.servicesPath)
         else:
           raise ValueError(
-            "Path to the configuration file can't be empty.") #Catch it layter and start input mode automatically
+            "Path to the configuration file can't be empty.")  # Catch it layter and start input mode automatically
 
 
   def isFilesExist(self):
     "Checking for resources file existing"
-    for service in self.servicesPath.keys():
+    for service in list(self.servicesPath.keys()):
       path = self.servicesPath[service]
       isExit = exists(path)
-      errorMessage = "File " + path + " doesn't exist! ("+ service+ " service)"
+      errorMessage = "File " + path + " doesn't exist! (" + service + " service)"
       if not isExit:
         raise  IOError(errorMessage)
 #      else:
@@ -170,10 +170,10 @@ class Configurator:
   def createResultFile(self):
     resultFile = open(self.RESULT_FILE_PATH, "w")
     resultFile.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-    resultFile.write( str(self.configurations) )
+    resultFile.write(str(self.configurations))
     resultFile.flush()
     resultFile.close()
-    print("\t\t Result configuration file( "+self.RESULT_FILE_PATH+") was generate successfully.")
+    print("\t\t Result configuration file( " + self.RESULT_FILE_PATH + ") was generate successfully.")
 
 
 

@@ -32,8 +32,8 @@ class FalconServiceCheck(Script):
     Execute(format("{falcon_home}/bin/falcon admin -version"),
             user=params.smoke_user,
             logoutput=True,
-            tries = 3,
-            try_sleep = 20
+            tries=3,
+            try_sleep=20
     )
 
 if __name__ == "__main__":

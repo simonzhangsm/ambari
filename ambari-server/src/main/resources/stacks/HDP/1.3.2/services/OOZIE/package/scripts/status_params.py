@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 
+
 config = Script.get_config()
 
 oozie_pid_dir = config['configurations']['global']['oozie_pid_dir']

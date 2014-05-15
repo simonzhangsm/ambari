@@ -19,9 +19,10 @@ limitations under the License.
 """
 
 import sys
+
 from resource_management import *
-from storm import storm
-from service import service
+import service
+import storm
 from supervisord_service import supervisord_service, supervisord_check_status
 
 
@@ -40,15 +41,15 @@ class Supervisor(Script):
     env.set_params(params)
     self.configure(env)
 
-    supervisord_service("supervisor", action="start")
-    service("logviewer", action="start")
+    supervisord_service("supervisor", "start")
+    service("logviewer", "start")
 
   def stop(self, env):
     import params
     env.set_params(params)
 
-    supervisord_service("supervisor", action="stop")
-    service("logviewer", action="stop")
+    supervisord_service("supervisor", "stop")
+    service("logviewer", "stop")
 
   def status(self, env):
     supervisord_check_status("supervisor")

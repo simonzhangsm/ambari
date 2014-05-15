@@ -20,7 +20,7 @@ limitations under the License.
 import logging
 
 from ambari_client.model.status import StatusModel
-from mock.mock import MagicMock, patch
+from mock import MagicMock, patch
 from HttpClientInvoker import HttpClientInvoker
 
 from ambari_client.ambari_api import AmbariClient
@@ -32,14 +32,14 @@ class TestStatusModel(unittest.TestCase):
     http_client_logger = logging.getLogger()
     http_client_logger.info('Running test:' + self.id())
 
-  def create_service(self, http_client_mock = MagicMock()):
+  def create_service(self, http_client_mock=MagicMock()):
     http_client_mock.invoke.side_effect = HttpClientInvoker.http_client_invoke_side_effects
     client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)
     cluster = client.get_cluster('test1')
     service = cluster.get_service('GANGLIA')
     return service
 
-  def create_client(self, http_client_mock = MagicMock()):
+  def create_client(self, http_client_mock=MagicMock()):
     http_client_mock.invoke.side_effect = HttpClientInvoker.http_client_invoke_side_effects
     client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)
     return client
@@ -60,7 +60,7 @@ class TestStatusModel(unittest.TestCase):
 
   def test_is_error(self):
     error_model = StatusModel(None, 400)
-    ok_model =  StatusModel(None, 201)
+    ok_model = StatusModel(None, 201)
 
     self.assertTrue(error_model.is_error())
     self.assertFalse(ok_model.is_error())
@@ -69,7 +69,7 @@ class TestStatusModel(unittest.TestCase):
     http_client_mock = MagicMock()
 
     ssh_key = 'abc!@#$%^&*()_:"|<>?[];\'\\./'
-    host_list = ['dev05.hortonworks.com','dev06.hortonworks.com']
+    host_list = ['dev05.hortonworks.com', 'dev06.hortonworks.com']
     expected_path = '//bootstrap'
     expected_payload = {'hosts': ['dev05.hortonworks.com', 'dev06.hortonworks.com'], 'sshKey': 'abc!@#$%^&*()_:"|<>?[];\\\'\\\\./'}
     expected_headers = {'Content-Type': 'application/json'}
@@ -78,5 +78,5 @@ class TestStatusModel(unittest.TestCase):
     client = self.create_client(http_client_mock)
     resp = client.bootstrap_hosts(host_list, ssh_key)
 
-    self.assertEqual(resp.get_bootstrap_path(),expected_bootstrap_path)
+    self.assertEqual(resp.get_bootstrap_path(), expected_bootstrap_path)
     http_client_mock.invoke.assert_called_with('POST', expected_path, headers=expected_headers, payload=expected_payload)

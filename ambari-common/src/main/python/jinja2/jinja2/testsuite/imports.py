@@ -8,9 +8,6 @@
     :copyright: (c) 2010 by the Jinja Team.
     :license: BSD, see LICENSE for more details.
 """
-import os
-import time
-import tempfile
 import unittest
 
 from jinja2.testsuite import JinjaTestCase
@@ -86,7 +83,7 @@ class IncludesTestCase(JinjaTestCase):
         self.assert_raises(TemplateNotFound, t.render)
         try:
             t.render()
-        except TemplatesNotFound, e:
+        except TemplatesNotFound as e:
             assert e.templates == ['missing', 'missing2']
             assert e.name == 'missing2'
         else:
