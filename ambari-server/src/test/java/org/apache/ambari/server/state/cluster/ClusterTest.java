@@ -106,7 +106,7 @@ public class ClusterTest {
 		host.setHostAttributes(hostAttributes);
 		
 		host.persist();
-		c1.setDesiredStackVersion(new StackId("HDP-0.1"));
+		c1.setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		clusters.mapHostToCluster("h1", "c1");
 	}
 	
@@ -218,7 +218,7 @@ public class ClusterTest {
 		// public Map<String, Service> getServices();
 		
 		Service s1 = serviceFactory.createNew(c1, "HDFS");
-		Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
+		Service s2 = serviceFactory.createNew(c1, "MAPREDUCE2");
 		
 		c1.addService(s1);
 		c1.addService(s2);
@@ -226,7 +226,7 @@ public class ClusterTest {
 		s1.persist();
 		s2.persist();
 		
-		Service s3 = serviceFactory.createNew(c1, "MAPREDUCE");
+		Service s3 = serviceFactory.createNew(c1, "MAPREDUCE2");
 		
 		try {
 			c1.addService(s3);
@@ -250,7 +250,7 @@ public class ClusterTest {
 		Map<String, Service> services = c1.getServices();
 		Assert.assertEquals(2, services.size());
 		Assert.assertTrue(services.containsKey("HDFS"));
-		Assert.assertTrue(services.containsKey("MAPREDUCE"));
+		Assert.assertTrue(services.containsKey("MAPREDUCE2"));
 	}
 	
 	@Test
@@ -439,7 +439,7 @@ public class ClusterTest {
 		clusterServiceEntity.setServiceComponentDesiredStateEntities(Collections.EMPTY_LIST);
 		ServiceDesiredStateEntity stateEntity = mock(ServiceDesiredStateEntity.class);
 		Gson gson = new Gson();
-		when(stateEntity.getDesiredStackVersion()).thenReturn(gson.toJson(new StackId("HDP-0.1"), StackId.class));
+		when(stateEntity.getDesiredStackVersion()).thenReturn(gson.toJson(new StackId("HDP-2.0.1"), StackId.class));
 		clusterServiceEntity.setServiceDesiredStateEntity(stateEntity);
 		List<ClusterServiceEntity> clusterServiceEntities = new ArrayList<ClusterServiceEntity>();
 		clusterServiceEntities.add(clusterServiceEntity);
@@ -472,7 +472,7 @@ public class ClusterTest {
 	
 	@Test
 	public void testDeleteService() throws Exception {
-		c1.addService("MAPREDUCE").persist();
+		c1.addService("MAPREDUCE2").persist();
 		
 		Service hdfs = c1.addService("HDFS");
 		hdfs.persist();

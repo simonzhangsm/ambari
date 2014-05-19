@@ -28,9 +28,9 @@ import subprocess
 import threading
 import shlex
 import platform
-from PackagesAnalyzer import PackagesAnalyzer
-from HostCheckReportFileHandler import HostCheckReportFileHandler
-from Hardware import Hardware
+from .PackagesAnalyzer import PackagesAnalyzer
+from .HostCheckReportFileHandler import HostCheckReportFileHandler
+from .Hardware import Hardware
 from common_functions import OSCheck
 
 logger = logging.getLogger()

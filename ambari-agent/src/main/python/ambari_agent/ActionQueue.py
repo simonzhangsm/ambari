@@ -166,8 +166,7 @@ class ActionQueue(threading.Thread):
     })
     self.commandStatuses.put_command_status(command, in_progress_status)
     # running command
-      commandresult = self.customServiceOrchestrator.runCommand(command,
-        in_progress_status['tmpout'], in_progress_status['tmperr'])
+    commandresult = self.customServiceOrchestrator.runCommand(command, in_progress_status['tmpout'], in_progress_status['tmperr'])
     # dumping results
     status = self.COMPLETED_STATUS
     if commandresult['exitcode'] != 0:
@@ -227,23 +226,21 @@ class ActionQueue(threading.Thread):
       else:
         globalConfig = {}
 
-
-      livestatus = LiveStatus(cluster, service, component,
-                              globalConfig, self.config, self.configTags)
+      livestatus = LiveStatus(cluster, service, component, globalConfig, self.config, self.configTags)
 
       component_extra = None
 
-        # For custom services, responsibility to determine service status is
-        # delegated to python scripts
-        component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
+      # For custom services, responsibility to determine service status is
+      # delegated to python scripts
+      component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
 
-        if component_status_result['exitcode'] == 0:
-          component_status = LiveStatus.LIVE_STATUS
-        else:
-          component_status = LiveStatus.DEAD_STATUS
+      if component_status_result['exitcode'] == 0:
+        component_status = LiveStatus.LIVE_STATUS
+      else:
+        component_status = LiveStatus.DEAD_STATUS
 
-        if 'structuredOut' in component_status_result:
-          component_extra = component_status_result['structuredOut']
+      if 'structuredOut' in component_status_result:
+        component_extra = component_status_result['structuredOut']
 
       result = livestatus.build(forsed_component_status=component_status)
 

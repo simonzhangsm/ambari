@@ -19,12 +19,12 @@ limitations under the License.
 """
 
 from resource_management import *
-import functions
+from . import functions
 
 
 class HbaseServiceCheck(Script):
   def service_check(self, env):
-    import params
+    from . import params
     env.set_params(params)
     
     output_file = "/apps/hbase/data/ambarismoketest"

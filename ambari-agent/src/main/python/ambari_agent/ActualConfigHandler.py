@@ -48,7 +48,7 @@ class ActualConfigHandler:
     self.write_file(filename, tags)
 
   def write_client_components(self, serviceName, tags):
-    from LiveStatus import LiveStatus
+    from .LiveStatus import LiveStatus
     for comp in LiveStatus.CLIENT_COMPONENTS:
       if comp['serviceName'] == serviceName:
         componentName = comp['componentName']

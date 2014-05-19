@@ -27,7 +27,7 @@ from resource_management import *
 
 
 def yarn(name=None):
-  import params
+  from . import params
 
 
   if name in ["nodemanager", "historyserver"]:

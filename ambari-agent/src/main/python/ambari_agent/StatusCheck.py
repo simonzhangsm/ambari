@@ -22,7 +22,7 @@ import logging
 import os
 import re
 import string
-from shell import shellRunner
+from .shell import shellRunner
 
 
 logger = logging.getLogger()

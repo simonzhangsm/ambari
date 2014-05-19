@@ -32,7 +32,7 @@ public class RoleSuccessCriteriaEntity {
 	private Long stageId;
 	
 	@Id
-	@Column(name = "role")
+	@Column(name = "role", unique = true, nullable = true, insertable = true, updatable = true)
 	private String role;
 	
 	@Basic
@@ -63,8 +63,8 @@ public class RoleSuccessCriteriaEntity {
 		return Role.valueOf(role);
 	}
 	
-	public void setRole(Role role) {
-		this.role = role.name();
+	public void setRole(Role rrole) {
+		this.role = rrole.name();
 	}
 	
 	public Double getSuccessFactor() {

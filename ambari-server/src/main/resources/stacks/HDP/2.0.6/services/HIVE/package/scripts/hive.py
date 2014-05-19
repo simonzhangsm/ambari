@@ -25,7 +25,7 @@ from resource_management import *
 
 
 def hive(name=None):
-  import params
+  from . import params
 
   if name == 'hiveserver2':
 
@@ -150,7 +150,7 @@ def hive(name=None):
 
 
 def crt_directory(name):
-  import params
+  from . import params
 
   Directory(name,
             recursive=True,
@@ -160,7 +160,7 @@ def crt_directory(name):
 
 
 def crt_file(name):
-  import params
+  from . import params
 
   File(name,
        owner=params.hive_user,
@@ -169,7 +169,7 @@ def crt_file(name):
 
 
 def jdbc_connector():
-  import params
+  from . import params
 
   if params.hive_jdbc_driver == "com.mysql.jdbc.Driver":
     cmd = format("hive mkdir -p {artifact_dir} ; cp /usr/share/java/{jdbc_jar_name} {target}")

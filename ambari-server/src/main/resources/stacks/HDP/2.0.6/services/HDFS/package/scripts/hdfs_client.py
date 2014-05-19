@@ -52,7 +52,7 @@ class HdfsClient(Script):
               owner=params.hdfs_user,
               group=params.user_group
     )
-  hdfs()  
+    hdfs()  
     XmlConfig("hdfs-site.xml",
             conf_dir=params.hadoop_conf_dir,
             configurations=params.config['configurations']['hdfs-site'],

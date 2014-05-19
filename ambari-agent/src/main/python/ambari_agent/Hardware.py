@@ -21,7 +21,7 @@ limitations under the License.
 import os.path
 import logging
 import subprocess
-from Facter import Facter
+from .Facter import Facter
 
 logger = logging.getLogger()
 
@@ -79,7 +79,7 @@ class Hardware:
 
 def main(argv=None):
   hardware = Hardware()
-  print(hardware.get())
+  print((hardware.get()))
 
 if __name__ == '__main__':
   main()

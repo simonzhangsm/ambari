@@ -217,7 +217,7 @@ public class Configuration {
 	private static final String SERVER_PERSISTENCE_TYPE_DEFAULT = "local";
 	private static final String SERVER_CONNECTION_MAX_IDLE_TIME = "server.connection.max.idle.millis";
 	
-	private static final String UBUNTU_OS = "debian12";
+	private static final String UBUNTU_OS = "debian";
 	
 	/**
 	 * Default for repo validation suffixes.

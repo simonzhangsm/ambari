@@ -21,7 +21,7 @@ limitations under the License.
 import json
 import logging
 import threading
-from Grep import Grep
+from .Grep import Grep
 
 logger = logging.getLogger()
 
@@ -65,7 +65,7 @@ class CommandStatusDict():
     FAILED. Statuses for COMPLETE or FAILED commands are forgotten after
     generation
     """
-    from ActionQueue import ActionQueue
+    from .ActionQueue import ActionQueue
     with self.lock:  # Synchronized
       resultReports = []
       resultComponentStatus = []
@@ -96,7 +96,7 @@ class CommandStatusDict():
     Reads stdout/stderr for IN_PROGRESS command from disk file
     and populates other fields of report.
     """
-    from ActionQueue import ActionQueue
+    from .ActionQueue import ActionQueue
     try:
       tmpout = open(report['tmpout'], 'r').read()
       tmperr = open(report['tmperr'], 'r').read()

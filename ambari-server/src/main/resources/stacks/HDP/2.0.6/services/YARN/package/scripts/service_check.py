@@ -27,7 +27,7 @@ from resource_management import *
 
 class ServiceCheck(Script):
   def service_check(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     run_yarn_check_cmd = "/usr/bin/yarn node -list"

@@ -76,6 +76,7 @@ import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
 import com.google.inject.util.Modules;
 
+@SuppressWarnings("deprecation")
 public class ExecutionScheduleManagerTest {
 	private Clusters clusters;
 	private Cluster cluster;
@@ -106,7 +107,7 @@ public class ExecutionScheduleManagerTest {
 		clusterName = "c1";
 		clusters.addCluster(clusterName);
 		cluster = clusters.getCluster(clusterName);
-		cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+		cluster.setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		Assert.assertNotNull(cluster);
 		assertThat(executionScheduler, instanceOf(TestExecutionScheduler.class));
 		
@@ -331,8 +332,7 @@ public class ExecutionScheduleManagerTest {
 		batchRequestResponse.setRequestId(requestId);
 		batchRequestResponse.setReturnCode(202);
 		
-		ExecutionScheduleManager scheduleManager = createMockBuilder(ExecutionScheduleManager.class).withConstructor(configurationMock, executionSchedulerMock, tokenStorageMock, clustersMock, actionDBAccessorMock, gson).addMockedMethods("performApiRequest", "updateBatchRequest")
-				.createNiceMock();
+		ExecutionScheduleManager scheduleManager = createMockBuilder(ExecutionScheduleManager.class).withConstructor(configurationMock, executionSchedulerMock, tokenStorageMock, clustersMock, actionDBAccessorMock, gson).addMockedMethods("performApiRequest", "updateBatchRequest").createNiceMock();
 		
 		// interesting easymock behavior, workaround to not to expect method called in constructor
 		expectLastCall().anyTimes();
@@ -378,7 +378,7 @@ public class ExecutionScheduleManagerTest {
 		long batchId = 1L;
 		long requestId = 5L;
 		String clusterName = "mycluster";
-		
+
 		Map<Long, RequestExecution> executionMap = new HashMap<Long, RequestExecution>();
 		executionMap.put(executionId, requestExecutionMock);
 		
@@ -387,7 +387,7 @@ public class ExecutionScheduleManagerTest {
 		batchRequestResponse.setRequestId(requestId);
 		batchRequestResponse.setReturnCode(202);
 		
-		ExecutionScheduleManager scheduleManager = createMockBuilder(ExecutionScheduleManager.class).withConstructor(configurationMock, executionSchedulerMock, tokenStorageMock, clustersMock, actionDBAccessorMock, gson).addMockedMethods("performApiRequest").createNiceMock();
+		ExecutionScheduleManager scheduleManager = createMockBuilder(ExecutionScheduleManager.class).withConstructor(configurationMock, executionSchedulerMock, tokenStorageMock, clustersMock, actionDBAccessorMock, gson).addMockedMethod("performApiRequest").createNiceMock();
 		
 		// interesting easymock behavior, workaround to not to expect method called in constructor
 		expectLastCall().anyTimes();
@@ -415,18 +415,18 @@ public class ExecutionScheduleManagerTest {
 		InternalTokenStorage tokenStorageMock = createMock(InternalTokenStorage.class);
 		ActionDBAccessor actionDBAccessorMock = createMock(ActionDBAccessor.class);
 		Gson gson = new Gson();
-		
+		configurationMock.getApiAuthentication();
 		long requestId = 5L;
 		String clusterName = "mycluster";
 		String apiUri = "api/v1/clusters/mycluster/requests/5";
 		Capture<String> uriCapture = new Capture<String>();
-		
+
 		BatchRequestResponse batchRequestResponse = new BatchRequestResponse();
 		batchRequestResponse.setStatus(HostRoleStatus.IN_PROGRESS.toString());
 		batchRequestResponse.setRequestId(requestId);
 		batchRequestResponse.setReturnCode(202);
 		
-		ExecutionScheduleManager scheduleManager = createMockBuilder(ExecutionScheduleManager.class).withConstructor(configurationMock, executionSchedulerMock, tokenStorageMock, clustersMock, actionDBAccessorMock, gson).addMockedMethods("performApiGetRequest").createNiceMock();
+		ExecutionScheduleManager scheduleManager = createMockBuilder(ExecutionScheduleManager.class).withConstructor(configurationMock, executionSchedulerMock, tokenStorageMock, clustersMock, actionDBAccessorMock, gson).addMockedMethod("performApiGetRequest").createNiceMock();
 		
 		// interesting easymock behavior, workaround to not to expect method called in constructor
 		expectLastCall().anyTimes();

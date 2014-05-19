@@ -26,7 +26,7 @@ import subprocess
 import json
 import pprint
 import traceback
-import hostname
+from . import hostname
 
 logger = logging.getLogger()
 
@@ -209,8 +209,8 @@ class CertificateManager():
     response = f.read()
     f.close()
     try:
-    data = json.loads(response)
-    logger.debug("Sign response from Server: \n" + pprint.pformat(data))
+      data = json.loads(response)
+      logger.debug("Sign response from Server: \n" + pprint.pformat(data))
     except Exception:
       logger.warn("Malformed response! data: " + str(data))
       data = {'result': 'ERROR'}

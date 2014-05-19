@@ -102,9 +102,9 @@ public class JMXHostProviderTest {
 	
 	private void createHDFSServiceConfigs(boolean version1) throws AmbariException {
 		String clusterName = "c1";
-		ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-0.1", null);
+		ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-2.0.1", null);
 		controller.createCluster(r);
-		clusters.getCluster(clusterName).setDesiredStackVersion(new StackId("HDP-0.1"));
+		clusters.getCluster(clusterName).setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		String serviceName = "HDFS";
 		createService(clusterName, serviceName, null);
 		String componentName1 = "NAMENODE";

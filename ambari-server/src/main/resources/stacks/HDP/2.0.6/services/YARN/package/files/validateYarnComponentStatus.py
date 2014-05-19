@@ -48,11 +48,11 @@ def getResponse(path, address, ssl_enabled):
     (stdout, stderr) = proc.communicate()
     response = json.loads(stdout)
     if response == None:
-      print('There is no response for url: ' + str(url))
+      print(('There is no response for url: ' + str(url)))
       exit(1)
     return response
   except Exception as e:
-    print('Error getting response for url:' + str(url), e)
+    print(('Error getting response for url:' + str(url), e))
     exit(1)
 
 # Verify that REST api is available for given component
@@ -64,7 +64,7 @@ def validateAvailability(component, path, address, ssl_enabled):
     if not is_valid:
       exit(1)
   except Exception as e:
-    print('Error checking availability status of component', e)
+    print(('Error checking availability status of component', e))
     exit(1)
 
 # Validate component-specific response
@@ -93,7 +93,7 @@ def validateAvailabilityResponse(component, response):
     else:
       return False
   except Exception as e:
-    print('Error validation of availability response for ' + str(component), e)
+    print(('Error validation of availability response for ' + str(component), e))
     return False
 
 # Verify that component has required resources to work
@@ -105,7 +105,7 @@ def validateAbility(component, path, address, ssl_enabled):
     if not is_valid:
       exit(1)
   except Exception as e:
-    print('Error checking ability of component', e)
+    print(('Error checking ability of component', e))
     exit(1)
 
 # Validate component-specific response that it has required resources to work
@@ -130,7 +130,7 @@ def validateAbilityResponse(component, response):
     else:
       return False
   except Exception as e:
-    print('Error validation of ability response', e)
+    print(('Error validation of ability response', e))
     return False
 
 #

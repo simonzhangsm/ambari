@@ -23,7 +23,7 @@ from resource_management import *
 
 
 def webhcat_service(action='start'):
-  import params
+  from . import params
 
   cmd = format('env HADOOP_HOME={hadoop_home} {webhcat_bin_dir}/webhcat_server.sh')
 

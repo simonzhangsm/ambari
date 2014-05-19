@@ -25,7 +25,7 @@ from resource_management import *
 
 class ZookeeperServiceCheck(Script):
   def service_check(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     File("/tmp/zkSmoke.sh",

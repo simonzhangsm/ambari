@@ -107,7 +107,7 @@ public class UpgradeCatalogTest {
 	@Test
 	public void testUpdateConfigurationProperties() throws Exception {
 		AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
-		ClusterRequest r = new ClusterRequest(null, "c1", "HDP-0.1", null);
+		ClusterRequest r = new ClusterRequest(null, "c1", "HDP-2.0.1", null);
 		controller.createCluster(r);
 		Clusters clusters = injector.getInstance(Clusters.class);
 		Cluster cluster = clusters.getCluster("c1");

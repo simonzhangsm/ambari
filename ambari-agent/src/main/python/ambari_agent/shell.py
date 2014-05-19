@@ -27,7 +27,7 @@ import sys
 import threading
 import time
 import traceback
-import AmbariConfig
+from . import AmbariConfig
 import pprint
 
 try:

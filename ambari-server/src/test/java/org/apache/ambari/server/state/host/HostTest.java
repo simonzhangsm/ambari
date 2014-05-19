@@ -341,7 +341,7 @@ public class HostTest {
 		host.setHostAttributes(hostAttributes);
 		
 		host.persist();
-		c1.setDesiredStackVersion(new StackId("HDP-0.1"));
+		c1.setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		clusters.mapHostToCluster("h1", "c1");
 		
 		ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
@@ -412,7 +412,7 @@ public class HostTest {
 		host.setHostAttributes(hostAttributes);
 		
 		host.persist();
-		c1.setDesiredStackVersion(new StackId("HDP-0.1"));
+		c1.setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		clusters.mapHostToCluster("h1", "c1");
 		
 		HostEntity entity = hostDAO.findByName("h1");

@@ -46,7 +46,7 @@ def main():
       httpCode = 404
 
     if httpCode != 200:
-      print("Cannot access WEB UI on: http://" + host + ":" + port)
+      print(("Cannot access WEB UI on: http://" + host + ":" + port))
       exit(1)
       
 

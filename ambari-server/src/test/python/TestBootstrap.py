@@ -16,20 +16,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from subprocess import Popen
 from unittest import TestCase
 import logging
 import os
-import pprint
 import subprocess
 import tempfile
-import time
 
-from mock import MagicMock, call
-from mock import create_autospec
+from mock import MagicMock
 from mock import patch
+
 from ambari_server import bootstrap
-from ambari_server.bootstrap import PBootstrap, Bootstrap, SharedState, HostLog, SCP, SSH, AMBARI_PASSPHRASE_VAR_NAME, HOST_BOOTSTRAP_TIMEOUT
+from ambari_server.bootstrap import PBootstrap, Bootstrap, SharedState, HostLog, SCP, SSH, AMBARI_PASSPHRASE_VAR_NAME
 
 
 class TestBootstrap(TestCase):
@@ -331,15 +328,15 @@ class TestBootstrap(TestCase):
     self.assertEqual(ocs, v)
 
 
-  @patch.object(Bootstrap, "is_suse")
-  def test_getRepoFile(self, is_suse_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
-                               "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440")
-    bootstrap_obj = Bootstrap("hostname", shared_state)
-    is_suse_mock.return_value = False
-    rf = bootstrap_obj.getRepoFile()
-    self.assertEqual(rf, "/etc/yum.repos.d/ambari.repo")
+#  @patch.object(Bootstrap, "is_suse")
+#  def test_getRepoFile(self, is_suse_mock):
+#    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+#                               "setupAgentFile", "ambariServer", "centos6",
+#                               None, "8440")
+#    bootstrap_obj = Bootstrap("hostname", shared_state)
+#    is_suse_mock.return_value = False
+#    rf = bootstrap_obj.getRepoFile()
+#    self.assertEqual(rf, "/etc/yum.repos.d/ambari.repo")
 
 
   @patch.object(Bootstrap, "getOsCheckScript")

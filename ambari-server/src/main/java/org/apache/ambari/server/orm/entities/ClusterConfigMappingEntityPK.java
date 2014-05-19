@@ -16,8 +16,6 @@ import javax.persistence.Id;
 @SuppressWarnings("serial")
 public class ClusterConfigMappingEntityPK implements Serializable {
 	private Long clusterId;
-	private String typeName;
-	private Long createTimestamp;
 	
 	@Id
 	@Column(name = "cluster_id", nullable = false, insertable = true, updatable = true, length = 10)
@@ -29,15 +27,19 @@ public class ClusterConfigMappingEntityPK implements Serializable {
 		this.clusterId = clusterId;
 	}
 	
+	private String typeName;
+	
 	@Id
 	@Column(name = "type_name", nullable = false, insertable = true, updatable = false)
-	public String getType() {
-		return typeName;
+	public String getTypeName() {
+		return this.typeName;
 	}
 	
-	public void setType(String type) {
-		typeName = type;
+	public void setTypeName(String type) {
+		this.typeName = type;
 	}
+	
+	private Long createTimestamp;
 	
 	@Id
 	@Column(name = "create_timestamp", nullable = false, insertable = true, updatable = false)

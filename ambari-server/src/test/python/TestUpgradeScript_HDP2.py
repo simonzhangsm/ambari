@@ -18,12 +18,10 @@ limitations under the License.
 from unittest import TestCase
 import io
 import logging
-import subprocess
 import sys
 import unittest
 
 from mock import MagicMock, call, patch
-from mock import create_autospec
 
 import UpgradeHelper_HDP2
 

@@ -18,14 +18,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from pprint import pformat
-from threading import Thread
+from datetime import datetime
 import logging
 import os
 import pprint
 import re
-import re
-import socket
 import subprocess
 import sys
 import threading

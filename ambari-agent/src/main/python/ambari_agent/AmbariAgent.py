@@ -21,7 +21,7 @@ limitations under the License.
 import os
 import sys
 import subprocess
-from Controller import AGENT_AUTO_RESTART_EXIT_CODE
+from .Controller import AGENT_AUTO_RESTART_EXIT_CODE
 
 if ("PYTHON" in os.environ):
   PYTHON = os.environ["PYTHON"]

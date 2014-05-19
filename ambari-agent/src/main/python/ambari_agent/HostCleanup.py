@@ -29,7 +29,7 @@ import optparse
 import shlex
 import sys
 import datetime
-import AmbariConfig
+from . import AmbariConfig
 from pwd import getpwnam
 from common_functions import OSCheck
 

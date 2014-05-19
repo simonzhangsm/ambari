@@ -39,6 +39,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+@SuppressWarnings("deprecation")
 public class AmbariLdapAuthenticationProviderTest extends EasyMockSupport {
 	
 	private static ApacheDSContainer apacheDSContainer;
@@ -146,6 +147,7 @@ public class AmbariLdapAuthenticationProviderTest extends EasyMockSupport {
 		assertTrue(result.isAuthenticated());
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testDisabled() throws Exception {
 		configuration.setClientSecurityType(ClientSecurityType.LOCAL);

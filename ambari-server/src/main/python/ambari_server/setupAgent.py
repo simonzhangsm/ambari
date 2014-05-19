@@ -18,17 +18,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from pprint import pformat
 import logging
 import os
-import pprint
 import socket
-import stat
 import subprocess
 import sys
-import threading
 import time
-import traceback
 
 from common_functions import OSCheck
 
@@ -38,7 +33,7 @@ AMBARI_PASSPHRASE_VAR = "AMBARI_PASSPHRASE"
 
 def execOsCommand(osCommand):
   osStat = subprocess.Popen(osCommand, stdout=subprocess.PIPE)
-  log = osStat.communicate(0).decode() 
+  log = osStat.communicate(0)
   ret = {"exitstatus": osStat.returncode, "log": log}
   return ret
 

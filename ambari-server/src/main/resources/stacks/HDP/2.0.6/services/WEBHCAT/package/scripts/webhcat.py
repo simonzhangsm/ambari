@@ -25,7 +25,7 @@ from resource_management import *
 
 
 def webhcat():
-  import params
+  from . import params
 
   params.HdfsDirectory(params.webhcat_apps_dir,
                        action="create_delayed",

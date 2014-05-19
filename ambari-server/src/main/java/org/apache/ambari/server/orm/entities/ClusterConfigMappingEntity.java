@@ -16,7 +16,7 @@ import javax.persistence.Table;
 /**
  * Entity that maps to a cluster config mapping.
  */
-@IdClass(ClusterConfigMappingEntityPK.class)
+@IdClass(org.apache.ambari.server.orm.entities.ClusterConfigMappingEntityPK.class)
 @Table(name = "clusterconfigmapping")
 @Entity
 public class ClusterConfigMappingEntity {
@@ -47,65 +47,65 @@ public class ClusterConfigMappingEntity {
 	private ClusterEntity clusterEntity;
 	
 	public Long getClusterId() {
-		return clusterId;
+		return this.clusterId;
 	}
 	
 	public void setClusterId(Long id) {
-		clusterId = id;
+		this.clusterId = id;
 	}
 	
 	public String getType() {
-		return typeName;
+		return this.typeName;
 	}
 	
 	public void setType(String type) {
-		typeName = type;
+		this.typeName = type;
 	}
 	
 	public Long getCreateTimestamp() {
-		return createTimestamp;
+		return this.createTimestamp;
 	}
 	
 	public void setCreateTimestamp(Long timestamp) {
-		createTimestamp = timestamp;
+		this.createTimestamp = timestamp;
 	}
 	
 	public String getVersion() {
-		return versionTag;
+		return this.versionTag;
 	}
 	
 	public void setVersion(String version) {
-		versionTag = version;
+		this.versionTag = version;
 	}
 	
 	public int isSelected() {
-		return selectedInd;
+		return this.selectedInd;
 	}
 	
 	public void setSelected(int selected) {
-		selectedInd = selected;
+		this.selectedInd = selected;
 	}
 	
 	/**
 	 * @return the user
 	 */
 	public String getUser() {
-		return user;
+		return this.user;
 	}
 	
 	/**
 	 * @param userName the user
 	 */
 	public void setUser(String userName) {
-		user = userName;
+		this.user = userName;
 	}
 	
 	public ClusterEntity getClusterEntity() {
-		return clusterEntity;
+		return this.clusterEntity;
 	}
 	
 	public void setClusterEntity(ClusterEntity entity) {
-		clusterEntity = entity;
+		this.clusterEntity = entity;
 	}
 	
 }

@@ -84,7 +84,7 @@ public class ServiceComponentHostTest {
 		clusters.addHost("h1");
 		setOsFamily(clusters.getHost("h1"), "redhat", "5.9");
 		clusters.getHost("h1").persist();
-		clusters.getCluster("C1").setDesiredStackVersion(new StackId("HDP-0.1"));
+		clusters.getCluster("C1").setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		metaInfo.init();
 		clusters.mapHostToCluster("h1", "C1");
 	}

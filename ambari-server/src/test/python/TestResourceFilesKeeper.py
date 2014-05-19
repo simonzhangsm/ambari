@@ -16,18 +16,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from subprocess import Popen
 from unittest import TestCase
-from xml.dom import minidom
 import logging
 import os
 import pprint
-import subprocess
-import tempfile
-import time
 
-from mock import MagicMock, call
-from mock import create_autospec
 from mock import patch
 
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException

@@ -24,7 +24,7 @@ from resource_management import *
 
 class WebHCatServiceCheck(Script):
   def service_check(self, env):
-    import params
+    from . import params
     
     env.set_params(params)
     

@@ -24,7 +24,7 @@ from resource_management import *
 
 
 def hcat():
-  import params
+  from . import params
 
   Directory(params.hcat_conf_dir,
             owner=params.hcat_user,
@@ -40,7 +40,7 @@ def hcat():
 
 
 def hcat_TemplateConfig(name):
-  import params
+  from . import params
 
   TemplateConfig(format("{hcat_conf_dir}/{name}"),
                  owner=params.hcat_user,

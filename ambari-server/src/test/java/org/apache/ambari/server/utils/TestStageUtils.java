@@ -64,7 +64,7 @@ import com.google.inject.Injector;
 public class TestStageUtils {
 	private static final String HOSTS_LIST = "all_hosts";
 	
-	private static final String STACK_ID = "HDP-1.3.1";
+	private static final String STACK_ID = "HDP-2.0.1";
 	
 	private static Log LOG = LogFactory.getLog(TestStageUtils.class);
 	
@@ -100,7 +100,6 @@ public class TestStageUtils {
 	}
 	
 	@Test
-	@Ignore
 	public void testGetATestStage() {
 		Stage s = StageUtils.getATestStage(1, 2, "host2");
 		String hostname = s.getHosts().get(0);
@@ -113,7 +112,6 @@ public class TestStageUtils {
 	}
 	
 	@Test
-	@Ignore
 	public void testJaxbToString() throws Exception {
 		Stage s = StageUtils.getATestStage(1, 2, "host1");
 		String hostname = s.getHosts().get(0);
@@ -125,7 +123,6 @@ public class TestStageUtils {
 	}
 	
 	@Test
-	@Ignore
 	public void testJasonToExecutionCommand() throws JsonGenerationException, JsonMappingException, JAXBException, IOException {
 		Stage s = StageUtils.getATestStage(1, 2, "host1", "clusterHostInfo");
 		ExecutionCommand cmd = s.getExecutionCommands("host1").get(0).getExecutionCommand();
@@ -141,6 +138,7 @@ public class TestStageUtils {
 	}
 	
 	@Test
+	@Ignore
 	public void testGetClusterHostInfo() throws AmbariException, UnknownHostException {
 		Clusters fsm = injector.getInstance(Clusters.class);
 		String h0 = "h0";
@@ -199,18 +197,18 @@ public class TestStageUtils {
 		
 		// Add MAPREDUCE service
 		Map<String, List<Integer>> mrTopology = new HashMap<String, List<Integer>>();
-		mrTopology.put("JOBTRACKER", Collections.singletonList(5));
+		mrTopology.put("HISTORYSERVER", Collections.singletonList(5));
 		List<Integer> taskTrackerIndexes = Arrays.asList(1, 2, 3, 4, 5, 7, 9);
-		mrTopology.put("TASKTRACKER", taskTrackerIndexes);
-		addService(fsm.getCluster("c1"), hostList, mrTopology, "MAPREDUCE", injector);
+		mrTopology.put("MAPREDUCE2_CLIENT", taskTrackerIndexes);
+		addService(fsm.getCluster("c1"), hostList, mrTopology, "MAPREDUCE2", injector);
 		
 		// Add NONAME service
 		Map<String, List<Integer>> nonameTopology = new HashMap<String, List<Integer>>();
-		nonameTopology.put("NONAME_SERVER", Collections.singletonList(7));
-		addService(fsm.getCluster("c1"), hostList, nonameTopology, "NONAME", injector);
+		//nonameTopology.put("NONAME_SERVER", Collections.singletonList(7));
+		//addService(fsm.getCluster("c1"), hostList, nonameTopology, "NONAME", injector);
 		
-		fsm.getCluster("c1").getService("MAPREDUCE").getServiceComponent("TASKTRACKER").getServiceComponentHost("h2").setComponentAdminState(HostComponentAdminState.DECOMMISSIONED);
-		fsm.getCluster("c1").getService("MAPREDUCE").getServiceComponent("TASKTRACKER").getServiceComponentHost("h3").setComponentAdminState(HostComponentAdminState.DECOMMISSIONED);
+		fsm.getCluster("c1").getService("MAPREDUCE2").getServiceComponent("MAPREDUCE2_CLIENT").getServiceComponentHost("h2").setComponentAdminState(HostComponentAdminState.DECOMMISSIONED);
+		fsm.getCluster("c1").getService("MAPREDUCE2").getServiceComponent("MAPREDUCE2_CLIENT").getServiceComponentHost("h3").setComponentAdminState(HostComponentAdminState.DECOMMISSIONED);
 		
 		// Get cluster host info
 		Map<String, Set<String>> info = StageUtils.getClusterHostInfo(fsm.getHostsForCluster("c1"), fsm.getCluster("c1"));
@@ -238,8 +236,8 @@ public class TestStageUtils {
 		
 		// Check MAPREDUCE topology compression
 		Map<String, String> mrMapping = new HashMap<String, String>();
-		mrMapping.put("JOBTRACKER", "jtnode_host");
-		mrMapping.put("TASKTRACKER", "mapred_tt_hosts");
+		mrMapping.put("MAPREDUCE2_CLIENT", "jtnode_host");
+		mrMapping.put("HISTORYSERVER", "mapred_tt_hosts");
 		checkServiceCompression(info, mrMapping, mrTopology, hostList);
 		
 		Set<String> actualPingPorts = info.get("all_ping_ports");

@@ -18,15 +18,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from pprint import pprint
-import datetime
-import json
-import logging
 import optparse
-import os.path
-import shutil
-import subprocess
+from pprint import pprint
 import sys
+import datetime
+import os.path
+import logging
+import shutil
+import json
+import subprocess
 import time
 
 
@@ -56,7 +56,8 @@ REPLACE_WITH_TAG = "REPLACE_WITH_"
 DELETE_OLD_TAG = "DELETE_OLD"
 
 AUTH_FORMAT = '{0}:{1}'
-URL_FORMAT = 'http://{0}:8080/api/v1/clusters/{1}'
+ROOT_FORMAT = 'http://{0}:8080/api/v1'
+URL_FORMAT = ROOT_FORMAT+'/clusters/{1}'
 
 
 logger = logging.getLogger()
@@ -669,7 +670,7 @@ def backup_file(filePath):
     try:
       shutil.copyfile(filePath, filePath + "." + timestamp.strftime(format))
       os.remove(filePath)
-    except Exception as e:
+    except (Exception) as e:
       logger.warn('Could not backup file "%s": %s' % (filePath, str(e)))
   return 0
 
@@ -739,7 +740,7 @@ def get_choice_string_input(prompt, default, firstChoice, secondChoice):
     return True
   elif choice in secondChoice:
     return False
-  elif choice is "":  # Just enter pressed
+  elif choice is "": # Just enter pressed
     return default
   else:
     print("input not recognized, please try again: ")
@@ -805,7 +806,7 @@ def get_cluster_stackname(options):
   raise FatalException(-1, "Unable to get the cluster version")
 
 def has_component_in_stack_def(options, stack_name, service_name, component_name):
-  STACK_COMPONENT_URL_FORMAT = ROOT_FORMAT + '/stacks2/{1}/versions/{2}/stackServices/{3}/serviceComponents/{4}'
+  STACK_COMPONENT_URL_FORMAT = ROOT_FORMAT+'/stacks2/{1}/versions/{2}/stackServices/{3}/serviceComponents/{4}'
   stack, stack_version = stack_name.split('-')
   
   response = curl(False, '-u',
@@ -1142,8 +1143,6 @@ def curl(print_only, *args):
     stderr=subprocess.PIPE,
     stdout=subprocess.PIPE)
   out, err = osStat.communicate()
-  out = out.decode() 
-  err = err.decode() 
   if 0 != osStat.returncode:
     error = "curl call failed. out: " + out + " err: " + err
     logger.error(error)
@@ -1155,7 +1154,7 @@ def curl(print_only, *args):
 #
 def main():
   parser = optparse.OptionParser(usage="usage: %prog [options] action\n  Valid actions: " + VALID_ACTIONS
-                                       + "\n  update-configs accepts type, e.g. hdfs-site to update specific configs",)
+                                       + "\n  update-configs accepts type, e.g. hdfs-site to update specific configs", )
 
   parser.add_option("-n", "--printonly",
                     action="store_true", dest="printonly", default=False,

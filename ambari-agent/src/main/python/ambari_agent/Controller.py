@@ -29,15 +29,15 @@ import urllib.request, urllib.error, urllib.parse
 import pprint
 from random import randint
 
-import hostname
-import AmbariConfig
-from Heartbeat import Heartbeat
-from Register import Register
-from ActionQueue import ActionQueue
-import security
-from NetUtil import NetUtil
+from . import hostname
+from . import AmbariConfig
+from .Heartbeat import Heartbeat
+from .Register import Register
+from .ActionQueue import ActionQueue
+from . import security
+from .NetUtil import NetUtil
 import ssl
-from LiveStatus import LiveStatus
+from .LiveStatus import LiveStatus
 
 
 logger = logging.getLogger()
@@ -282,11 +282,11 @@ class Controller(threading.Thread):
 
   def sendRequest(self, url, data):
     try:
-    if self.cachedconnect is None:  # Lazy initialization
-      self.cachedconnect = security.CachedHTTPSConnection(self.config)
-    req = urllib.request.Request(url, data, {'Content-Type': 'application/json'})
+      if self.cachedconnect is None:  # Lazy initialization
+        self.cachedconnect = security.CachedHTTPSConnection(self.config)
+      req = urllib.request.Request(url, data, {'Content-Type': 'application/json'})
       response = None
-    response = self.cachedconnect.request(req)
+      response = self.cachedconnect.request(req)
       return json.loads(response)
     except Exception:
       if response is None:

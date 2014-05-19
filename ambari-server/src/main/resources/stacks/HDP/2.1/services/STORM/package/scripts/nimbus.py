@@ -21,8 +21,8 @@ limitations under the License.
 import sys
 
 from resource_management import *
-import service
-import storm
+from .service import service
+from .storm import storm
 
 
 class Nimbus(Script):
@@ -34,7 +34,7 @@ class Nimbus(Script):
     import params
     env.set_params(params)
 
-    storm()
+    storm.storm()
 
   def start(self, env):
     import params

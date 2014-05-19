@@ -16,9 +16,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 from unittest import TestCase
-import json
-import logging
-import pprint
 
 from mock import patch, call
 
@@ -61,8 +58,7 @@ class TestClusterBlueprint(TestCase):
   @patch("builtins.open")
   @patch.object(AmbariBlueprint, "performGetOperation")
   @patch.object(cluster_blueprint, "get_server_info")
-  def test_exportBlueprint(self, get_server_info_mock,
-                           performGetOperationMock, openMock):
+  def test_exportBlueprint(self, get_server_info_mock, performGetOperationMock, openMock):
     performGetOperationMock.return_value = '200'
 
     blueprintUrl = 'http://localhost:8080/api/v1/clusters/blueprint' + \

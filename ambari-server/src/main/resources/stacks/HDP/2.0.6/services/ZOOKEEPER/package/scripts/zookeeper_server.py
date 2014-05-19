@@ -23,8 +23,8 @@ Ambari Agent
 import sys
 
 from resource_management import *
-import zookeeper
-import zookeeper_service
+from . import zookeeper
+from . import zookeeper_service
 
 
 class ZookeeperServer(Script):
@@ -32,23 +32,23 @@ class ZookeeperServer(Script):
     self.install_packages(env)
     self.configure(env)
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     zookeeper('server')
 
   def start(self, env):
-    import params
+    from . import params
     env.set_params(params)
     self.configure(env)
     zookeeper_service('start')
 
   def stop(self, env):
-    import params
+    from . import params
     env.set_params(params)
     zookeeper_service('stop')
 
   def status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     check_process_status(status_params.zk_pid_file)
 

@@ -54,8 +54,7 @@ class BooleanArgument(ResourceArgument):
   def validate(self, value):
     value = super(BooleanArgument, self).validate(value)
     if not value in (True, False):
-      raise InvalidArgument(
-        "Expected a boolean for %s received %r" % (self.name, value))
+      raise InvalidArgument("Expected a boolean for %s received %r" % (self.name, value))
     return value
 
 
@@ -90,8 +89,7 @@ class ResourceMetaclass(type):
         setattr(mcs, key, Accessor(key))
   
   
-class Resource(object):
-  __metaclass__ = ResourceMetaclass
+class Resource(object, metaclass=ResourceMetaclass):
   action = ForcedListArgument(default="nothing")
   ignore_failures = BooleanArgument(default=False)
   not_if = ResourceArgument()  # pass command e.g. not_if = ('ls','/root/jdk')

@@ -21,16 +21,15 @@ limitations under the License.
 #
 # Main.
 #
-import base64
-import getpass
-import json
-import logging
-import optparse
-import os
-import re
 import sys
+import optparse
+import getpass
+import logging
 import urllib.request, urllib.error, urllib.parse
-
+import re
+import json
+import base64
+import os
 
 SILENT = False
 ACTION = None
@@ -64,7 +63,7 @@ def get_validated_string_input(prompt, default, pattern, description,
     elif is_pass:
       input = getpass.getpass(prompt)
     else:
-      input = eval(input(prompt))
+      input = input(prompt)
     if not input.strip():
       # Empty input - if default available use default
       if not allowEmpty and not default:

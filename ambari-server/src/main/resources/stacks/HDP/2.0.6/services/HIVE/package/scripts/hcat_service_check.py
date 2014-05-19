@@ -23,7 +23,7 @@ from resource_management.libraries.functions import get_unique_id_and_date
 
 
 def hcat_service_check():
-    import params
+    from . import params
     unique = get_unique_id_and_date()
     output_file = format("/apps/hive/warehouse/hcatsmoke{unique}")
     test_cmd = format("fs -test -e {output_file}")

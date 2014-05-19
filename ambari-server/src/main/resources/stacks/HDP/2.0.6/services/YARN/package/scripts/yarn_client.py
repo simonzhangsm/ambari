@@ -23,7 +23,7 @@ Ambari Agent
 import sys
 
 from resource_management import *
-import yarn
+from . import yarn
 
 
 class YarnClient(Script):
@@ -33,7 +33,7 @@ class YarnClient(Script):
     self.configure(env)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     yarn()
 

@@ -20,7 +20,7 @@ limitations under the License.
 
 import sys
 
-from mysql_service import mysql_service
+from .mysql_service import mysql_service
 from resource_management import *
 
 
@@ -31,7 +31,7 @@ class MysqlServer(Script):
     self.configure(env)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     mysql_service(daemon_name=params.daemon_name, action='start')
@@ -51,19 +51,19 @@ class MysqlServer(Script):
 
     mysql_service(daemon_name=params.daemon_name, action='stop')
   def start(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     mysql_service(daemon_name=params.daemon_name, action='start')
 
   def stop(self, env):
-    import params
+    from . import params
     env.set_params(params)
 
     mysql_service(daemon_name=params.daemon_name, action='stop')
 
   def status(self, env):
-    from status_params import status_params
+    from .status_params import status_params
     mysql_service(daemon_name=status_params.daemon_name, action='status')
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ from resource_management import *
 
 
 def sqoop(type=None):
-  import params
+  from . import params
   Link(params.sqoop_lib + "/mysql-connector-java.jar",
        to='/usr/share/java/mysql-connector-java.jar'
   )
@@ -47,7 +47,7 @@ def sqoop(type=None):
   pass
 
 def sqoop_TemplateConfig(name, tag=None):
-  import params
+  from . import params
   TemplateConfig(format("{sqoop_conf_dir}/{name}"),
                   owner=params.sqoop_user,
                   template_tag=tag

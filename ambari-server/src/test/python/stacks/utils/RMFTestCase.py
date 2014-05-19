@@ -20,16 +20,13 @@ limitations under the License.
 __all__ = ["RMFTestCase", "Template", "StaticFile", "InlineTemplate", "UnknownConfigurationMock"]
 
 from unittest import TestCase
-import imp
 import json
 import os
-import platform
-import pprint
+import imp
 import sys
-
+import pprint
 from mock import MagicMock, patch
-
-
+import platform
 with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):
   from resource_management.core.environment import Environment
   from resource_management.libraries.script.config_dictionary import ConfigDictionary
@@ -63,7 +60,7 @@ class RMFTestCase(TestCase):
       raise RuntimeError("Can not read config file: " + config_file_path)
 
     if config_overrides:
-      for key, value in list(config_overrides.items()):
+      for key, value in config_overrides.items():
         self.config_dict[key] = value
 
     self.config_dict = ConfigDictionary(self.config_dict)
@@ -132,7 +129,7 @@ class RMFTestCase(TestCase):
       s = "'{0}', {1},".format(
         resource.__class__.__name__, self._ppformat(resource.name))
       has_arguments = False
-      for k, v in list(resource.arguments.items()):
+      for k, v in resource.arguments.items():
         has_arguments = True
         # correctly output octal mode numbers
         if k == 'mode' and isinstance(v, int):
@@ -203,4 +200,3 @@ class UnknownConfigurationMock():
   
   def __repr__(self):
     return "UnknownConfigurationMock()"
-

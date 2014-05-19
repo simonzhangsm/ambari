@@ -26,7 +26,7 @@ from resource_management import *
 
 
 def zookeeper(type=None):
-  import params
+  from . import params
 
   Directory(params.config_dir,
             owner=params.zk_user,
@@ -92,7 +92,7 @@ def zookeeper(type=None):
 
 
 def configFile(name, template_name=None):
-  import params
+  from . import params
 
   File(format("{config_dir}/{name}"),
        content=Template(template_name),

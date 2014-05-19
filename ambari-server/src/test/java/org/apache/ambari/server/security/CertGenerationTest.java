@@ -83,15 +83,15 @@ public class CertGenerationTest extends TestCase {
 		
 		// Test using actual ca.config.
 		try {
-			File caConfig = new File("conf/unix/ca.config");
-			File caConfigTest = new File(temp.getRoot().getAbsolutePath(), "ca.config");
+			File caConfig = new File("src/main/resources/db/ca.conf");
+			File caConfigTest = new File(temp.getRoot().getAbsolutePath(), "ca.conf");
 			File newCertsDir = new File(temp.getRoot().getAbsolutePath(), "newcerts");
 			newCertsDir.mkdirs();
 			File indexTxt = new File(temp.getRoot().getAbsolutePath(), "index.txt");
 			indexTxt.createNewFile();
 			
 			String content = IOUtils.toString(new FileInputStream(caConfig));
-			content = content.replaceAll("/var/lib/ambari-server/keys/db", temp.getRoot().getAbsolutePath());
+			content = content.replaceAll("/var/lib/ambari-server/keystore/db", temp.getRoot().getAbsolutePath());
 			IOUtils.write(content, new FileOutputStream(caConfigTest));
 		} catch (IOException e) {
 			e.printStackTrace();

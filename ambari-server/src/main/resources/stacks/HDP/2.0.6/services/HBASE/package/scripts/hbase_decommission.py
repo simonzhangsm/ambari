@@ -22,7 +22,7 @@ from resource_management import *
 
 
 def hbase_decommission(env):
-  import params
+  from . import params
 
   env.set_params(params)
   kinit_cmd = params.kinit_cmd

@@ -195,8 +195,8 @@ public class ClustersTest {
 		
 		clusters.addCluster(c1);
 		clusters.addCluster(c2);
-		clusters.getCluster(c1).setDesiredStackVersion(new StackId("HDP-0.1"));
-		clusters.getCluster(c2).setDesiredStackVersion(new StackId("HDP-0.1"));
+		clusters.getCluster(c1).setDesiredStackVersion(new StackId("HDP-2.0.1"));
+		clusters.getCluster(c2).setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		Assert.assertNotNull(clusters.getCluster(c1));
 		Assert.assertNotNull(clusters.getCluster(c2));
 		try {
@@ -266,8 +266,8 @@ public class ClustersTest {
 		String h3 = "h3";
 		clusters.addCluster(c1);
 		clusters.addCluster(c2);
-		clusters.getCluster(c1).setDesiredStackVersion(new StackId("HDP-0.1"));
-		clusters.getCluster(c2).setDesiredStackVersion(new StackId("HDP-0.1"));
+		clusters.getCluster(c1).setDesiredStackVersion(new StackId("HDP-2.0.1"));
+		clusters.getCluster(c2).setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		clusters.addHost(h1);
 		clusters.addHost(h2);
 		clusters.addHost(h3);
@@ -294,8 +294,8 @@ public class ClustersTest {
 		clusters.addCluster(c1);
 		
 		Cluster cluster = clusters.getCluster(c1);
-		cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
-		cluster.setCurrentStackVersion(new StackId("HDP-0.1"));
+		cluster.setDesiredStackVersion(new StackId("HDP-2.0.1"));
+		cluster.setCurrentStackVersion(new StackId("HDP-2.0.1"));
 		
 		final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1", new HashMap<String, String>() {
 			{
@@ -408,7 +408,7 @@ public class ClustersTest {
 			// Expected
 		}
 		
-		StackId stackId = new StackId("HDP-0.1");
+		StackId stackId = new StackId("HDP-2.0.1");
 		
 		try {
 			clusters.setCurrentStackVersion(c1, stackId);

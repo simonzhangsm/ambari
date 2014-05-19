@@ -22,8 +22,8 @@ Ambari Agent
 import sys
 
 from resource_management import *
-import service
-import yarn
+from . import service
+from . import yarn
 
 
 class Histroryserver(Script):
@@ -31,23 +31,23 @@ class Histroryserver(Script):
     self.install_packages(env)
 
   def configure(self, env):
-    import params
+    from . import params
     env.set_params(params)
     yarn(name="historyserver")
 
   def start(self, env):
-    import params
+    from . import params
     env.set_params(params)
     self.configure(env)  # FOR SECURITY
     service('historyserver', action='start', serviceName='mapreduce')
 
   def stop(self, env):
-    import params
+    from . import params
     env.set_params(params)
     service('historyserver', action='stop', serviceName='mapreduce')
 
   def status(self, env):
-    import status_params
+    from . import status_params
     env.set_params(status_params)
     check_process_status(status_params.mapred_historyserver_pid_file)
 

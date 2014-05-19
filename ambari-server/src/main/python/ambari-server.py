@@ -42,9 +42,10 @@ import tempfile
 import time
 import urllib.request, urllib.error, urllib.parse
 
+from common_functions import OSCheck
+
 from ambari_server import utils
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
-from common_functions import OSCheck
 
 
 # debug settings
@@ -251,6 +252,11 @@ PG_HOME = "/usr/local/pgsql"
 PG_HBA_DIR = utils.get_postgre_hba_dir(OS_TYPE)
 PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
 
+if os.path.isfile("/usr/bin/postgresql-setup"):
+    PG_INITDB_CMD = "/usr/bin/postgresql-setup initdb"
+else:
+    PG_INITDB_CMD = "%s %s initdb" % (SERVICE_CMD, PG_SERVICE_NAME)
+
 if OS_TYPE == utils.OS_UBUNTU:
   PG_HOME = "/usr/local/pgsql"
   PG_HBA_DIR = '/usr/local/pgsql/data'
@@ -258,13 +264,10 @@ elif OS_TYPE == utils.OS_DARWIN:
   PG_HOME = '/Library/PostgreSQL/9.3'
   PG_HBA_DIR = '/Library/PostgreSQL/9.3/data'
   PG_ST_CMD = "su - postgres -c '%s/bin/pg_ctl status -D %s'" % (PG_HOME, PG_HBA_DIR)
+  PG_INITDB_CMD = "su - postgres -c '%s/bin/pg_ctl initdb -D %s'" % (PG_HOME, PG_HBA_DIR)
   
 PG_SQL = "%s/bin/psql" % (PG_HOME)
 
-if os.path.isfile("/usr/bin/postgresql-setup"):
-    PG_INITDB_CMD = "/usr/bin/postgresql-setup initdb"
-else:
-    PG_INITDB_CMD = "%s %s initdb" % (SERVICE_CMD, PG_SERVICE_NAME)
 
 PG_START_CMD = "%s %s start" % (SERVICE_CMD, PG_SERVICE_NAME)
 PG_RESTART_CMD = "%s %s restart" % (SERVICE_CMD, PG_SERVICE_NAME)
@@ -1087,8 +1090,7 @@ def check_postgre_up():
     if OS_TYPE != utils.OS_UBUNTU:
       print("Running initdb: This may take upto a minute.")
       retcode, out, err = run_os_command(PG_INITDB_CMD)
-      if retcode == 0:
-        print(out)
+
     print("About to start PostgreSQL")
     try:
       process = subprocess.Popen(PG_START_CMD.split(' '),
@@ -1268,8 +1270,7 @@ def prompt_db_properties(args):
             args.sid_or_sname = "sid"
 
           IDTYPE_INDEX = int(idType) - 1
-          args.database_name = get_validated_service_name(args.database_name,
-                                                          IDTYPE_INDEX)
+          args.database_name = get_validated_service_name(args.database_name, IDTYPE_INDEX)
         elif args.dbms in ["mysql", "postgres"]:
           args.database_name = get_validated_db_name(args.database_name)
 
@@ -1996,7 +1997,7 @@ def configure_os_settings():
   except KeyError as e:
     print_error_msg("os_type is not set in properties file")
 
-  master_os_type = OS_FAMILY + OS_VERSION
+  master_os_type = OSCheck.get_os_family() + OSCheck.get_os_major_version()
   write_property(OS_TYPE_PROPERTY, master_os_type)
   return 0
 

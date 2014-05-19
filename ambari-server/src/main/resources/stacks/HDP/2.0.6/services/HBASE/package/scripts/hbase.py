@@ -25,7 +25,7 @@ from resource_management import *
 
 def hbase(name=None  # 'master' or 'regionserver' or 'client'
               ):
-  import params
+  from . import params
 
   if name in ["master", "regionserver"]:
     params.HdfsDirectory(params.hbase_hdfs_root_dir,
@@ -123,7 +123,7 @@ def hbase(name=None  # 'master' or 'regionserver' or 'client'
 def hbase_TemplateConfig(name,
                          tag=None
                          ):
-  import params
+  from . import params
 
   TemplateConfig(format("{conf_dir}/{name}"),
       owner=params.hbase_user,

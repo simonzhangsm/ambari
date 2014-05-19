@@ -53,7 +53,7 @@ public class ServiceTest {
 		clusterName = "foo";
 		clusters.addCluster(clusterName);
 		cluster = clusters.getCluster(clusterName);
-		cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+		cluster.setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		Assert.assertNotNull(cluster);
 	}
 	
@@ -88,8 +88,8 @@ public class ServiceTest {
 		Service service = cluster.getService(serviceName);
 		Assert.assertNotNull(service);
 		
-		service.setDesiredStackVersion(new StackId("HDP-1.1.0"));
-		Assert.assertEquals("HDP-1.1.0", service.getDesiredStackVersion().getStackId());
+		service.setDesiredStackVersion(new StackId("HDP-2.0.1"));
+		Assert.assertEquals("HDP-2.0.1", service.getDesiredStackVersion().getStackId());
 		
 		service.setDesiredState(State.INSTALLING);
 		Assert.assertEquals(State.INSTALLING, service.getDesiredState());
@@ -112,8 +112,8 @@ public class ServiceTest {
 		Assert.assertTrue(s.getServiceComponents().isEmpty());
 		
 		ServiceComponent sc1 = serviceComponentFactory.createNew(s, "NAMENODE");
-		ServiceComponent sc2 = serviceComponentFactory.createNew(s, "DATANODE1");
-		ServiceComponent sc3 = serviceComponentFactory.createNew(s, "DATANODE2");
+		ServiceComponent sc2 = serviceComponentFactory.createNew(s, "DATANODE");
+		//ServiceComponent sc3 = serviceComponentFactory.createNew(s, "DATANODE2");
 		
 		Map<String, ServiceComponent> comps = new HashMap<String, ServiceComponent>();
 		comps.put(sc1.getName(), sc1);
@@ -125,18 +125,18 @@ public class ServiceTest {
 		Assert.assertNotNull(s.getServiceComponent(sc1.getName()));
 		Assert.assertNotNull(s.getServiceComponent(sc2.getName()));
 		
-		try {
-			s.getServiceComponent(sc3.getName());
-			fail("Expected error when looking for invalid component");
-		} catch (Exception e) {
-			// Expected
-		}
+		//try {
+		//	s.getServiceComponent(sc3.getName());
+		//	fail("Expected error when looking for invalid component");
+		//} catch (Exception e) {
+		//	// Expected
+		//}
 		
-		s.addServiceComponent(sc3);
+		//s.addServiceComponent(sc3);
 		
 		sc1.persist();
 		sc2.persist();
-		sc3.persist();
+		//sc3.persist();
 		
 		ServiceComponent sc4 = s.addServiceComponent("HDFS_CLIENT");
 		Assert.assertNotNull(s.getServiceComponent(sc4.getName()));
@@ -144,12 +144,12 @@ public class ServiceTest {
 		Assert.assertTrue(sc4.isClientComponent());
 		sc4.persist();
 		
-		Assert.assertEquals(4, s.getServiceComponents().size());
+		Assert.assertEquals(3, s.getServiceComponents().size());
 		
-		Assert.assertNotNull(s.getServiceComponent(sc3.getName()));
-		Assert.assertEquals(sc3.getName(), s.getServiceComponent(sc3.getName()).getName());
-		Assert.assertEquals(s.getName(), s.getServiceComponent(sc3.getName()).getServiceName());
-		Assert.assertEquals(cluster.getClusterName(), s.getServiceComponent(sc3.getName()).getClusterName());
+		//Assert.assertNotNull(s.getServiceComponent(sc3.getName()));
+		//Assert.assertEquals(sc3.getName(), s.getServiceComponent(sc3.getName()).getName());
+		//Assert.assertEquals(s.getName(), s.getServiceComponent(sc3.getName()).getServiceName());
+		//Assert.assertEquals(cluster.getClusterName(), s.getServiceComponent(sc3.getName()).getClusterName());
 		
 		sc4.setDesiredState(State.INSTALLING);
 		Assert.assertEquals(State.INSTALLING, s.getServiceComponent("HDFS_CLIENT").getDesiredState());
@@ -178,7 +178,7 @@ public class ServiceTest {
 		Assert.assertEquals(s.getDesiredStackVersion().getStackId(), r.getDesiredStackVersion());
 		Assert.assertEquals(s.getDesiredState().toString(), r.getDesiredState());
 		
-		service.setDesiredStackVersion(new StackId("HDP-1.1.0"));
+		service.setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		service.setDesiredState(State.INSTALLING);
 		r = s.convertToResponse();
 		Assert.assertEquals(s.getName(), r.getServiceName());
@@ -197,13 +197,13 @@ public class ServiceTest {
 	@Test
 	public void testDeleteServiceComponent() throws Exception {
 		Service hdfs = cluster.addService("HDFS");
-		Service mapReduce = cluster.addService("MAPREDUCE");
+		Service mapReduce = cluster.addService("MAPREDUCE2");
 		
 		hdfs.persist();
 		
 		ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
 		nameNode.persist();
-		ServiceComponent jobTracker = mapReduce.addServiceComponent("JOBTRACKER");
+		ServiceComponent jobTracker = mapReduce.addServiceComponent("HISTORYSERVER");
 		
 		assertEquals(2, cluster.getServices().size());
 		assertEquals(1, hdfs.getServiceComponents().size());
@@ -216,7 +216,7 @@ public class ServiceTest {
 		assertEquals(0, hdfs.getServiceComponents().size());
 		assertEquals(1, mapReduce.getServiceComponents().size());
 		
-		mapReduce.deleteServiceComponent("JOBTRACKER");
+		mapReduce.deleteServiceComponent("HISTORYSERVER");
 		
 		assertEquals(0, hdfs.getServiceComponents().size());
 		assertEquals(0, mapReduce.getServiceComponents().size());

@@ -17,19 +17,19 @@ limitations under the License.
 '''
 from unittest import TestCase
 import subprocess
-import sys
 
 from mock import MagicMock
 from mock import patch
 
-setup_agent = __import__('ambari_server.setupAgent')
+from ambari_server import setupAgent
+
 
 class TestSetupAgent(TestCase):
 
   @patch("sys.exit")
   @patch("socket.socket")
   def test_checkServerReachability(self, socket_mock, exit_mock):
-      setup_agent.checkServerReachability("localhost", 8080)
+      setupAgent.checkServerReachability("localhost", 8080)
       self.assertTrue(socket_mock.called)
       s = socket_mock.return_value
       s.connect = MagicMock()
@@ -37,7 +37,7 @@ class TestSetupAgent(TestCase):
           raise Exception(1, "socket is closed")
       s.connect.side_effect = side_effect
       try:
-          setup_agent.checkServerReachability("localhost", 8080)
+          setupAgent.checkServerReachability("localhost", 8080)
           self.fail("Should throw exception because port is closed")
       except Exception:
       # Expected
@@ -45,16 +45,16 @@ class TestSetupAgent(TestCase):
           pass
 
 
-  @patch.object(setup_agent, 'execOsCommand')
+  @patch.object(setupAgent, 'execOsCommand')
   def test_configureAgent(self, execOsCommand_mock):
     # Test if expected_hostname is passed
     hostname = "test.hst"
-    setup_agent.configureAgent(hostname)
+    setupAgent.configureAgent(hostname)
     cmdStr = str(execOsCommand_mock.call_args_list[0][0])
     self.assertTrue(hostname in cmdStr)
 
 
-  @patch.object(setup_agent, 'execOsCommand')
+  @patch.object(setupAgent, 'execOsCommand')
   @patch("os.environ")
   @patch("subprocess.call")
   @patch("time.sleep")
@@ -64,28 +64,28 @@ class TestSetupAgent(TestCase):
     call_mock.return_value = 0
     execOsCommand_mock.return_value = {'log': 'log', 'exitstatus': 0}
     # Test if expected_hostname is passed
-    ret = setup_agent.runAgent(passphrase, expected_hostname)
+    ret = setupAgent.runAgent(passphrase, expected_hostname)
     cmdStr = str(call_mock.call_args_list[0][0])
     self.assertTrue(expected_hostname in cmdStr)
     self.assertEqual(ret, 0)
     self.assertTrue(sleep_mock.called)
     # Key 'log' not found
     execOsCommand_mock.return_value = None
-    ret = setup_agent.runAgent(passphrase, expected_hostname)
+    ret = setupAgent.runAgent(passphrase, expected_hostname)
     cmdStr = str(call_mock.call_args_list[0][0])
     self.assertTrue(expected_hostname in cmdStr)
     self.assertEqual(ret, 1)
     # Retcode id not 0
     execOsCommand_mock.return_value = {'log': 'log', 'exitstatus': 2}
-    ret = setup_agent.runAgent(passphrase, expected_hostname)
+    ret = setupAgent.runAgent(passphrase, expected_hostname)
     cmdStr = str(call_mock.call_args_list[0][0])
     self.assertTrue(expected_hostname in cmdStr)
     self.assertEqual(ret, 2)
 
-  @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
+  @patch.object(setupAgent, 'getAvaliableAgentPackageVersions')
   @patch('common_functions.OSCheck.is_suse_family')
   @patch('common_functions.OSCheck.is_debian_family')
-  @patch.object(setup_agent, 'findNearestAgentPackageVersion')
+  @patch.object(setupAgent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_initial_on_suse(self, findNearestAgentPackageVersion_method, is_debian_family_method,
                                                        is_suse_family_method, getAvaliableAgentPackageVersions_method):
     getAvaliableAgentPackageVersions_method.return_value = {"exitstatus": 0, "log": "1.1.1"}
@@ -93,15 +93,15 @@ class TestSetupAgent(TestCase):
     is_debian_family_method.return_value = False
 
     projectVersion = "1.1.1"
-    result_version = setup_agent.getOptimalVersion(projectVersion)
+    result_version = setupAgent.getOptimalVersion(projectVersion)
     self.assertTrue(findNearestAgentPackageVersion_method.called)
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
-  @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
+  @patch.object(setupAgent, 'getAvaliableAgentPackageVersions')
   @patch('common_functions.OSCheck.is_suse_family')
   @patch('common_functions.OSCheck.is_debian_family')
-  @patch.object(setup_agent, 'findNearestAgentPackageVersion')
+  @patch.object(setupAgent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_initial_on_debian(self, findNearestAgentPackageVersion_method, is_debian_family_method,
                                                        is_suse_family_method, getAvaliableAgentPackageVersions_method):
     getAvaliableAgentPackageVersions_method.return_value = {"exitstatus": 0, "log": "1.1.1"}
@@ -109,14 +109,14 @@ class TestSetupAgent(TestCase):
     is_debian_family_method.return_value = True
 
     projectVersion = "1.1.1"
-    result_version = setup_agent.getOptimalVersion(projectVersion)
+    result_version = setupAgent.getOptimalVersion(projectVersion)
     self.assertTrue(findNearestAgentPackageVersion_method.called)
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
   @patch('common_functions.OSCheck.is_suse_family')
   @patch('common_functions.OSCheck.is_debian_family')
-  @patch.object(setup_agent, 'findNearestAgentPackageVersion')
+  @patch.object(setupAgent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_nearest_on_suse(self, findNearestAgentPackageVersion_method,
                                                        is_debian_family_method,
                                                        is_suse_family_method):
@@ -130,14 +130,14 @@ class TestSetupAgent(TestCase):
       "log": [nearest_version, ""]
     }
 
-    result_version = setup_agent.getOptimalVersion(projectVersion)
+    result_version = setupAgent.getOptimalVersion(projectVersion)
     self.assertTrue(findNearestAgentPackageVersion_method.called)
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
   @patch('common_functions.OSCheck.is_suse_family')
   @patch('common_functions.OSCheck.is_debian_family')
-  @patch.object(setup_agent, 'findNearestAgentPackageVersion')
+  @patch.object(setupAgent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_nearest_on_debian(self, findNearestAgentPackageVersion_method,
                                                        is_debian_family_method,
                                                        is_suse_family_method):
@@ -151,15 +151,15 @@ class TestSetupAgent(TestCase):
       "log": [nearest_version, ""]
     }
 
-    result_version = setup_agent.getOptimalVersion(projectVersion)
+    result_version = setupAgent.getOptimalVersion(projectVersion)
     self.assertTrue(findNearestAgentPackageVersion_method.called)
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
-  @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
+  @patch.object(setupAgent, 'getAvaliableAgentPackageVersions')
   @patch('common_functions.OSCheck.is_suse_family')
   @patch('common_functions.OSCheck.is_debian_family')
-  @patch.object(setup_agent, 'findNearestAgentPackageVersion')
+  @patch.object(setupAgent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_initial(self, findNearestAgentPackageVersion_method,
                                                is_debian_family_method,
                                                is_suse_family_method, getAvaliableAgentPackageVersions_method):
@@ -168,15 +168,15 @@ class TestSetupAgent(TestCase):
     is_debian_family_method.return_value = False
 
     projectVersion = "1.1.1"
-    result_version = setup_agent.getOptimalVersion(projectVersion)
+    result_version = setupAgent.getOptimalVersion(projectVersion)
     self.assertTrue(findNearestAgentPackageVersion_method.called)
     self.assertTrue(result_version["log"] == projectVersion)
     pass
 
-  @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
+  @patch.object(setupAgent, 'getAvaliableAgentPackageVersions')
   @patch('common_functions.OSCheck.is_suse_family')
   @patch('common_functions.OSCheck.is_debian_family')
-  @patch.object(setup_agent, 'findNearestAgentPackageVersion')
+  @patch.object(setupAgent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_default(self, findNearestAgentPackageVersion_method,
                                                is_debian_family_method,
                                                is_suse_family_method, getAvaliableAgentPackageVersions_method):
@@ -189,34 +189,34 @@ class TestSetupAgent(TestCase):
     }
 
     projectVersion = "1.1.1"
-    result_version = setup_agent.getOptimalVersion(projectVersion)
+    result_version = setupAgent.getOptimalVersion(projectVersion)
 
     self.assertTrue(findNearestAgentPackageVersion_method.called)
     self.assertTrue(result_version["exitstatus"] == 1)
 
   @patch.object(subprocess, 'Popen')
   def test_execOsCommand(self, Popen_mock):
-    self.assertFalse(setup_agent.execOsCommand("hostname -f") == None)
+    self.assertFalse(setupAgent.execOsCommand("hostname -f") == None)
 
-  @patch.object(setup_agent, 'isAgentPackageAlreadyInstalled')
-  @patch.object(setup_agent, 'runAgent')
-  @patch.object(setup_agent, 'configureAgent')
-  @patch.object(setup_agent, 'installAgent')
+  @patch.object(setupAgent, 'isAgentPackageAlreadyInstalled')
+  @patch.object(setupAgent, 'runAgent')
+  @patch.object(setupAgent, 'configureAgent')
+  @patch.object(setupAgent, 'installAgent')
   @patch('common_functions.OSCheck.is_suse_family')
   @patch('common_functions.OSCheck.is_debian_family')
-  @patch.object(setup_agent, 'getOptimalVersion')
-  @patch.object(setup_agent, 'checkServerReachability')
+  @patch.object(setupAgent, 'getOptimalVersion')
+  @patch.object(setupAgent, 'checkServerReachability')
   @patch("sys.exit")
   @patch("os.path.dirname")
   @patch("os.path.realpath")
-  def test_setup_agent_main(self, dirname_mock, realpath_mock, exit_mock, checkServerReachability_mock,
+  def test_setupAgent_main(self, dirname_mock, realpath_mock, exit_mock, checkServerReachability_mock,
                             getOptimalVersion_mock, is_debian_family_mock, is_suse_family_mock,
                             installAgent_mock, configureAgent_mock, runAgent_mock,
                             isAgentPackageAlreadyInstalled_mock):
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 0}
     runAgent_mock.return_value = 0
     getOptimalVersion_mock.return_value = {'log': '1.1.2, 1.1.3, ', 'exitstatus': 1}
-    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
+    setupAgent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
     self.assertTrue(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
     exit_mock.reset_mock()
@@ -226,7 +226,7 @@ class TestSetupAgent(TestCase):
     isAgentPackageAlreadyInstalled_mock.return_value = False
     is_suse_family_mock.return_value = True
     is_debian_family_mock.return_value = False
-    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
+    setupAgent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
     self.assertTrue(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
     self.assertTrue(isAgentPackageAlreadyInstalled_mock.called)
@@ -241,7 +241,7 @@ class TestSetupAgent(TestCase):
     installAgent_mock.reset_mock()
 
     getOptimalVersion_mock.return_value = {'log': '', 'exitstatus': 0}
-    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
+    setupAgent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
     self.assertTrue(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
     self.assertFalse(isAgentPackageAlreadyInstalled_mock.called)
@@ -258,7 +258,7 @@ class TestSetupAgent(TestCase):
     is_suse_family_mock.return_value = False
     is_debian_family_mock.return_value = False
     getOptimalVersion_mock.return_value = {'log': '1.1.1', 'exitstatus': 0}
-    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
+    setupAgent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
     self.assertTrue(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
     self.assertTrue(isAgentPackageAlreadyInstalled_mock.called)
@@ -275,18 +275,18 @@ class TestSetupAgent(TestCase):
     is_debian_family_mock.reset_mock()
     installAgent_mock.reset_mock()
 
-    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "{ambariVersion}", "8080"))
+    setupAgent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "{ambariVersion}", "8080"))
     self.assertTrue(getOptimalVersion_mock.called)
     self.assertTrue(exit_mock.called)
     exit_mock.reset_mock()
     getOptimalVersion_mock.reset_mock()
-    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "null", "8080"))
+    setupAgent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "null", "8080"))
     self.assertTrue(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
     exit_mock.reset_mock()
     is_suse_family_mock.return_value = False
     is_debian_family_mock.return_value = False
-    setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "null", "null"))
+    setupAgent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "null", "null"))
     self.assertTrue(exit_mock.called)
     exit_mock.reset_mock()
     def side_effect(retcode):
@@ -295,7 +295,7 @@ class TestSetupAgent(TestCase):
     # if "yum -y install --nogpgcheck ambari-agent" return not 0 result
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 1}
     try:
-        setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
+        setupAgent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
         self.fail("Should throw exception")
     except Exception:
         # Expected
@@ -309,7 +309,7 @@ class TestSetupAgent(TestCase):
     # if "zypper install -y ambari-agent" return not 0 result
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 1}
     try:
-        setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
+        setupAgent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
         self.fail("Should throw exception")
     except Exception:
         # Expected
@@ -322,37 +322,37 @@ class TestSetupAgent(TestCase):
 
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 1}
     try:
-        setup_agent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
+        setupAgent.main(("setupAgent.py", "agents_host", "password", "server_hostname", "1.1.1", "8080"))
         self.fail("Should throw exception")
     except Exception:
         # Expected
         pass
     self.assertTrue(exit_mock.called)
 
-  @patch.object(setup_agent, 'execOsCommand')
+  @patch.object(setupAgent, 'execOsCommand')
   def test_findNearestAgentPackageVersion(self, execOsCommand_mock):
-      setup_agent.findNearestAgentPackageVersion("1.1.1")
+      setupAgent.findNearestAgentPackageVersion("1.1.1")
       self.assertTrue(execOsCommand_mock.called)
       execOsCommand_mock.reset_mock()
-      setup_agent.findNearestAgentPackageVersion("")
+      setupAgent.findNearestAgentPackageVersion("")
       self.assertTrue(execOsCommand_mock.called)
 
-  @patch.object(setup_agent, 'execOsCommand')
+  @patch.object(setupAgent, 'execOsCommand')
   def test_isAgentPackageAlreadyInstalled(self, execOsCommand_mock):
       execOsCommand_mock.return_value = {"exitstatus": 0, "log": "1.1.1"}
-      self.assertTrue(setup_agent.isAgentPackageAlreadyInstalled("1.1.1"))
+      self.assertTrue(setupAgent.isAgentPackageAlreadyInstalled("1.1.1"))
       self.assertTrue(execOsCommand_mock.called)
       execOsCommand_mock.reset_mock()
       execOsCommand_mock.return_value = {"exitstatus": 1, "log": "1.1.1"}
-      self.assertFalse(setup_agent.isAgentPackageAlreadyInstalled("1.1.1"))
+      self.assertFalse(setupAgent.isAgentPackageAlreadyInstalled("1.1.1"))
       self.assertTrue(execOsCommand_mock.called)
 
-  @patch.object(setup_agent, 'execOsCommand')
+  @patch.object(setupAgent, 'execOsCommand')
   def test_getAvaliableAgentPackageVersions(self, execOsCommand_mock):
-      setup_agent.getAvaliableAgentPackageVersions()
+      setupAgent.getAvaliableAgentPackageVersions()
       self.assertTrue(execOsCommand_mock.called)
 
-  @patch.object(setup_agent, 'execOsCommand')
+  @patch.object(setupAgent, 'execOsCommand')
   def test_installAgent(self, execOsCommand_mock):
-    setup_agent.installAgent("1.1.1")
+    setupAgent.installAgent("1.1.1")
     self.assertTrue(execOsCommand_mock.called)

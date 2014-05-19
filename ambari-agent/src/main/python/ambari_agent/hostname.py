@@ -21,7 +21,7 @@ limitations under the License.
 import socket
 import subprocess
 import urllib.request, urllib.error, urllib.parse
-import AmbariConfig
+from . import AmbariConfig
 import logging
 import traceback
 
@@ -92,8 +92,8 @@ def public_hostname():
   return cached_public_hostname
 
 def main(argv=None):
-  print(hostname())
-  print(public_hostname())
+  print((hostname()))
+  print((public_hostname()))
 
 if __name__ == '__main__':
   main()

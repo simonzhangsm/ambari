@@ -329,7 +329,7 @@ def run_os_command(cmd):
 
 
 def main(argv=None):
-  print(Facter().facterInfo())
+  print((Facter().facterInfo()))
 
 
 if __name__ == '__main__':

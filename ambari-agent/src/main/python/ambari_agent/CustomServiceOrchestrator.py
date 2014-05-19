@@ -23,12 +23,12 @@ import os
 import json, pprint
 import sys
 
-from FileCache import FileCache
-from AgentException import AgentException
-from PythonExecutor import PythonExecutor
-from AmbariConfig import AmbariConfig
-import hostname
-from LiveStatus import LiveStatus
+from .FileCache import FileCache
+from .AgentException import AgentException
+from .PythonExecutor import PythonExecutor
+from .AmbariConfig import AmbariConfig
+from . import hostname
+from .LiveStatus import LiveStatus
 import manifestGenerator
 
 
@@ -203,7 +203,7 @@ class CustomServiceOrchestrator():
     command['public_hostname'] = public_fqdn
     # Now, dump the json file
     command_type = command['commandType']
-    from ActionQueue import ActionQueue  # To avoid cyclic dependency
+    from .ActionQueue import ActionQueue  # To avoid cyclic dependency
     if command_type == ActionQueue.STATUS_COMMAND:
       # These files are frequently created, thats why we don't
       # store them all, but only the latest one
@@ -227,7 +227,7 @@ class CustomServiceOrchestrator():
     pingPorts = info.pop(self.PING_PORTS_KEY)
     ambariServerHost = info.pop(self.AMBARI_SERVER_HOST)
     decompressedMap = {}
-    for k,v in info.items():
+    for k,v in list(info.items()):
       # Convert from 1-3,5,6-8 to [1,2,3,5,6,7,8]
       indexes = self.convertRangeToList(v)
       # Convert from [1,2,3,5,6,7,8] to [host1,host2,host3...]
@@ -235,7 +235,7 @@ class CustomServiceOrchestrator():
     #Convert from ['1:0-2,4', '42:3,5-7'] to [1,1,1,42,1,42,42,42]
     pingPorts = self.convertMappedRangeToList(pingPorts)
     #Convert all elements to str
-    pingPorts = map(str, pingPorts)
+    pingPorts = list(map(str, pingPorts))
     #Add ping ports to result
     decompressedMap[self.PING_PORTS_KEY] = pingPorts
     #Add hosts list to result
@@ -253,7 +253,7 @@ class CustomServiceOrchestrator():
         if len(rangeBounds) == 2:
           if not rangeBounds[0] or not rangeBounds[1]:
             raise AgentException.AgentException("Broken data in given range, expected - ""m-n"" or ""m"", got : " + str(r))
-          resultList.extend(range(int(rangeBounds[0]), int(rangeBounds[1]) + 1))
+          resultList.extend(list(range(int(rangeBounds[0]), int(rangeBounds[1]) + 1)))
         elif len(rangeBounds) == 1:
           resultList.append((int(rangeBounds[0])))
         else:
@@ -264,7 +264,7 @@ class CustomServiceOrchestrator():
     resultDict = {}
     for i in list:
       valueToRanges = i.split(":")
-      if len(valueToRanges) <> 2:
+      if len(valueToRanges) != 2:
         raise AgentException.AgentException("Broken data in given value to range, expected format - ""value:m-n"", got - " + str(i))
       value = valueToRanges[0]
       rangesToken = valueToRanges[1]
@@ -280,5 +280,5 @@ class CustomServiceOrchestrator():
         elif len(rangeIndexes) == 1:
           index = int(rangeIndexes[0])
           resultDict[index] = int(value)
-    resultList = dict(sorted(resultDict.items())).values()
+    resultList = list(dict(sorted(resultDict.items())).values())
     return resultList

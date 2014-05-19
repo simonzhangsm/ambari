@@ -27,15 +27,15 @@ import traceback
 import os
 import time
 import configparser
-import ProcessHelper
-from Controller import Controller
-import AmbariConfig
-from security import CertificateManager
-from NetUtil import NetUtil
-from PingPortListener import PingPortListener
-import security
-import hostname
-from DataCleaner import DataCleaner
+from . import ProcessHelper
+from .Controller import Controller
+from . import AmbariConfig
+from .security import CertificateManager
+from .NetUtil import NetUtil
+from .PingPortListener import PingPortListener
+from . import security
+from . import hostname
+from .DataCleaner import DataCleaner
 
 logger = logging.getLogger()
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
@@ -136,7 +136,7 @@ def perform_prestart_checks(expected_hostname):
       sys.exit(1)
   # Check if there is another instance running
   if os.path.isfile(ProcessHelper.pidfile):
-    print("%s already exists, exiting" % ProcessHelper.pidfile)
+    print(("%s already exists, exiting" % ProcessHelper.pidfile))
     sys.exit(1)
   # check if ambari prefix exists
   elif not os.path.isdir(config.get("agent", "prefix")):
@@ -216,7 +216,7 @@ def main():
   update_log_level(config)
 
   server_url = 'https://' + config.get('server', 'hostname') + ':' + config.get('server', 'url_port')
-  print("Connecting to the server at " + server_url + "...")
+  print(("Connecting to the server at " + server_url + "..."))
   logger.info('Connecting to the server at: ' + server_url)
 
   # Wait until server is reachable

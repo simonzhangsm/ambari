@@ -20,11 +20,13 @@
 #
 #
 
-import os
-import optparse
-import time
-import urllib2
 import json
+import optparse
+import os
+import time
+
+import urllib.request, urllib.error, urllib.parse
+
 
 CRIT_MESSAGE = "CRITICAL: Last checkpoint time is below acceptable. Checkpoint was done {h}h. {m}m. ago"
 WARNING_MESSAGE = "WARNING: Last checkpoint time is below acceptable. Checkpoint was done {h}h. {m}m. ago"
@@ -56,39 +58,39 @@ def main():
 
   last_checkpoint_time_qry = "http://{host}:{port}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem".\
     format(host=host, port=options.port)
-  last_checkpoint_time = int(get_value_from_jmx(last_checkpoint_time_qry,"LastCheckpointTime"))
+  last_checkpoint_time = int(get_value_from_jmx(last_checkpoint_time_qry, "LastCheckpointTime"))
 
   journal_transaction_info_qry = "http://{host}:{port}/jmx?qry=Hadoop:service=NameNode,name=NameNodeInfo".\
     format(host=host, port=options.port)
-  journal_transaction_info = get_value_from_jmx(journal_transaction_info_qry,"JournalTransactionInfo")
+  journal_transaction_info = get_value_from_jmx(journal_transaction_info_qry, "JournalTransactionInfo")
   journal_transaction_info_dict = json.loads(journal_transaction_info)
 
   last_txid = int(journal_transaction_info_dict['LastAppliedOrWrittenTxId'])
   most_txid = int(journal_transaction_info_dict['MostRecentCheckpointTxId'])
 
-  delta = (current_time - last_checkpoint_time)/1000
+  delta = (current_time - last_checkpoint_time) / 1000
 
-  if ((last_txid - most_txid) > int(options.txns)) and (float(delta) / int(options.period)*100 >= int(options.crit)):
-    print CRIT_MESSAGE.format(h=get_time(delta)['h'], m=get_time(delta)['m'])
+  if ((last_txid - most_txid) > int(options.txns)) and (float(delta) / int(options.period) * 100 >= int(options.crit)):
+    print((CRIT_MESSAGE.format(h=get_time(delta)['h'], m=get_time(delta)['m'])))
     exit(2)
-  elif ((last_txid - most_txid) > int(options.txns)) and (float(delta) / int(options.period)*100 >= int(options.warning)):
-    print WARNING_MESSAGE.format(h=get_time(delta)['h'], m=get_time(delta)['m'])
+  elif ((last_txid - most_txid) > int(options.txns)) and (float(delta) / int(options.period) * 100 >= int(options.warning)):
+    print((WARNING_MESSAGE.format(h=get_time(delta)['h'], m=get_time(delta)['m'])))
     exit(1)
   else:
-    print OK_MESSAGE
+    print(OK_MESSAGE)
     exit(0)
 
 def get_time(delta):
-  h = int(delta/3600)
-  m = int((delta % 3600)/60)
+  h = int(delta / 3600)
+  m = int((delta % 3600) / 60)
   return {'h':h, 'm':m}
 
 def get_value_from_jmx(qry, property):
   try:
-    response = urllib2.urlopen(qry)
-    data=response.read()
+    response = urllib.request.urlopen(qry)
+    data = response.read()
   except Exception:
-    print WARNING_JMX_MESSAGE
+    print(WARNING_JMX_MESSAGE)
     exit(1)
 
   data_dict = json.loads(data)
@@ -98,11 +100,11 @@ def get_available_nn_host(options):
   nn_hosts = options.host.split(" ")
   for nn_host in nn_hosts:
     try:
-      urllib2.urlopen("http://{host}:{port}/jmx".format(host=nn_host, port=options.port))
+      urllib.request.urlopen("http://{host}:{port}/jmx".format(host=nn_host, port=options.port))
       return nn_host
     except Exception:
       pass
-  print WARNING_JMX_MESSAGE
+  print(WARNING_JMX_MESSAGE)
   exit(1)
 
 if __name__ == "__main__":

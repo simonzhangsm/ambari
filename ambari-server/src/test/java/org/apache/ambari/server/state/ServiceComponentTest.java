@@ -63,7 +63,7 @@ public class ServiceComponentTest {
 		serviceName = "HDFS";
 		clusters.addCluster(clusterName);
 		cluster = clusters.getCluster(clusterName);
-		cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+		cluster.setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		Assert.assertNotNull(cluster);
 		Service s = serviceFactory.createNew(cluster, serviceName);
 		cluster.addService(s);
@@ -79,7 +79,7 @@ public class ServiceComponentTest {
 	
 	@Test
 	public void testCreateServiceComponent() throws AmbariException {
-		String componentName = "DATANODE2";
+		String componentName = "DATANODE";
 		ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
 		service.addServiceComponent(component);
 		component.persist();
@@ -108,8 +108,8 @@ public class ServiceComponentTest {
 		sc.setDesiredState(State.INSTALLED);
 		Assert.assertEquals(State.INSTALLED, sc.getDesiredState());
 		
-		sc.setDesiredStackVersion(new StackId("HDP-1.0.0"));
-		Assert.assertEquals("HDP-1.0.0", sc.getDesiredStackVersion().getStackId());
+		sc.setDesiredStackVersion(new StackId("HDP-2.0.1"));
+		Assert.assertEquals("HDP-2.0.1", sc.getDesiredStackVersion().getStackId());
 		
 		ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
 		
@@ -123,7 +123,7 @@ public class ServiceComponentTest {
 		ServiceComponent sc1 = serviceComponentFactory.createExisting(service, serviceComponentDesiredStateEntity);
 		Assert.assertNotNull(sc1);
 		Assert.assertEquals(State.INSTALLED, sc1.getDesiredState());
-		Assert.assertEquals("HDP-1.0.0", sc1.getDesiredStackVersion().getStackId());
+		Assert.assertEquals("HDP-2.0.1", sc1.getDesiredStackVersion().getStackId());
 		
 	}
 	
@@ -209,7 +209,7 @@ public class ServiceComponentTest {
 		
 		sch1.setDesiredStackVersion(new StackId("HDP-1.1.0"));
 		sch1.setState(State.STARTING);
-		sch1.setStackVersion(new StackId("HDP-1.0.0"));
+		sch1.setStackVersion(new StackId("HDP-2.0.1"));
 		sch1.setDesiredState(State.STARTED);
 		
 		HostComponentDesiredStateDAO desiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
@@ -234,7 +234,7 @@ public class ServiceComponentTest {
 		Assert.assertNotNull(sch);
 		Assert.assertEquals(State.STARTING, sch.getState());
 		Assert.assertEquals(State.STARTED, sch.getDesiredState());
-		Assert.assertEquals("HDP-1.0.0", sch.getStackVersion().getStackId());
+		Assert.assertEquals("HDP-2.0.1", sch.getStackVersion().getStackId());
 		Assert.assertEquals("HDP-1.1.0", sch.getDesiredStackVersion().getStackId());
 	}
 	
@@ -248,7 +248,7 @@ public class ServiceComponentTest {
 		ServiceComponent sc = service.getServiceComponent(componentName);
 		Assert.assertNotNull(sc);
 		sc.setDesiredState(State.INSTALLED);
-		sc.setDesiredStackVersion(new StackId("HDP-1.0.0"));
+		sc.setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		
 		ServiceComponentResponse r = sc.convertToResponse();
 		Assert.assertEquals(sc.getClusterName(), r.getClusterName());

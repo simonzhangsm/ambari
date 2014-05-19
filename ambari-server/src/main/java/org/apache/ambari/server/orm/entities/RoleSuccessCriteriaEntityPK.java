@@ -11,8 +11,6 @@ import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Id;
 
-import org.apache.ambari.server.Role;
-
 @SuppressWarnings("serial")
 public class RoleSuccessCriteriaEntityPK implements Serializable {
 	private Long requestId;
@@ -41,14 +39,14 @@ public class RoleSuccessCriteriaEntityPK implements Serializable {
 	
 	private String role;
 	
-	@Column(name = "role")
 	@Id
-	public Role getRole() {
-		return Role.valueOf(role);
+	@Column(name = "role")
+	public String getRole() {
+		return role;
 	}
 	
-	public void setRole(Role role) {
-		this.role = role.name();
+	public void setRole(String rrole) {
+		this.role = rrole;
 	}
 	
 	@Override
