@@ -53,7 +53,7 @@ GET clusters
           "href" : "http://your.ambari.server/api/v1/clusters/c1",
           "Clusters" : {
             "cluster_name" : "c1",
-            "version" : "HDP-1.3.0"
+            "version" : "HDP-2.0.1"
           }
         }
       ]
@@ -130,7 +130,7 @@ GET cluster
       "Clusters" : {
         "cluster_name" : "c1",
         "cluster_id" : 2,
-        "version" : "HDP-1.3.0",
+        "version" : "HDP-2.0.1",
         "desired_configs" : {
           "mapred-site" : {
             "user" : "admin",
@@ -2129,8 +2129,8 @@ GET host_component
         "component_name" : "NAMENODE",
         "state" : "STARTED",
         "host_name" : "ip-10-39-130-141.ec2.internal",
-        "desired_stack_id" : "HDP-1.3.0",
-        "stack_id" : "HDP-1.3.0",
+        "desired_stack_id" : "HDP-2.0.1",
+        "stack_id" : "HDP-2.0.1",
         "configs" : { },
         "desired_configs" : { },
         "actual_configs" : {

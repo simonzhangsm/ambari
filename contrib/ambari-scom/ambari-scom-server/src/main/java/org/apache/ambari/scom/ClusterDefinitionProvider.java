@@ -56,7 +56,7 @@ public class ClusterDefinitionProvider {
   protected static final String DEFAULT_CLUSTER_NAME = "ambari";
 
   protected static final String SCOM_VERSION_ID    = "scom.version.id";
-  protected static final String DEFAULT_VERSION_ID = "HDP-1.3.0";
+  protected static final String DEFAULT_VERSION_ID = "HDP-2.0.1";
 
 
   // ----- Constructor -------------------------------------------------------

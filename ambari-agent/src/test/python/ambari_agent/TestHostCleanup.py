@@ -52,7 +52,7 @@ proc_list = 323,434
 usr_list = rrdcached,ambari-qa,hive,oozie,hbase,hcat,mysql,mapred,hdfs,zookeeper,sqoop,nagios
 
 [repositories]
-repo_list = HDP-1.3.0,HDP-epel
+repo_list = HDP-2.0.1,HDP-epel
 
 [directories]
 dir_list = /etc/hadoop,/etc/hbase,/etc/hcatalog,/tmp/hive,/tmp/nagios,/var/nagios

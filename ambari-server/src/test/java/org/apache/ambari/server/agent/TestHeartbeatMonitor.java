@@ -98,7 +98,7 @@ public class TestHeartbeatMonitor {
 		clusters.getHost(hostname2).persist();
 		clusters.addCluster(clusterName);
 		Cluster cluster = clusters.getCluster(clusterName);
-		cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+		cluster.setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		Set<String> hostNames = new HashSet<String>() {
 			{
 				add(hostname1);
@@ -178,7 +178,7 @@ public class TestHeartbeatMonitor {
 		clusters.getHost(hostname2).persist();
 		clusters.addCluster(clusterName);
 		Cluster cluster = clusters.getCluster(clusterName);
-		cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+		cluster.setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		Set<String> hostNames = new HashSet<String>() {
 			{
 				add(hostname1);
@@ -264,7 +264,7 @@ public class TestHeartbeatMonitor {
 		clusters.getHost(hostname1).persist();
 		clusters.addCluster(clusterName);
 		Cluster cluster = clusters.getCluster(clusterName);
-		cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+		cluster.setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		
 		Set<String> hostNames = new HashSet<String>() {
 			{
@@ -365,7 +365,7 @@ public class TestHeartbeatMonitor {
 		
 		clusters.addCluster(clusterName);
 		Cluster cluster = clusters.getCluster(clusterName);
-		cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+		cluster.setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		
 		Set<String> hostNames = new HashSet<String>() {
 			{
@@ -405,7 +405,7 @@ public class TestHeartbeatMonitor {
 		for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname1)) {
 			if (sch.getServiceComponentName().equals("NAMENODE")) {
 				// installing
-				sch.handleEvent(new ServiceComponentHostInstallEvent(sch.getServiceComponentName(), sch.getHostName(), System.currentTimeMillis(), "HDP-0.1"));
+				sch.handleEvent(new ServiceComponentHostInstallEvent(sch.getServiceComponentName(), sch.getHostName(), System.currentTimeMillis(), "HDP-2.0.1"));
 				
 				// installed
 				sch.handleEvent(new ServiceComponentHostOpSucceededEvent(sch.getServiceComponentName(), sch.getHostName(), System.currentTimeMillis()));
@@ -414,10 +414,10 @@ public class TestHeartbeatMonitor {
 				sch.handleEvent(new ServiceComponentHostStartedEvent(sch.getServiceComponentName(), sch.getHostName(), System.currentTimeMillis()));
 			} else if (sch.getServiceComponentName().equals("DATANODE")) {
 				// installing
-				sch.handleEvent(new ServiceComponentHostInstallEvent(sch.getServiceComponentName(), sch.getHostName(), System.currentTimeMillis(), "HDP-0.1"));
+				sch.handleEvent(new ServiceComponentHostInstallEvent(sch.getServiceComponentName(), sch.getHostName(), System.currentTimeMillis(), "HDP-2.0.1"));
 			} else if (sch.getServiceComponentName().equals("SECONDARY_NAMENODE")) {
 				// installing
-				sch.handleEvent(new ServiceComponentHostInstallEvent(sch.getServiceComponentName(), sch.getHostName(), System.currentTimeMillis(), "HDP-0.1"));
+				sch.handleEvent(new ServiceComponentHostInstallEvent(sch.getServiceComponentName(), sch.getHostName(), System.currentTimeMillis(), "HDP-2.0.1"));
 				
 				// installed
 				sch.handleEvent(new ServiceComponentHostOpSucceededEvent(sch.getServiceComponentName(), sch.getHostName(), System.currentTimeMillis()));

@@ -339,7 +339,7 @@ public class MinimalRendererTest {
 		
 		assertEquals(3, clusterProperties.get("Clusters").size());
 		assertEquals("testCluster", clusterProperties.get("Clusters").get("cluster_name"));
-		assertEquals("HDP-1.3.3", clusterProperties.get("Clusters").get("version"));
+		assertEquals("HDP-2.0.6", clusterProperties.get("Clusters").get("version"));
 		assertEquals("value1", clusterProperties.get("Clusters").get("prop1"));
 		
 		assertEquals(1, clusterProperties.get("").size());
@@ -405,7 +405,7 @@ public class MinimalRendererTest {
 		
 		assertEquals(3, clusterProperties.get("Clusters").size());
 		assertEquals("testCluster", clusterProperties.get("Clusters").get("cluster_name"));
-		assertEquals("HDP-1.3.3", clusterProperties.get("Clusters").get("version"));
+		assertEquals("HDP-2.0.6", clusterProperties.get("Clusters").get("version"));
 		assertEquals("value1", clusterProperties.get("Clusters").get("prop1"));
 		
 		assertEquals(1, clusterProperties.get("").size());
@@ -463,7 +463,7 @@ public class MinimalRendererTest {
 	private void createResultTree(TreeNode<Resource> resultTree) throws Exception {
 		Resource clusterResource = new ResourceImpl(Resource.Type.Cluster);
 		clusterResource.setProperty("Clusters/cluster_name", "testCluster");
-		clusterResource.setProperty("Clusters/version", "HDP-1.3.3");
+		clusterResource.setProperty("Clusters/version", "HDP-2.0.6");
 		clusterResource.setProperty("Clusters/prop1", "value1");
 		clusterResource.setProperty("foo", "bar");
 		

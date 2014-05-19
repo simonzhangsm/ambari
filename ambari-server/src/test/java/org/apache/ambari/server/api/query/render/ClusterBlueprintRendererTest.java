@@ -146,7 +146,7 @@ public class ClusterBlueprintRendererTest {
 	private void createClusterResultTree(TreeNode<Resource> resultTree) throws Exception {
 		Resource clusterResource = new ResourceImpl(Resource.Type.Cluster);
 		clusterResource.setProperty("Clusters/cluster_name", "testCluster");
-		clusterResource.setProperty("Clusters/version", "HDP-1.3.3");
+		clusterResource.setProperty("Clusters/version", "HDP-2.0.1");
 		TreeNode<Resource> clusterTree = resultTree.addChild(clusterResource, "Cluster:1");
 		
 		TreeNode<Resource> hostsTree = clusterTree.addChild(null, "hosts");

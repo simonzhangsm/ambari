@@ -21,8 +21,8 @@ limitations under the License.
 import sys
 
 from resource_management import *
-import storm
 from supervisord_service import supervisord_service, supervisord_check_status
+import storm
 
 
 class Nimbus(Script):

@@ -60,7 +60,7 @@ public class StackUpgradeUtilTest {
 		StackUpgradeUtil stackUpgradeUtil = injector.getInstance(StackUpgradeUtil.class);
 		
 		String stackName = "HDP";
-		String stackVersion = "1.3.0";
+		String stackVersion = "2.0.1";
 		String localRepoUrl = "http://foo.bar";
 		
 		// check updating all
@@ -72,7 +72,7 @@ public class StackUpgradeUtilTest {
 		Assert.assertTrue(entities.size() > 0);
 		
 		for (MetainfoEntity entity : entities) {
-			Assert.assertTrue(entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/"));
+			Assert.assertTrue(entity.getMetainfoName().startsWith("repo:/HDP/2.0.1/"));
 			Assert.assertEquals(localRepoUrl, entity.getMetainfoValue());
 		}
 		
@@ -85,7 +85,7 @@ public class StackUpgradeUtilTest {
 		
 		entities = dao.findAll();
 		for (MetainfoEntity entity : entities) {
-			Assert.assertTrue(entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/centos6") || entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/redhat6"));
+			Assert.assertTrue(entity.getMetainfoName().startsWith("repo:/HDP/2.0.1/centos6") || entity.getMetainfoName().startsWith("repo:/HDP/2.0.1/redhat6"));
 			Assert.assertEquals(localRepoUrl, entity.getMetainfoValue());
 		}
 		
@@ -98,8 +98,8 @@ public class StackUpgradeUtilTest {
 		
 		entities = dao.findAll();
 		for (MetainfoEntity entity : entities) {
-			Assert.assertTrue(entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/centos6") || entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/redhat6") || entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/redhat5")
-					|| entity.getMetainfoName().startsWith("repo:/HDP/1.3.0/centos5"));
+			Assert.assertTrue(entity.getMetainfoName().startsWith("repo:/HDP/2.0.1/centos6") || entity.getMetainfoName().startsWith("repo:/HDP/2.0.1/redhat6") || entity.getMetainfoName().startsWith("repo:/HDP/2.0.1/redhat5")
+					|| entity.getMetainfoName().startsWith("repo:/HDP/2.0.1/centos5"));
 			Assert.assertEquals(localRepoUrl, entity.getMetainfoValue());
 		}
 		

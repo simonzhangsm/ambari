@@ -43,7 +43,7 @@ def main():
 #    s = client.get_components("1.3.0", "HDFS")
 #    print s
 #
-#    mycluster = client.create_cluster("test46", "HDP-1.3.0")
+#    mycluster = client.create_cluster("test46", "HDP-2.0.1")
 #    print mycluster
 #
     mycluster = client.get_cluster('test46')

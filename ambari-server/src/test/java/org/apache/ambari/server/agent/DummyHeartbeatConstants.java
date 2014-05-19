@@ -23,7 +23,7 @@ public interface DummyHeartbeatConstants {
 	
 	String DummyHostStatus = "I am ok";
 	
-	String DummyStackId = "HDP-0.1";
+	String DummyStackId = "HDP-2.0.1";
 	
 	String HDFS = "HDFS";
 	String HBASE = "HBASE";

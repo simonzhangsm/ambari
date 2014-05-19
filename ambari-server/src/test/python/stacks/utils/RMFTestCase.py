@@ -25,7 +25,7 @@ import os
 import imp
 import sys
 import pprint
-from mock import MagicMock, patch
+from mock import patch
 import platform
 with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):
   from resource_management.core.environment import Environment

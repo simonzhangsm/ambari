@@ -22,10 +22,10 @@ from unittest import TestCase
 import sys
 import tempfile
 
+from common_functions import OSCheck
 from mock import patch
 
 from ambari_server import os_check_type
-from common_functions import OSCheck
 
 
 with patch("platform.linux_distribution", return_value=('Suse', '11', 'Final')):

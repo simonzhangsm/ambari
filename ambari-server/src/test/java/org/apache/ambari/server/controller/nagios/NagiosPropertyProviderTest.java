@@ -187,7 +187,7 @@ public class NagiosPropertyProviderTest {
 		Assert.assertTrue(List.class.isInstance(values.get("alerts").get("detail")));
 		
 		List<?> list = (List<?>) values.get("alerts").get("detail");
-		Assert.assertEquals(Integer.valueOf(3), Integer.valueOf(list.size()));
+		Assert.assertEquals(Integer.valueOf(2), Integer.valueOf(list.size()));
 		for (Object o : list) {
 			Assert.assertTrue(Map.class.isInstance(o));
 			Map<?, ?> map = (Map<?, ?>) o;
@@ -204,7 +204,7 @@ public class NagiosPropertyProviderTest {
 		
 		Assert.assertTrue(summary.get("OK").equals(Integer.valueOf(1)));
 		Assert.assertTrue(summary.get("WARNING").equals(Integer.valueOf(0)));
-		Assert.assertTrue(summary.get("CRITICAL").equals(Integer.valueOf(2)));
+		Assert.assertTrue(summary.get("CRITICAL").equals(Integer.valueOf(1)));
 	}
 	
 	@Test

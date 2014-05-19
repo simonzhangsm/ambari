@@ -56,7 +56,7 @@ public class RequestExecutionTest {
 		clusterName = "foo";
 		clusters.addCluster(clusterName);
 		cluster = clusters.getCluster(clusterName);
-		cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+		cluster.setDesiredStackVersion(new StackId("HDP-2.0.1"));
 		Assert.assertNotNull(cluster);
 		clusters.addHost("h1");
 		clusters.addHost("h2");

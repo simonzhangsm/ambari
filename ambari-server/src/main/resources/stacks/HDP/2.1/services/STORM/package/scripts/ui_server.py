@@ -21,8 +21,8 @@ limitations under the License.
 import sys
 
 from resource_management import *
-import service
 from service_check import ServiceCheck
+import service
 import storm
 
 

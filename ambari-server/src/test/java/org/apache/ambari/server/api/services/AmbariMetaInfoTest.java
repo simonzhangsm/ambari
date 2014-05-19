@@ -52,10 +52,10 @@ import org.slf4j.LoggerFactory;
 public class AmbariMetaInfoTest {
 	
 	private static final String STACK_NAME_HDP = "HDP";
-	private static final String STACK_VERSION_HDP = "0.1";
+	private static final String STACK_VERSION_HDP = "2.0.1";
 	private static final String EXT_STACK_NAME = "2.0.6";
-	private static final String STACK_VERSION_HDP_02 = "0.2";
-	private static final String STACK_MINIMAL_VERSION_HDP = "0.0";
+	private static final String STACK_VERSION_HDP_02 = "2.0.1";
+	private static final String STACK_MINIMAL_VERSION_HDP = "2.0.0";
 	private static String SERVICE_NAME_HDFS = "HDFS";
 	private static String SERVICE_NAME_MAPRED2 = "MAPREDUCE2";
 	private static String SERVICE_COMPONENT_NAME = "NAMENODE";
@@ -250,7 +250,7 @@ public class AmbariMetaInfoTest {
 	 * @throws Exception
 	 */
 	public void testGlobalMapping() throws Exception {
-		ServiceInfo sinfo = metaInfo.getServiceInfo("HDP", "0.2", "HDFS");
+		ServiceInfo sinfo = metaInfo.getServiceInfo("HDP", "2.0.1", "HDFS");
 		List<PropertyInfo> pinfo = sinfo.getProperties();
 		/** check all the config knobs and make sure the global one is there **/
 		boolean checkforglobal = false;
@@ -261,7 +261,7 @@ public class AmbariMetaInfoTest {
 			}
 		}
 		Assert.assertTrue(checkforglobal);
-		sinfo = metaInfo.getServiceInfo("HDP", "0.2", "MAPREDUCE");
+		sinfo = metaInfo.getServiceInfo("HDP", "2.0.1", "MAPREDUCE");
 		boolean checkforhadoopheapsize = false;
 		pinfo = sinfo.getProperties();
 		for (PropertyInfo pinfol : pinfo) {
@@ -627,7 +627,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testGanglia134Dependencies() throws Exception {
-		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "GANGLIA");
+		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.1", "GANGLIA");
 		List<ComponentInfo> componentList = service.getComponents();
 		Assert.assertEquals(2, componentList.size());
 		for (ComponentInfo component : componentList) {
@@ -653,7 +653,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testHBase134Dependencies() throws Exception {
-		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "HBASE");
+		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.1", "HBASE");
 		List<ComponentInfo> componentList = service.getComponents();
 		Assert.assertEquals(3, componentList.size());
 		for (ComponentInfo component : componentList) {
@@ -701,7 +701,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testHDFS134Dependencies() throws Exception {
-		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "HDFS");
+		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.1", "HDFS");
 		List<ComponentInfo> componentList = service.getComponents();
 		Assert.assertEquals(4, componentList.size());
 		for (ComponentInfo component : componentList) {
@@ -743,7 +743,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testHive134Dependencies() throws Exception {
-		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "HIVE");
+		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.1", "HIVE");
 		List<ComponentInfo> componentList = service.getComponents();
 		Assert.assertEquals(4, componentList.size());
 		for (ComponentInfo component : componentList) {
@@ -795,7 +795,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testHue134Dependencies() throws Exception {
-		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "HUE");
+		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.1", "HUE");
 		List<ComponentInfo> componentList = service.getComponents();
 		Assert.assertEquals(1, componentList.size());
 		ComponentInfo component = componentList.get(0);
@@ -810,7 +810,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testMapReduce134Dependencies() throws Exception {
-		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "MAPREDUCE");
+		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.1", "MAPREDUCE");
 		List<ComponentInfo> componentList = service.getComponents();
 		Assert.assertEquals(4, componentList.size());
 		for (ComponentInfo component : componentList) {
@@ -854,7 +854,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testNagios134Dependencies() throws Exception {
-		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "NAGIOS");
+		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.1", "NAGIOS");
 		List<ComponentInfo> componentList = service.getComponents();
 		Assert.assertEquals(1, componentList.size());
 		ComponentInfo component = componentList.get(0);
@@ -869,7 +869,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testOozie134Dependencies() throws Exception {
-		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "OOZIE");
+		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.1", "OOZIE");
 		List<ComponentInfo> componentList = service.getComponents();
 		Assert.assertEquals(2, componentList.size());
 		for (ComponentInfo component : componentList) {
@@ -919,7 +919,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testPig134Dependencies() throws Exception {
-		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "PIG");
+		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.1", "PIG");
 		List<ComponentInfo> componentList = service.getComponents();
 		Assert.assertEquals(1, componentList.size());
 		ComponentInfo component = componentList.get(0);
@@ -934,7 +934,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testSqoop134Dependencies() throws Exception {
-		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "SQOOP");
+		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.1", "SQOOP");
 		List<ComponentInfo> componentList = service.getComponents();
 		Assert.assertEquals(1, componentList.size());
 		ComponentInfo component = componentList.get(0);
@@ -961,7 +961,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testWebHCat134Dependencies() throws Exception {
-		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "WEBHCAT");
+		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.1", "WEBHCAT");
 		List<ComponentInfo> componentList = service.getComponents();
 		Assert.assertEquals(1, componentList.size());
 		ComponentInfo component = componentList.get(0);
@@ -996,7 +996,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testZooKeeper134Dependencies() throws Exception {
-		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "ZOOKEEPER");
+		ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "2.0.1", "ZOOKEEPER");
 		List<ComponentInfo> componentList = service.getComponents();
 		Assert.assertEquals(2, componentList.size());
 		for (ComponentInfo component : componentList) {
@@ -1215,7 +1215,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testGetComponentDependency() throws AmbariException {
-		DependencyInfo dependency = metaInfo.getComponentDependency("HDP", "1.3.4", "HIVE", "HIVE_SERVER", "ZOOKEEPER_SERVER");
+		DependencyInfo dependency = metaInfo.getComponentDependency("HDP", "2.0.1", "HIVE", "HIVE_SERVER", "ZOOKEEPER_SERVER");
 		assertEquals("ZOOKEEPER/ZOOKEEPER_SERVER", dependency.getName());
 		assertEquals("ZOOKEEPER_SERVER", dependency.getComponentName());
 		assertEquals("ZOOKEEPER", dependency.getServiceName());
@@ -1224,7 +1224,7 @@ public class AmbariMetaInfoTest {
 	
 	@Test
 	public void testGetComponentDependencies() throws AmbariException {
-		List<DependencyInfo> dependencies = metaInfo.getComponentDependencies("HDP", "1.3.4", "HBASE", "HBASE_MASTER");
+		List<DependencyInfo> dependencies = metaInfo.getComponentDependencies("HDP", "2.0.1", "HBASE", "HBASE_MASTER");
 		assertEquals(2, dependencies.size());
 		
 		DependencyInfo dependency = dependencies.get(0);

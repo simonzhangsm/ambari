@@ -61,7 +61,7 @@ limitations under the License.
   </tr>
   <tr>
     <td>HostRoles/stack_id</td>
-    <td>The stack id (e.g. HDP-1.3.0)</td>  
+    <td>The stack id (e.g. HDP-2.0.1)</td>  
   </tr>
 </table>
 

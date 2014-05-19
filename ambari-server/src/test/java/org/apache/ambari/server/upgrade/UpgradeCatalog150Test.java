@@ -45,7 +45,7 @@ public class UpgradeCatalog150Test {
 	private final String CLUSTER_NAME = "c1";
 	private final String SERVICE_NAME = "HDFS";
 	private final String HOST_NAME = "h1";
-	private final String DESIRED_STACK_VERSION = "{\"stackName\":\"HDP\",\"stackVersion\":\"1.3.4\"}";
+	private final String DESIRED_STACK_VERSION = "{\"stackName\":\"HDP\",\"stackVersion\":\"2.0.1\"}";
 	
 	@Before
 	public void setup() throws Exception {

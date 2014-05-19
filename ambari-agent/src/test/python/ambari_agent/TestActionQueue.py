@@ -75,8 +75,8 @@ class TestActionQueue(TestCase):
       'configurations':{'global' : {}},
       'roleParams': {},
       'commandParams' :	{
-        'source_stack_version' : 'HDP-1.2.1',
-        'target_stack_version' : 'HDP-1.3.0'
+        'source_stack_version' : 'HDP-2.0.1',
+        'target_stack_version' : 'HDP-2.1.0'
       }
     }
 

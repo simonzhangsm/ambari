@@ -81,10 +81,10 @@ class TestHostInfo(TestCase):
     self.assertTrue(1, len(l3))
     self.assertEqual(l3[0], "HDP")
 
-    l1 = ["AMBARI.dev-1.x", "HDP-1.3.0"]
+    l1 = ["AMBARI.dev-1.x", "HDP-2.0.1"]
     l3 = hostInfo.getReposToRemove(l1, l2)
     self.assertTrue(1, len(l3))
-    self.assertEqual(l3[0], "HDP-1.3.0")
+    self.assertEqual(l3[0], "HDP-2.0.1")
 
   def test_perform_package_analysis(self):
     packageAnalyzer = PackagesAnalyzer()
@@ -145,10 +145,10 @@ class TestHostInfo(TestCase):
                       Red_Hat_Enterprise_Linux-Release_Notes-6-en-US.noarch
                               3-7.el6               @koji-override-0
                       hcatalog.noarch               0.11.0.1.3.0.0-107.el6
-                                                    @HDP-1.3.0
+                                                    @HDP-2.0.1
                       hesiod.x86_64                 3.1.0-19.el6          @koji-override-0/$releasever
                       hive.noarch                   0.11.0.1.3.0.0-107.el6
-                                                    @HDP-1.3.0
+                                                    @HDP-2.0.1
                       oracle-server-db.x86          1.3.17-2
                                                     @Oracle-11g
                       ambari-log4j.noarch           1.2.5.9-1             @AMBARI.dev-1.x
@@ -169,7 +169,7 @@ class TestHostInfo(TestCase):
                                  "hcatalog.noarch", "hesiod.x86_64", "hive.noarch", "ambari-log4j.noarch", "libconfuse.x86_64"])
       self.assertTrue(package[1] in ["1.x-1.el6", "0.8.4-19.el6", "3-7.el6", "3.1.0-19.el6",
                                  "0.11.0.1.3.0.0-107.el6", "1.2.5.9-1", "1.3.17-2", "1.2.5.9-1", "2.7-4.el6"])
-      self.assertTrue(package[2] in ["installed", "koji-override-0", "HDP-1.3.0",
+      self.assertTrue(package[2] in ["installed", "koji-override-0", "HDP-2.0.1",
                                  "koji-override-0/$releasever", "AMBARI.dev-1.x", "Oracle-11g", "HDP-epel"])
 
     packages = packageAnalyzer.getInstalledPkgsByNames(["AMBARI", "Red_Hat_Enterprise", "hesiod", "hive"],
@@ -185,7 +185,7 @@ class TestHostInfo(TestCase):
     for package in detailedPackages:
       self.assertTrue(package['version'] in ["1.x-1.el6", "3-7.el6", "3.1.0-19.el6",
                                             "0.11.0.1.3.0.0-107.el6"])
-      self.assertTrue(package['repoName'] in ["installed", "koji-override-0", "HDP-1.3.0",
+      self.assertTrue(package['repoName'] in ["installed", "koji-override-0", "HDP-2.0.1",
                                               "koji-override-0/$releasever"])
       self.assertFalse(package['repoName'] in ["AMBARI.dev-1.x"])
 

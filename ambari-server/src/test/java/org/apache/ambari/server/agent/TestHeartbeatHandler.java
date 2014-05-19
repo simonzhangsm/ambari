@@ -961,7 +961,7 @@ public class TestHeartbeatHandler {
 		
 		Stage s = new Stage(1, "/a/b", "cluster1", "action manager test", "clusterHostInfo");
 		s.setStageId(1);
-		s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.INSTALL, new ServiceComponentHostInstallEvent(Role.DATANODE.toString(), DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"), DummyCluster, "HDFS");
+		s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.INSTALL, new ServiceComponentHostInstallEvent(Role.DATANODE.toString(), DummyHostname1, System.currentTimeMillis(), "HDP-2.0.1"), DummyCluster, "HDFS");
 		List<Stage> stages = new ArrayList<Stage>();
 		stages.add(s);
 		Request request = new Request(stages, clusters);
@@ -1218,8 +1218,8 @@ public class TestHeartbeatHandler {
 		ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
 		ServiceComponentHost serviceComponentHost3 = clusters.getCluster(DummyCluster).getService(HDFS).getServiceComponent(HDFS_CLIENT).getServiceComponentHost(DummyHostname1);
 		
-		StackId stack130 = new StackId("HDP-1.3.0");
-		StackId stack122 = new StackId("HDP-1.2.2");
+		StackId stack130 = new StackId("HDP-2.0.1");
+		StackId stack122 = new StackId("HDP-2.1.0");
 		
 		serviceComponentHost1.setState(State.INSTALLED);
 		serviceComponentHost2.setState(State.STARTED);
@@ -1282,8 +1282,8 @@ public class TestHeartbeatHandler {
 		ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
 		ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
 		
-		StackId stack130 = new StackId("HDP-1.3.0");
-		StackId stack122 = new StackId("HDP-1.2.2");
+		StackId stack130 = new StackId("HDP-2.0.1");
+		StackId stack122 = new StackId("HDP-2.1.0");
 		
 		serviceComponentHost1.setState(State.UPGRADING);
 		serviceComponentHost2.setState(State.INSTALLING);
@@ -1358,8 +1358,8 @@ public class TestHeartbeatHandler {
 		ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
 		ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
 		
-		StackId stack130 = new StackId("HDP-1.3.0");
-		StackId stack122 = new StackId("HDP-1.2.2");
+		StackId stack130 = new StackId("HDP-2.0.1");
+		StackId stack122 = new StackId("HDP-2.0.6");
 		
 		serviceComponentHost1.setState(State.UPGRADING);
 		serviceComponentHost2.setState(State.INSTALLING);
@@ -1433,8 +1433,8 @@ public class TestHeartbeatHandler {
 		ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
 		ServiceComponentHost serviceComponentHost2 = clusters.getCluster(DummyCluster).getService(HDFS).getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
 		
-		StackId stack130 = new StackId("HDP-1.3.0");
-		StackId stack122 = new StackId("HDP-1.2.2");
+		StackId stack130 = new StackId("HDP-2.0.1");
+		StackId stack122 = new StackId("HDP-2.1.0");
 		
 		serviceComponentHost1.setState(State.UPGRADING);
 		serviceComponentHost2.setState(State.INSTALLING);
@@ -1445,8 +1445,8 @@ public class TestHeartbeatHandler {
 		
 		Stage s = new Stage(requestId, "/a/b", "cluster1", "action manager test", "clusterHostInfo");
 		s.setStageId(stageId);
-		s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.UPGRADE, new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"), DummyCluster, "HDFS");
-		s.addHostRoleExecutionCommand(DummyHostname1, Role.NAMENODE, RoleCommand.INSTALL, new ServiceComponentHostInstallEvent(Role.NAMENODE.toString(), DummyHostname1, System.currentTimeMillis(), "HDP-1.3.0"), DummyCluster, "HDFS");
+		s.addHostRoleExecutionCommand(DummyHostname1, Role.DATANODE, RoleCommand.UPGRADE, new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), DummyHostname1, System.currentTimeMillis(), "HDP-2.0.1"), DummyCluster, "HDFS");
+		s.addHostRoleExecutionCommand(DummyHostname1, Role.NAMENODE, RoleCommand.INSTALL, new ServiceComponentHostInstallEvent(Role.NAMENODE.toString(), DummyHostname1, System.currentTimeMillis(), "HDP-2.0.1"), DummyCluster, "HDFS");
 		List<Stage> stages = new ArrayList<Stage>();
 		stages.add(s);
 		Request request = new Request(stages, clusters);

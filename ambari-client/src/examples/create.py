@@ -42,7 +42,7 @@ def main():
     # cluster creation
     ###############################
     # 1) create cluster
-    cluster = client.create_cluster("test33", "HDP-1.3.0")
+    cluster = client.create_cluster("test33", "HDP-2.0.1")
     print(cluster)
     
 
